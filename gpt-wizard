@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.98 2002-10-28 17:36:11-08 kst Exp $
+# $Id: gpt-wizard,v 1.99 2002-10-28 17:52:01-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -70,7 +70,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.98 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.99 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -665,8 +665,7 @@ if ($Cleanup) {
 # things are collected and printed in one well-marked block at the end
 # of the log.
 ########################################################################
-my $text = ">>> To be done manually:\n" .
-           join "\n", @manual_steps;
+my $text = join "\n", ">>> To be done manually:\n", @manual_steps;
 $text =~ s/^/* /gm;
 print '*' x 72, "\n";
 print $text;
@@ -675,7 +674,7 @@ print '*' x 72, "\n";
 print Time_Image time, "\n";
 
 ########################################################################
-# Subroutines
+############################## Subroutines #############################
 ########################################################################
 
 #
@@ -798,10 +797,6 @@ sub Get_Config($) {
             { type => 'file_or_url', required => 0 }
     );
 
-    foreach my $name (keys %Var_Info) {
-        $Var_Info{$name}->{name} = $name;
-    }
-
     print "Getting configuration from $config_file\n";
 
     #
@@ -823,7 +818,7 @@ sub Get_Config($) {
         if (/^(\w+)\s+(.*)$/) {
             my ($name, $value) = ($1, $2);
             if ($name eq 'BUNDLE') {
-                if ($value =~ /^(.*)\s*:\s*(binary|source)$/) {
+                if ($value =~ /^(.*)\s*:\s*(binary|source)$/i) {
                     $value = $1;
                     my $kind = lc $2;
                     if ($kind eq 'binary') {
