@@ -1,12 +1,23 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.24 2002-08-13 12:01:51-07 kst Exp $
+# $Id: gpt-wizard,v 1.25 2002-08-13 13:50:41-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
 # To do:
+#
 #     Start other services (optional?).
-#     Define a list syntax for the config file; specify a list of GPT bundles.
+#
+#     Define a list syntax for the config file; specify a list of
+#     GPT bundles.
+#
+#     Cope somehow with parts of Globus that need to be on local
+#     filesystems; at least mention in postinstall instructions.
+#
+#     Pick a better name for @postinstall_instructions to avoid
+#     confusion with gpt-postinstall.
+#
+#     Automatically set up to report to one or more GIIS servers.
 #
 
 use strict;
@@ -29,8 +40,8 @@ sub Debug(@);
 sub Usage(@);
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = '$Revision: 1.24 $';
-if ($Revision =~ /^\$Revision: 1.24 $$/) {
+my $Revision = '$Revision: 1.25 $';
+if ($Revision =~ /^\$Revision: 1.25 $$/) {
     $Revision = $1;
 }
 my $Help = undef;
@@ -218,25 +229,24 @@ if (defined $Config{BATCH_SYSTEM}) {
     my $libexec = "$ENV{GLOBUS_LOCATION}/libexec";
     push @postinstall_instructions,
          "Fix $ENV{GLOBUS_LOCATION}/libexec/" .
-         "globus-script-$Config{BATCH_SYSTEM}-*\n" .
-          "    if necessary.\n";
+         "globus-script-$Config{BATCH_SYSTEM}-* if necessary\n";
 }
 
 Execute @As_Installer,
         "$ENV{GLOBUS_LOCATION}/sbin/SXXgris", 'start';
 push @postinstall_instructions,
      "Arrange for \"$ENV{GLOBUS_LOCATION}/sbin/SXXgris start\"\n" .
-     "    to be executed by $Config{INSTALLER_USER} on system boot\n";
+     "    to be executed by user \"$Config{INSTALLER_USER}\" on system boot\n";
 
 chdir $ENV{HOME};
 if ($Cleanup) {
     Execute @As_Root, 'rm', '-rf', $tmp_dir;
 }
 
-print '=' x 72, "\n";
+print '*' x 72, "\n";
 print ">>> To be done manually:\n";
 print @postinstall_instructions;
-print '=' x 72, "\n";
+print '*' x 72, "\n";
 print Time_Image time, "\n";
 
 ########################################################################
@@ -325,7 +335,7 @@ sub Get_Config($) {
         die @errors;
     }
 
-    if ($Result{FILE_REVISION} =~ /^\$Revision: 1.24 $$/) {
+    if ($Result{FILE_REVISION} =~ /^\$Revision: 1.25 $$/) {
         $Result{FILE_REVISION} = $1;
     }
 
