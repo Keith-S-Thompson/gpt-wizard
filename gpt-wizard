@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.27 2002-08-13 14:40:43-07 kst Exp $
+# $Id: gpt-wizard,v 1.28 2002-08-13 14:47:39-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -39,8 +39,8 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = '$Revision: 1.27 $';
-if ($Revision =~ /^\$Revision: 1.27 $$/) {
+my $Revision = '$Revision: 1.28 $';
+if ($Revision =~ /^\$Revision: 1.28 $$/) {
     $Revision = $1;
 }
 my $Help = undef;
@@ -215,7 +215,7 @@ else {
     }
 }
 
-if (defined $Config{BATCH_SYSTEM}) {
+if ($Config{BATCH_SYSTEM} ne 'none') {
     Execute @As_Installer,
             "$ENV{GLOBUS_LOCATION}/setup/globus/setup-globus-gram-job-manager",
             $Config{BATCH_SYSTEM};
@@ -357,8 +357,8 @@ sub Get_Config($) {
     # Don't let RCS modify the search pattern.
     #
     my $revision_tag = '$' . 'Revision:';
-    if ($Result{FILE_REVISION} =~ /^$revision_tag: ([\d.]+) \$$/) {
-        $Result{FILE_REVISION} = $1;
+    if ($Result{CONFIG_FILE_REVISION} =~ /^$revision_tag: ([\d.]+) \$$/) {
+        $Result{CONFIG_FILE_REVISION} = $1;
     }
 
     #
@@ -369,9 +369,6 @@ sub Get_Config($) {
     $Result{BATCH_SYSTEM} = lc $Result{BATCH_SYSTEM};
     $Result{INET_DAEMON}  = lc $Result{INET_DAEMON};
 
-    if ($Result{BATCH_SYSTEM} eq 'none') {
-        $Result{BATCH_SYSTEM} = undef;
-    }
     foreach my $key (sort keys %Result) {
         my $value = $Result{$key};
         if (ref $value eq 'ARRAY') {
@@ -675,7 +672,7 @@ sub Check_Config_Vars() {
     if (not $is_inet_daemon{$Config{INET_DAEMON}}) {
         push @errors, "INET_DAEMON must be one of: @inet_daemons\n";
     }
-    if (defined $Config{BATCH_SYSTEM} and
+    if ($Config{BATCH_SYSTEM} ne 'none' and
         not $is_batch_system{$Config{BATCH_SYSTEM}})
     {
         push @errors, "BATCH_SYSTEM must be \"none\" or one of:\n" .
