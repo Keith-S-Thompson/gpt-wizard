@@ -1,7 +1,18 @@
-$Id: Relnotes,v 1.16 2004-05-08 01:07:11-07 kst Exp $
+$Id: Relnotes,v 1.17 2004-08-29 22:35:10-07 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.7.4 to release 0.7.5:
+
+    New configuration pseudo-option: .PARAM
+    This implements a simple macro facility, and allows
+    for easier customization of config files for performing similar
+    installations at multiple sites.
+
+    Minor tweaks in manual steps (update MDS config files before
+    starting daemons, mention that setup-gsi may not exist for
+    Globus 3.X).
 
 Changes from release 0.7.3 to release 0.7.4:
 
