@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.248 2004-03-07 19:35:42-08 kst Exp $
+# $Id: gpt-wizard,v 1.249 2004-03-07 20:40:13-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -187,43 +187,24 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.248 $';
-my $Help              = undef;
-my $Show_Version      = undef;
-my $Validate_Only     = undef;
-my $Debugging         = undef;
-my $Cleanup           = 1;
-my $Postinstall       = 1;
-my $Startup           = undef;
-my $GPT_Verbose       = undef;
-my $GPT_Log           = undef;
-my $GPT_Install_Only  = undef;
-my $GPT_Ignore_Errors = undef;
-my $AIX_Kludge        = undef;
-my @Opts = ( 'help!'              => \$Help,
-             'version!'           => \$Show_Version,
-             'validate-only!'     => \$Validate_Only,
-             'debugging!'         => \$Debugging,
-             'cleanup!'           => \$Cleanup,
-             'postinstall!'       => \$Postinstall,
-             'startup!'           => \$Startup,
-             'gpt-verbose!'       => \$GPT_Verbose,
-           # 'gpt-log!'           => \$GPT_Log,
-             'gpt-install-only!'  => \$GPT_Install_Only,
-             'gpt-ignore-errors!' => \$GPT_Ignore_Errors,
-             'aix-kludge!'        => \$AIX_Kludge );
+my $Revision          = Strip_Revision_String '$Revision: 1.249 $';
+my %Opt = ( cleanup     => 1,
+            postinstall => 1 );
+my @Opts = ( \%Opt, qw( help!
+                        version!
+                        validate-only!
+                        debugging!
+                        cleanup!
+                        postinstall!
+                        startup!
+                        gpt-verbose!
+                        gpt-ignore-errors!
+                        aix-kludge! ) );
 Getopt::Long::GetOptions @Opts or Usage;
-Usage if $Help;
-Show_Version if $Show_Version;
+Usage if $Opt{help};
+Show_Version if $Opt{version};
 
-die "-gpt-log option is disabled\n" if $GPT_Log;
-
-if ($GPT_Log and $Cleanup) {
-    print "-gpt-log implies -nocleanup, setting option\n";
-    $Cleanup = undef;
-}
-
-if ($Startup and not $Postinstall) {
+if ($Opt{startup} and not $Opt{postinstall}) {
     Usage "Option conflict: \"-startup\" and \"-nopostinstall\"\n",
           "    (Can't do startup without doing gpt-postinstall)\n";
 }
@@ -240,7 +221,7 @@ my $Default_Group = ( $Running_As_Root ? 'globus' : $This_Group );
 
 my %Running = (); # Keys are PIDs of processes spawned by Execute.
 
-if ($Startup and not $Running_As_Root) {
+if ($Opt{startup} and not $Running_As_Root) {
     die "The -startup option can only be used by root\n";
 }
 
@@ -280,7 +261,7 @@ if ($Sys{LC_OSNAME} eq 'linux') {
 }
 elsif ($Sys{LC_OSNAME} eq 'sunos' or
        $Sys{LC_OSNAME} eq 'aix') {
-    if ($Startup) {
+    if ($Opt{startup}) {
         die "The \"-startup\" option is not currently supported " .
             "on $Sys{OSNAME}\n";
     }
@@ -296,7 +277,7 @@ my @As_Root      = qw(-time=5 -verbose -check);
 my @As_Installer = qw(-time=5 -verbose -check);
 my @As_Root_GPT      = @As_Root;
 my @As_Installer_GPT = @As_Installer;
-if ($GPT_Ignore_Errors) {
+if ($Opt{'gpt-ignore-errors'}) {
     @As_Root_GPT      = grep { $_ ne '-check' } @As_Root;
     @As_Installer_GPT = grep { $_ ne '-check' } @As_Installer;
 }
@@ -315,7 +296,7 @@ my @As_Myself = ( $Running_As_Root ? @As_Root : @As_Installer );
 
 my $CLK_TCK = POSIX::sysconf(&POSIX::_SC_CLK_TCK);
 
-exit 0 if $Validate_Only;
+exit 0 if $Opt{'validate-only'};
 
 ########################################################################
 # Create a temporary working directory and set some variables.
@@ -375,7 +356,7 @@ if ($Running_As_Root) {
 }
 print "% cd $working_dir\n";
 chdir $working_dir or die "$working_dir: $!\n";
-if (not $Cleanup) {
+if (not $Opt{cleanup}) {
     push @manual_steps,
          "The working directory\n" .
          "    $working_dir\n" .
@@ -403,7 +384,7 @@ if (defined $Config{GLOBUS_HOSTNAME}) {
 # the extracted source directory.
 ########################################
 
-if (not $AIX_Kludge) {
+if (not $Opt{'aix-kludge'}) {
     opendir DIR, '.' or die ".: $!\n";
     my @files_before = readdir DIR;
     closedir DIR;
@@ -452,7 +433,7 @@ if (not $AIX_Kludge) {
 print "% Setting GPT_LOCATION=$Config{GPT_LOCATION}\n";
 $ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
 
-if ($AIX_Kludge) {
+if ($Opt{'aix-kludge'}) {
     die "No directory $Config{GPT_LOCATION}\n"
         if not -d $Config{GPT_LOCATION};
     die "No executable $Config{GPT_LOCATION}/sbin/gpt-install\n"
@@ -472,7 +453,7 @@ else {
 ########################################
 # Run build_gpt to install GPT
 ########################################
-if (not $AIX_Kludge) {
+if (not $Opt{'aix-kludge'}) {
     #
     # The default setting for the $LANG environment variable
     # on Red Hat 9 causes problems building some Perl modules.
@@ -614,15 +595,8 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         # Using gpt-build to build and install a source bundle.
         #
         my @options = ();
-        if ($GPT_Verbose) {
+        if ($Opt{'gpt-verbose'}) {
             push @options, '-verbose';
-        }
-        if ($GPT_Log) {
-            my $logfile = File::Basename::basename $bundle . ".log";
-            push @options, "-log=$logfile";
-        }
-        if ($GPT_Install_Only) {
-            push @options, '-install-only';
         }
         if ($bundle->{is_update}) {
             push @options, '-update';
@@ -649,15 +623,12 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         # Using gpt-install to install a binary or RPM bundle.
         #
         my @options = ();
-        if ($GPT_Verbose) {
+        if ($Opt{'gpt-verbose'}) {
             push @options, '-verbose';
         }
         if (defined $bundle->{option}) {
             push @options, split(',', $bundle->{option});
         }
-        #
-        # $GPT_Log and $GPT_Install_Only are inapplicable for gpt-install.
-        #
         if ($bundle_kind eq 'binary') {
             Execute @As_Installer_GPT,
                     $gpt_install_command, @options, $bundle->{filename};
@@ -786,7 +757,7 @@ Fix_Setup_Script
 # unless it's necessary.  Just to make it even kludgier, any occurrence of
 # the string BUILD_DIR is replaced with the name of the build directory.
 ########################################
-if ($Postinstall and defined $Config{PRE_POSTINSTALL}) {
+if ($Opt{postinstall} and defined $Config{PRE_POSTINSTALL}) {
     my $pre_postinstall = $Config{PRE_POSTINSTALL};
     $pre_postinstall =~ s(BUILD_DIR)($working_dir/BUILD);
     my @fixup_command = split /\s+/, $pre_postinstall;
@@ -796,7 +767,7 @@ if ($Postinstall and defined $Config{PRE_POSTINSTALL}) {
 ########################################
 # Run gpt-postinstall.
 ########################################
-if ($Postinstall) {
+if ($Opt{postinstall}) {
     Execute $Using_RPM ? @As_Root : @As_Installer,
             "$Config{GPT_LOCATION}/sbin/gpt-postinstall";
 }
@@ -818,7 +789,7 @@ my @localized_etc_files = qw( globus-job-manager.conf
 if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
     my $global_etc = "$Config{GLOBUS_LOCATION}/etc";
     my $local_etc  = "$Config{GLOBUS_LOCAL_DIRECTORY}/etc";  
-    if ($Postinstall) {
+    if ($Opt{postinstall}) {
         my @missing = ();
         foreach my $file ( @localized_etc_files ) {
             if (-e "$global_etc/$file") {
@@ -877,7 +848,7 @@ if (defined $Config{JOB_MANAGER}) {
     # setup-globus-job-manager-FOO.pl invokes "./find-FOO-tools"
     # (for FOO = pbs, lsf, etc.)  Argh!
     #
-    if ($Postinstall) {
+    if ($Opt{postinstall}) {
         chdir $setup_dir or die "$setup_dir: $!\n";
         Execute $Using_RPM ? @As_Root : @As_Installer,
             "$setup_dir/setup-globus-job-manager-$jobmanager",
@@ -898,7 +869,7 @@ if (defined $Config{JOB_MANAGER}) {
 # Run setup-gsi to create /etc/grid-security
 # (but we're going to replace its contents in a moment).
 ########################################
-if ($Startup) {
+if ($Opt{startup}) {
     Execute @As_Root,
             "$Config{GLOBUS_LOCATION}/setup/globus/setup-gsi";
 }
@@ -910,7 +881,7 @@ else {
 ########################################
 # Now copy files to /etc/grid-security.
 ########################################
-if ($Startup) {
+if ($Opt{startup}) {
     if (defined $Config{GRID_MAPFILE}) {
         Backup '/etc/grid-security/grid-mapfile';
         Execute @As_Root,
@@ -1011,7 +982,7 @@ else {
          "owned by $Config{INSTALLER_USER} (optional)\n";
 }
 
-if ($Startup and defined $Config{CA_CERT_TARBALL}) {
+if ($Opt{startup} and defined $Config{CA_CERT_TARBALL}) {
     my $ca_cert_dir = '/etc/grid-security/certificates';
     Backup $ca_cert_dir;
     print "% mkdir $ca_cert_dir\n";
@@ -1043,7 +1014,7 @@ if (defined $Sys{NET_DAEMON} and $Sys{NET_DAEMON} eq 'xinetd') {
              "$Program_Name is confused.\n";
     }
     else {
-        if ($Startup and -d $xinetd_dir) {
+        if ($Opt{startup} and -d $xinetd_dir) {
             Backup $gatekeeper_file;
             open FILE, "> $gatekeeper_file" or die "${gatekeeper_file}: $!\n";
             print FILE $gatekeeper_text;
@@ -1131,7 +1102,7 @@ else {
          Inet_Config_Text('xinetd', 'gsiftp');
 }
 
-if ($Startup) {
+if ($Opt{startup}) {
     Execute @As_Installer,
             "$Config{GLOBUS_LOCATION}/sbin/SXXgris", 'start';
 }
@@ -1231,7 +1202,7 @@ if (-d "$Config{GLOBUS_LOCATION}/var/condor") {
 }
 
 chdir '/tmp';
-if ($Cleanup) {
+if ($Opt{cleanup}) {
     Execute @As_Myself, 'rm', '-rf', $working_dir;
 }
 
@@ -1762,7 +1733,7 @@ sub Get_Config($) {
         #
         elsif ($var->{type} eq 'new_directory') {
             my $dir = $var->{value};
-            if ( $AIX_Kludge and
+            if ( $Opt{'aix-kludge'} and
                  ( ( $varname eq 'GPT_LOCATION' ) or
                    ( $varname eq 'GLOBUS_LOCATION' and 
                      ( $Var_Info{GPT_LOCATION}->{value} eq
@@ -2622,7 +2593,7 @@ sub Check_Services() {
 
 sub Cleanup() {
     if (defined $working_dir) {
-        if ($Cleanup) {
+        if ($Opt{cleanup}) {
             print ">>> Cleaning up\n";
             #
             # chdir to tmp to make sure we aren't in a directory that
@@ -2650,7 +2621,10 @@ sub Cleanup() {
     # Don't do this if there was an error processing the config file,
     # or if the '-validate-only' flag was specified.
     #
-    if (@manual_steps and $Config_File_Processed and not $Validate_Only) {
+    if (@manual_steps and
+        $Config_File_Processed and
+        not $Opt{'validate-only'})
+    {
         print Manual_Steps_Text @manual_steps;
     }
 } # Cleanup
@@ -2936,7 +2910,7 @@ sub Image($) {
 # ----------------------------------------------------------------------
 
 sub Debug(@) {
-    print @_ if $Debugging;
+    print @_ if $Opt{debugging};
 } # Debug
 
 # ----------------------------------------------------------------------
@@ -2974,8 +2948,6 @@ Option names may be abbreviated uniquely.
     -startup            Update system files and start services
                         (default is -nostartup)
     -gpt-verbose        Pass -verbose option to gpt-install and/or gpt-build.
-    -gpt-install-only   Pass -install-only option to gpt-build.
-                        Doesn't affect binary installations (gpt-install).
     -gpt-ignore-errors  Ignore errors from gpt-install and gpt-build.
     -aix-kludge         Use an existing GPT installation.
     -debugging          Enable debugging.
@@ -2983,11 +2955,4 @@ Most options can be negated by prepending "no".
 For example, "-nocleanup" inhibits cleanup.
 EOF
     exit 1;
-#
-# Disabled option:
-#   -gpt-log            Pass -log=... option to gpt-build.
-#                       Implies -nocleanup, since logs are written to the
-#                       temporary directory.
-#                       Doesn't affect binary installations (gpt-install).
-#
 } # Usage
