@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.121 2002-11-22 07:50:27-08 kst Exp $
+# $Id: gpt-wizard,v 1.122 2002-11-27 11:30:34-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -120,7 +120,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.121 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.122 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -680,7 +680,7 @@ else {
          "/etc/grid-security/certificates\n";
 }
 
-if ($Sys{NET_DAEMON} eq 'xinetd') {
+if (defined $Sys{NET_DAEMON} and $Sys{NET_DAEMON} eq 'xinetd') {
     my $xinetd_dir = '/etc/xinetd.d';
     if (not -d $xinetd_dir) {
         push @manual_steps,
@@ -708,7 +708,7 @@ if ($Sys{NET_DAEMON} eq 'xinetd') {
         }
     }
 }
-else {
+elsif (defined $Sys{NET_DAEMON} and $Sys{NET_DAEMON} eq 'inetd') {
     #
     # For inetd, we need to update /etc/inetd.conf.
     # Since this involves editing an existing file (which requires
@@ -732,6 +732,14 @@ else {
 
     $update .= "Execute as root \"$Sys{NET_DAEMON_RELOAD}\"\n";
     push @manual_steps, $update;
+}
+elsif (defined $Sys{NET_DAEMON}) {
+    die "Internal error \$Sys{NET_DAEMON} = \"$Sys{NET_DAEMON}\"";
+}
+else {
+    push @manual_steps,
+         "Unable to determine net daemon (inetd or xinetd)\n" .
+         "Arrange for gsigatekeeper, gsiftp, and other daemons to execute\n";
 }
 
 if ($Startup) {
