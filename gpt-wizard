@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.176 2003-03-15 14:56:37-08 kst Exp $
+# $Id: gpt-wizard,v 1.177 2003-03-15 15:17:44-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -179,7 +179,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.176 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.177 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1473,9 +1473,9 @@ sub Get_Config($) {
             if (not defined $pw[2]) {
                 push @errors, "Bad $varname \"$var->{value}\", no such user\n";
             }
-            elsif ($pw[2] <= 0) {
-                push @errors, "Bad $varname \"$var->{value}\", uid = $pw[2]\n";
-            }
+#           elsif ($pw[2] <= 0) {
+#               push @errors, "Bad $varname \"$var->{value}\", uid = $pw[2]\n";
+#           }
         }
 
         #
@@ -1486,9 +1486,9 @@ sub Get_Config($) {
             if (not defined $gr[2]) {
                 push @errors, "Bad $varname \"$var->{value}\", no such group\n";
             }
-            elsif ($gr[2] <= 0) {
-                push @errors, "Bad $varname \"$var->{value}\", gid = $gr[2]\n";
-            }
+#           elsif ($gr[2] <= 0) {
+#               push @errors, "Bad $varname \"$var->{value}\", gid = $gr[2]\n";
+#           }
         }
 
         #
