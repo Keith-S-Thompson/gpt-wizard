@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.233 2004-02-12 14:53:34-08 kst Exp $
+# $Id: gpt-wizard,v 1.234 2004-02-13 19:53:00-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -185,7 +185,7 @@ my $Release_Revision = '1.233'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.233 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.234 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -230,6 +230,16 @@ $SIG{__DIE__} = \&Die_Handler;
 $SIG{INT}     = \&Signal_Handler;
 $SIG{TERM}    = \&Signal_Handler;
 
+my $Running_As_Root = ($< == 0);
+my $This_User  = (getpwuid($<))[0];
+my $This_Group = (getgrgid($())[0]; # ')' to make vi paren-matching happy
+my $Default_User  = ( $Running_As_Root ? 'globus' : $This_User  );
+my $Default_Group = ( $Running_As_Root ? 'globus' : $This_Group );
+
+if ($Startup and not $Running_As_Root) {
+    die "The -startup option can only be used by root\n";
+}
+
 my $tar = undef; 
 my $gzip = undef; 
 
@@ -272,26 +282,34 @@ elsif ($Sys{LC_OSNAME} eq 'sunos' or
     }
 }
 else {
-    die "Unsupported OS \"$Sys{OSNAME}\"\n";
+    die "Unsupported OS \"$Sys{OSNAME}\"\n" .
+        "Please contact Keith Thompson <kst\@sdsc.edu> for information\n";
 }
 
 Check_Services;
 
-my @As_Root      =  qw(-time=5 -verbose -check);
-my @As_Installer = (qw(-time=5 -verbose -check),
-                    "-user=$Config{INSTALLER_USER}.$Config{INSTALLER_GROUP}");
+my @As_Root      = qw(-time=5 -verbose -check);
+my @As_Installer = qw(-time=5 -verbose -check);
 my @As_Root_GPT      = @As_Root;
 my @As_Installer_GPT = @As_Installer;
 if ($GPT_Ignore_Errors) {
     @As_Root_GPT      = grep { $_ ne '-check' } @As_Root;
     @As_Installer_GPT = grep { $_ ne '-check' } @As_Installer;
 }
+if ($Running_As_Root) {
+    push @As_Installer,
+         "-user=$Config{INSTALLER_USER}.$Config{INSTALLER_GROUP}";
+    push @As_Installer_GPT,
+         "-user=$Config{INSTALLER_USER}.$Config{INSTALLER_GROUP}";
+}
+else {
+    my $error_arg = '-error=Internal error, non-root attempting to run as root';
+    push @As_Root,     $error_arg;
+    push @As_Root_GPT, $error_arg;
+}
+my @As_Myself = ( $Running_As_Root ? @As_Root : @As_Installer );
 
 my $CLK_TCK = POSIX::sysconf(&POSIX::_SC_CLK_TCK);
-
-if ($< != 0) {
-    die ">>> $Program_Name must be run as root\n";
-}
 
 exit 0 if $Validate_Only;
 
@@ -343,8 +361,10 @@ umask oct $Config{UMASK} or die "umask $Config{UMASK}: $!\n";
 my $working_dir = "$Config{TEMP_DIR}/gpt-wizard-" . time . "-$$";
 print "% mkdir $working_dir\n";
 mkdir $working_dir, 0700 or die "$working_dir: $!\n";
-chown $installer_uid, $installer_gid, $working_dir
-    or die "$working_dir: $!\n";
+if ($Running_As_Root) {
+    chown $installer_uid, $installer_gid, $working_dir
+        or die "$working_dir: $!\n";
+}
 print "% cd $working_dir\n";
 chdir $working_dir or die "$working_dir: $!\n";
 if (not $Cleanup) {
@@ -434,8 +454,10 @@ else {
     if (not -d $Config{GPT_LOCATION}) {
         print "% mkdir $Config{GPT_LOCATION}\n";
         mkdir $Config{GPT_LOCATION}, 0777 or die "$Config{GPT_LOCATION}: $!\n";
-        chown $installer_uid, $installer_gid, $Config{GPT_LOCATION}
-            or die "$Config{GPT_LOCATION}: $!\n";
+        if ($Running_As_Root) {
+            chown $installer_uid, $installer_gid, $Config{GPT_LOCATION}
+                or die "$Config{GPT_LOCATION}: $!\n";
+        }
     }
 }
 
@@ -510,8 +532,10 @@ if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION} and
     print "% mkdir $Config{GLOBUS_LOCATION}\n";
     mkdir $Config{GLOBUS_LOCATION}, 0777
         or die "$Config{GLOBUS_LOCATION}: $!\n";
-    chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCATION}
-        or die "$Config{GLOBUS_LOCATION}: $!\n";
+    if ($Running_As_Root) {
+        chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCATION}
+            or die "$Config{GLOBUS_LOCATION}: $!\n";
+    }
 }
 
 ########################################
@@ -523,7 +547,9 @@ my $info_file = "$info_dir/info";
 
 print "% mkdir $info_dir\n";
 mkdir $info_dir, 0777 or die "$info_dir: $!\n";
-chown $installer_uid, $installer_gid, $info_dir or die "$info_dir: $!\n";
+if ($Running_As_Root) {
+    chown $installer_uid, $installer_gid, $info_dir or die "$info_dir: $!\n";
+}
 
 Execute @As_Installer, 'cp', '-p', $Config_File_Full_Path, "$info_dir/.";
 
@@ -690,8 +716,12 @@ if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
         print "% mkdir $Config{GLOBUS_LOCAL_DIRECTORY}\n";
         mkdir $Config{GLOBUS_LOCAL_DIRECTORY}, 0777
             or die "$Config{GLOBUS_LOCAL_DIRECTORY}: $!\n";
-        chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCAL_DIRECTORY}
-            or die "$Config{GLOBUS_LOCAL_DIRECTORY}: $!\n";
+        if ($Running_As_Root) {
+            chown $installer_uid,
+                  $installer_gid,
+                  $Config{GLOBUS_LOCAL_DIRECTORY}
+                or die "$Config{GLOBUS_LOCAL_DIRECTORY}: $!\n";
+        }
     }
 
     foreach my $subdir ('var', 'tmp') {
@@ -699,14 +729,16 @@ if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
         my $local_dir  = "$Config{GLOBUS_LOCAL_DIRECTORY}/$subdir";
 
         if (-d $global_dir) {
-            Execute @As_Root, 'cp', '-pr', $global_dir, $local_dir;
-            Execute @As_Root, 'rm', '-rf', $global_dir;
+            Execute @As_Myself, 'cp', '-pr', $global_dir, $local_dir;
+            Execute @As_Myself, 'rm', '-rf', $global_dir;
         }
         else {
             print "% mkdir $local_dir\n";
             mkdir $local_dir, 0777 or die "$local_dir: $!\n";
-            chown $installer_uid, $installer_gid, $local_dir
-                or die "$local_dir: $!\n";
+            if ($Running_As_Root) {
+                chown $installer_uid, $installer_gid, $local_dir
+                    or die "$local_dir: $!\n";
+            }
         }
         symlink $local_dir, $global_dir or die "$global_dir: $!\n";
     }
@@ -715,8 +747,10 @@ if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
 
     print "% mkdir $local_etc\n";
     mkdir $local_etc, 0777 or die "$local_etc: $!\n";
-    chown $installer_uid, $installer_gid, $local_etc
-        or die "$local_etc: $!\n";
+    if ($Running_As_Root) {
+        chown $installer_uid, $installer_gid, $local_etc
+            or die "$local_etc: $!\n";
+    }
 }
 
 ########################################################################
@@ -781,7 +815,7 @@ if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
         my @missing = ();
         foreach my $file ( @localized_etc_files ) {
             if (-e "$global_etc/$file") {
-                Execute @As_Root,
+                Execute @As_Myself,
                         'cp', '-p', "$global_etc/$file", "$local_etc/$file";
                 unlink "$global_etc/$file" or die "$global_etc/${file}: $!\n";
                 symlink "$local_etc/$file", "$global_etc/$file"
@@ -1120,7 +1154,7 @@ if (-d "$Config{GLOBUS_LOCATION}/var/condor") {
 
 chdir '/tmp';
 if ($Cleanup) {
-    Execute @As_Root, 'rm', '-rf', $working_dir;
+    Execute @As_Myself, 'rm', '-rf', $working_dir;
 }
 
 ########################################################################
@@ -1297,9 +1331,9 @@ sub Get_Config($) {
         ENV =>
             { type => 'array_of_string', required => 0 },
         INSTALLER_USER =>
-            { type => 'user_name', required => 0, default => 'globus' },
+            { type => 'user_name', required => 0, default => $Default_User },
         INSTALLER_GROUP =>
-            { type => 'group_name', required => 0, default => 'globus' },
+            { type => 'group_name', required => 0, default => $Default_Group },
         USE_SDSC_SU =>
             { type => 'boolean', required => 0, default => 0 },
         UMASK =>
@@ -1626,9 +1660,12 @@ sub Get_Config($) {
             if (not defined $pw[2]) {
                 push @errors, "Bad $varname \"$var->{value}\", no such user\n";
             }
-#           elsif ($pw[2] <= 0) {
-#               push @errors, "Bad $varname \"$var->{value}\", uid = $pw[2]\n";
-#           }
+            if (not $Running_As_Root and $var->{value} ne $This_User) {
+                push @errors, "Bad $varname \"$var->{value}\", " .
+                              "permission denied\n" .
+                              "Run $Program_Name as root or " .
+                              "don't specify $varname\n";
+            }
         }
 
         #
@@ -1639,9 +1676,12 @@ sub Get_Config($) {
             if (not defined $gr[2]) {
                 push @errors, "Bad $varname \"$var->{value}\", no such group\n";
             }
-#           elsif ($gr[2] <= 0) {
-#               push @errors, "Bad $varname \"$var->{value}\", gid = $gr[2]\n";
-#           }
+            if (not $Running_As_Root and $var->{value} ne $This_Group) {
+                push @errors, "Bad $varname \"$var->{value}\", " .
+                              "permission denied\n" .
+                              "Run $Program_Name as root or " .
+                              "don't specify $varname\n";
+            }
         }
 
         #
@@ -1682,6 +1722,11 @@ sub Get_Config($) {
             foreach my $item (@{$var->{value}}) {
                 my $error = File_Error "-varname=$varname", $item->{filename};
                 push @errors, $error if defined $error;
+                if ($item->{kind} eq 'rpm') {
+                    push @errors,
+                         "RPM bundles cannot be installed " .
+                         "by a non-root user\n";
+                }
             }
         }
 
@@ -2113,7 +2158,7 @@ sub Get_Update_Flavors($) {
 #               Name can be "user", "user.group", or "user:group".
 # -stdin=file   Redirect stdin from specified file.
 # -input=string Redirect stdin from temp file with specified contents.
-#
+# -error=string Die immediately with an error message.
 # 
 sub Execute(@) {
     my @args = @_;
@@ -2171,6 +2216,9 @@ sub Execute(@) {
             $Stdin = Make_Temp_File $Input_String;
             $Stdin_Is_Temporary = 1;
         }
+        elsif ($arg =~ /^-error=(.+)$/) {
+            die $1;
+        }
         else {
             die "Execute: Unrecognized argument: $arg\n";
         }
@@ -2209,12 +2257,20 @@ sub Execute(@) {
             # Setting $< and $( (setruid() and setrgid()) is not supported
             # on AIX; use eval to avoid blowing up on the attempt.
             #
+            # Setting $) or $> silently does nothing if we don't have
+            # permission.  Confirm the setting afterward, and die if
+            # it failed.
+            #
             if (defined $gid) {
                 eval { $( = $gid };
                 $) = $gid;
+                my $new_group = $);
+                $new_group =~ s/ .*//;
+                die "Setting effective gid failed\n" if $new_group ne $gid;
             }
             eval { $< = $uid };
             $> = $uid;
+            die "Setting effective uid failed\n" if $> ne $uid;
             Debug "Child: \$< = $< \$> = $>\n";
             delete $SIG{__DIE__};
         }
@@ -2392,7 +2448,7 @@ sub Cleanup() {
             # we're about to nuke.
             #
             chdir '/tmp';
-            Execute @As_Root, 'rm', '-rf', $working_dir;
+            Execute @As_Myself, 'rm', '-rf', $working_dir;
         }
         else {
             print ">>> The working directory $working_dir\n",
@@ -2573,7 +2629,9 @@ sub Fix_Setup_Script($) {
     my @stat = stat $backup_file;
     my ($mode, $uid, $gid) = ($stat[2], $stat[4], $stat[5]);
     chmod $mode, $file;
-    chown $uid, $gid, $file;
+    if ($Running_As_Root) {
+        chown $uid, $gid, $file;
+    }
 } # Fix_Setup_Script
 
 # ----------------------------------------------------------------------
