@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.247 2004-03-04 16:57:36-08 kst Exp $
+# $Id: gpt-wizard,v 1.248 2004-03-07 19:35:42-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -187,7 +187,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.247 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.248 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1446,8 +1446,8 @@ sub Get_Config($) {
             { type => 'batch_system', required => 0 },
         JOB_MANAGER =>
             { type => 'job_manager', required => 0 },
-        MPICH_G2 =>
-            { type => 'mpich_g2', required => 0 },
+        'MPICH-G2' =>
+            { type => 'mpich-g2', required => 0 },
         CA_CERT_TARBALL =>
             { type => 'file', required => 0 }
     );
@@ -1461,7 +1461,7 @@ sub Get_Config($) {
     open CONFIG, $config_file or die "$config_file: $!\n";
     while (defined ($_ = Next_Line 'CONFIG')) {
         next if /^$/;
-        if (/^(\.?\w+)\s+(.*)$/) {
+        if (/^(\.?[\w-]+)\s+(.*)$/) {
             my ($name, $value) = ($1, $2);
             #
             # Expand ~username at the beginning of the string.
@@ -1624,27 +1624,27 @@ sub Get_Config($) {
                                               "defined for bundles\n";
                             }
                         }
-                        elsif ($Var->{type} eq 'mpich_g2') {
+                        elsif ($Var->{type} eq 'mpich-g2') {
                             if (defined $kind) {
                                 push @errors, "kind attribute may not be " .
-                                              "defined for MPICH_G2\n";
+                                              "defined for MPICH-G2\n";
                             }
                             if (defined $option) {
                                 push @errors, "option attribute may not be " .
-                                              "defined for MPICH_G2\n";
+                                              "defined for MPICH-G2\n";
                             }
                             if (not defined $filename) {
-                                push @errors, "Missing filename for MPICH_G2\n";
+                                push @errors, "Missing filename for MPICH-G2\n";
                             }
                             if (defined $flavor) {
                                 if ($flavor =~ /,/) {
                                     push @errors,
                                          "Only one flavor may be specified " .
-                                         "for MPICH_G2\n";
+                                         "for MPICH-G2\n";
                                 }
                             }
                             else {
-                                push @errors, "Missing flavor for MPICH_G2\n";
+                                push @errors, "Missing flavor for MPICH-G2\n";
                             }
                             if (defined $install) {
                                 if ($install =~ /^\//) {
@@ -1655,12 +1655,13 @@ sub Get_Config($) {
                                     # the depth cannot exceed 1 (no
                                     # recursive mkdir).
                                     push @errors,
-                                         "Relative path for MPICH_G2 " .
+                                         "Relative path for MPICH-G2 " .
                                          "can be at most one level deep\n";
                                 }
                             }
                             else {
-                                push @errors, "Missing install attr for MPICH_G2\n";
+                                push @errors,
+                                     "Missing install attr for MPICH-G2\n";
                             }
                         }
                         else {
@@ -1926,7 +1927,7 @@ sub Get_Config($) {
             #
         }
 
-        elsif ($var->{type} eq 'mpich_g2') {
+        elsif ($var->{type} eq 'mpich-g2') {
             #
             # For now, treat all the arguments as a single string.
             # We'll split it into words when we use it; the first word
