@@ -1,11 +1,11 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-03-23.gptw,v 1.8 2004-03-24 10:21:13-08 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-03-23.gptw,v 1.9 2004-03-24 10:28:04-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-03-23.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.8 $
+CONFIG_FILE_REVISION    $Revision: 1.9 $
 
-PATH /usr/bin:/bin:/usr/local/apps/intel/compiler8/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/intel8-r1/bin
-ENV INTEL_LICENSE_FILE=/usr/local/apps/intel/compiler8/licenses
-ENV LD_LIBRARY_PATH=/usr/local/apps/intel/compiler8/lib
+PATH /usr/bin:/bin:/users/kst/intel8-r2/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/intel8-r1/bin
+ENV INTEL_LICENSE_FILE=/users/kst/intel8-r2/licenses
+ENV LD_LIBRARY_PATH=/users/kst/intel8-r2/lib
 
 GLOBUS_LOCATION  /usr/local/apps/dtf-test2/globus-2.4.3-intel-2004-03-23
 GLOBUS_LOCAL_DIRECTORY         /var/globus/globus-2.4.3-intel-2004-03-23
