@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.30 2002-08-13 15:03:46-07 kst Exp $
+# $Id: gpt-wizard,v 1.31 2002-08-13 15:05:41-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -39,7 +39,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = '$Revision: 1.30 $';
+my $Revision = '$Revision: 1.31 $';
 #
 # Don't let RCS step on the search pattern.
 #
@@ -141,7 +141,7 @@ mkdir $ENV{GLOBUS_LOCATION} or die "$ENV{GLOBUS_LOCATION}: $!\n";
 chown $installer_uid, $installer_gid, $ENV{GLOBUS_LOCATION}
     or die "$ENV{GLOBUS_LOCATION}: $!\n";
 
-foreach my $bundle ( @{$Config{BUNDLE}} ) {
+foreach my $bundle ( @{$Config{BUNDLES}} ) {
     Execute @As_Installer, "$ENV{GPT_LOCATION}/sbin/gpt-install", $bundle;
 }
 
@@ -277,7 +277,7 @@ sub Get_Config($) {
 
                   GPT_TARBALL          => 0,
                   GPT_SRC_DIR          => 0,
-                  BUNDLE               => 0,
+                  BUNDLES              => 0,
 
                   GPT_LOCATION         => 0,
                   GLOBUS_LOCATION      => 0,
@@ -342,7 +342,7 @@ sub Get_Config($) {
             push @missing, $option;
         }
         elsif ($count{$option} > 1) {
-            push @extra, $option if $option ne 'BUNDLE';
+            push @extra, $option if $option ne 'BUNDLES';
         }
     }
 
@@ -699,7 +699,7 @@ sub Check_Config_Vars() {
             push @errors, "Can't read $key file \"$Config{$key}\"\n";
         }
     }
-    foreach my $bundle (@{$Config{BUNDLE}}) {
+    foreach my $bundle (@{$Config{BUNDLES}}) {
         if (not (-f $bundle and -r _)) {
             push @errors, "Can't read bundle file $bundle\n";
         }
