@@ -1,0 +1,85 @@
+# $Id: dtf-test2.sdsc.teragrid.org-globus-3.2.1-intel-test4.gptw,v 1.1 2004-07-29 01:33:59-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-3.2.1-intel-test4.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin:/usr/local/apps/intel/compiler8/bin:/opt/torque/bin:/usr/local/apps/mpich/intel8-r2/bin
+ENV INTEL_LICENSE_FILE=/usr/local/apps/intel/compiler8/licenses
+ENV LD_LIBRARY_PATH=/usr/local/apps/intel/compiler8/lib
+INTEL_WORKAROUND 1
+
+GLOBUS_LOCATION    /work/globus/apps/globus-3.2.1-intel-test4
+GLOBUS_LOCAL_DIRECTORY   /var/globus/globus-3.2.1-intel-test4
+
+.PREFIX /work/kst/repo.teragrid.org/open/gpt/3.2
+GPT_TARBALL gpt-3.2-src.tar.gz
+
+#
+# Build Globus 3.2.1 from source
+#
+
+MPI_FLAVORS_ARE_STATIC 1
+
+.PREFIX /work/kst/Globus/3.2.1-kst/bundles/src
+BUNDLE globus-information-services-client-3.2.1-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
+BUNDLE globus-information-services-sdk-3.2.1-src_bundle.tar.gz    kind=source flavor=vendorcc64dbgpthr
+BUNDLE globus-information-services-server-3.2.1-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
+
+BUNDLE globus-data-management-client-3.2.1-src_bundle.tar.gz      kind=source flavor=vendorcc64dbg
+BUNDLE globus-data-management-sdk-3.2.1-src_bundle.tar.gz         kind=source flavor=vendorcc64dbg
+BUNDLE globus-data-management-server-3.2.1-src_bundle.tar.gz      kind=source flavor=vendorcc64dbg
+
+BUNDLE globus-resource-management-client-3.2.1-src_bundle.tar.gz  kind=source flavor=vendorcc64dbg
+BUNDLE globus-resource-management-sdk-3.2.1-src_bundle.tar.gz     kind=source flavor=mpicc64dbg,vendorcc64dbg
+BUNDLE globus-resource-management-server-3.2.1-src_bundle.tar.gz  kind=source flavor=vendorcc64dbg
+
+#
+# Apply all currently available updates.
+#
+.PREFIX /work/kst/Globus/3.2.1-kst/updates/src
+UPDATE globus_ftp_client-2.8.tar.gz
+
+#
+# globus_gram_reporter and PBS support
+#
+.PREFIX /work/kst/Globus/3.2.1-kst/schedulers
+BUNDLE globus_gram_job_manager_setup_pbs-1.7.tar.gz  kind=source flavor=vendorcc64dbg
+
+.PREFIX /work/kst/Globus/3.2.1-kst/schedulers/gram-reporters
+BUNDLE globus_gram_reporter-2.0.tar.gz            kind=source flavor=vendorcc64dbg
+BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz kind=source flavor=vendorcc64dbg
+BUNDLE globus_gram_reporter_setup_pbs-1.0.tar.gz  kind=source flavor=vendorcc64dbg
+
+#
+# Install individual Condor-G packages extracted from NMI 3.2 binary bundle
+#
+.PREFIX /work/kst/repo.teragrid.org/open/condor-g/packages-NMI-3.2
+BUNDLE condor_base-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz         kind=binary
+BUNDLE condor_base_libs-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz    kind=binary
+BUNDLE condor_base_setup-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz   kind=binary
+BUNDLE condor_config-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=binary
+BUNDLE condor_dagman-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=binary
+BUNDLE condor_submit-0.6-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=binary
+
+#
+# Build and install myproxy
+#
+.PREFIX /work/kst/repo.teragrid.org/open/myproxy/1.14
+BUNDLE myproxy-1.14.tar.gz                                         kind=source flavor=vendorcc64dbg
+
+#
+# Build and install UberFTP
+#
+.PREFIX /work/kst/repo.teragrid.org/open/uberftp/1.9
+BUNDLE uberftp-1.9-src_bundle.tar.gz                               kind=source flavor=vendorcc64dbgpthr
+
+#
+# Configure PBS jobmanager
+#
+JOB_MANAGER pbs -cpu-per-node 2 -remote-shell ssh
+
+#
+# Build and install MPICH-G2
+#
+.PREFIX /work/kst/repo.teragrid.org/open/mpich/1.2.5.3
+MPICH-G2 mpich-1.2.5.3.tar.gz flavor=mpicc64dbg install=mpich-g2-1.2.5.3
