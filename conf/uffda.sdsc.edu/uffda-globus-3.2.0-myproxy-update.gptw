@@ -1,0 +1,8 @@
+# $Id: uffda-globus-3.2.0-myproxy-update.gptw,v 1.1 2004-07-20 15:22:48-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-globus-3.2.0-myproxy-update.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+PATH /usr/bin:/bin
+IS_UPDATE 1
+GLOBUS_LOCATION    /usr/local/apps/globus-3.2.0
+BUNDLE /home/kst/src/myproxy/myproxy-1.14.tar.gz kind=source flavor=gcc32dbg
