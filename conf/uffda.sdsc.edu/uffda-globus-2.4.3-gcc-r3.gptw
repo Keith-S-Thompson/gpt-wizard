@@ -1,7 +1,7 @@
-# $Id: uffda-globus-2.4.3-gcc-r3.gptw,v 1.1 2004-02-25 18:54:14-08 kst Exp $
+# $Id: uffda-globus-2.4.3-gcc-r3.gptw,v 1.2 2004-02-27 01:32:55-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-globus-2.4.3-gcc-r3.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin
 
@@ -45,7 +45,8 @@ BUNDLE globus_gsincftp-3.0.3.tar.gz                                kind=source f
 #
 # uberftp
 #
-BUNDLE ~kst/src/uberftp/uberftp-client-1.3.tar.gz                  kind=source flavor=gcc32dbgpthr
+BUNDLE ~kst/src/uberftp/uberftp-1.3-src_bundle.tar.gz              kind=source flavor=gcc32dbgpthr
+
 
 #
 # globus_gram_reporter and PBS support
