@@ -1,7 +1,7 @@
-# $Id: ds001.sdsc.edu-globus-3.2.1.gptw,v 1.1 2004-07-21 16:49:34-07 kst Exp $
+# $Id: ds001.sdsc.edu-globus-3.2.1.gptw,v 1.2 2004-07-21 18:14:47-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds001.sdsc.edu/ds001.sdsc.edu-globus-3.2.1.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 TEMP_DIR /gpfs/globus
 
@@ -19,7 +19,7 @@ GLOBUS_LOCAL_DIRECTORY /gpfs/globus/var/globus-3.2.1
 #
 GPT_TARBALL ~kst/src/gpt/gpt-3.2-src.tar.gz
 
-.PREFIX ~kst/Globus/3.2.1/bundles/src
+.PREFIX ~kst/Globus/3.2.1-kst/bundles/src
 
 #
 # Build Globus 3.2.1 from source.
