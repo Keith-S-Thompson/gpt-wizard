@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.205 2003-06-03 01:25:45-07 kst Exp $
+# $Id: gpt-wizard,v 1.206 2003-06-24 10:07:19-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -142,6 +142,8 @@
 #
 #     Support "~user" in file names in config file.
 #
+#     Support adding updates to an existing installation.
+#
 
 require 5.004;
 
@@ -192,7 +194,7 @@ my $Release_Revision = '1.202'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.205 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.206 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
