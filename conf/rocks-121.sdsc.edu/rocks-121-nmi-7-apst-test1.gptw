@@ -1,0 +1,14 @@
+# $Id: rocks-121-nmi-7-apst-test1.gptw,v 1.1 2005-02-14 18:35:03-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-121.sdsc.edu/rocks-121-nmi-7-apst-test1.gptw,v $
+
+CONFIG_FILE_REVISION	$Revision: 1.1 $
+
+PATH		/usr/bin:/bin # :/usr/local/apps/apache-ant-1.6.2/bin
+ENV		JAVA_HOME=/usr/java/j2sdk1.4.2_04
+
+GLOBUS_LOCATION	/usr/local/apps/nmi-7-apst-test1
+
+GPT_TARBALL	~kst/src/gpt/gpt-3.2-src.tar.gz
+
+BUNDLE		~kst/NMI/7/globus-nmi-7.0-i686-pc-linux-gnu-bin.tar.gz  kind=binary
+BUNDLE		~kst/src/apst/apst-2.3.0.tar.gz                         kind=source flavor=gcc32dbgpthr
