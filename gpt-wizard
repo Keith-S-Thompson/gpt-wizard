@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.81 2002-10-05 00:03:01-07 kst Exp $
+# $Id: gpt-wizard,v 1.82 2002-10-09 17:49:38-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -29,11 +29,6 @@
 #     turn off interaction.  See fix-grid-security-config for
 #     an example.
 #
-#     Allow some variables to be optional (or should they just be
-#     left blank?
-#
-#     Provide an option to just validate the config file.
-#
 
 use strict;
 
@@ -43,7 +38,6 @@ use POSIX ();
 
 sub Strip_Revision_String($);
 sub Get_Config($);
-sub Check_Config_Vars();
 sub Get_System_Information();
 sub Download_Files(@);
 sub Substitute($);
@@ -70,8 +64,9 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.81 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.82 $';
 my $Help              = undef;
+my $Validate_Only     = undef;
 my $Debugging         = undef;
 my $Cleanup           = 1;
 my $Startup           = 1;
@@ -80,6 +75,7 @@ my $GPT_Log           = undef;
 my $GPT_Install_Only  = undef;
 my $GPT_Ignore_Errors = undef;
 my @Opts = ( 'help!'              => \$Help,
+             'validate-only'      => \$Validate_Only,
              'debugging!'         => \$Debugging,
              'cleanup!'           => \$Cleanup,
              'startup!'           => \$Startup,
@@ -105,9 +101,11 @@ my @manual_steps = ();
 Usage if scalar @ARGV != 1;
 my $Config_File = $ARGV[0];
 my %Config = Get_Config $ARGV[0];
-Check_Config_Vars();
 
 my %Sys = Get_System_Information;
+
+exit 0 if $Validate_Only;
+
 if ($Sys{LC_OSNAME} eq 'linux') {
     # ok
 }
@@ -173,8 +171,8 @@ chdir $working_dir or die "$working_dir: $!\n";
 ########################################################################
 my @file_refs = ();
 push @file_refs, \$Config{GPT_TARBALL};
-for (my $i = 0; $i <= $#{$Config{BUNDLES}}; $i ++) {
-    push @file_refs, \$Config{BUNDLES}->[$i];
+for (my $i = 0; $i <= $#{$Config{BUNDLE}}; $i ++) {
+    push @file_refs, \$Config{BUNDLE}->[$i];
 }
 push @file_refs, \$Config{GRID_MAPFILE};
 #
@@ -321,7 +319,7 @@ if ($Config{GLOBUS_VAR_DIRECTORY} ne "") {
 ########################################
 my $Installing_kx509 = 0;
 
-foreach my $bundle ( @{$Config{BUNDLES}} ) {
+foreach my $bundle ( @{$Config{BUNDLE}} ) {
     my $bundle_name = File::Basename::basename $bundle;
 
     #
@@ -609,127 +607,378 @@ sub Strip_Revision_String($) {
 # ----------------------------------------------------------------------
 
 #
+# Called by Get_Config.
+# Return an error message for a given filename or URL.
+# Return undef if there's no problem.
+#
+sub File_Or_URL_Error($$$) {
+    my ($varname, $value, $url_ok) = @_;
+
+    if ($value =~ m<^(\w+)://>) {
+        if ($url_ok) {
+            if ($1 eq 'http' or $1 eq 'ftp') {
+                return undef;
+            }
+            else {
+                return "$varname URL \"$value\", unsupported protocol\n";
+            }
+        }
+        else {
+            return "$varname file \"$value\", URL not allowed\n";
+        }
+    }
+    else {
+        if ($value !~ /^\//) {
+            return "$varname file \"$value\", relative path not allowed\n";
+        }
+        elsif (not -e $value) {
+            return "$varname file \"$value\" does not exist\n";
+        }
+        elsif (not -f _) {
+            return "$varname file \"$value\" is not an ordinary file\n";
+        }
+        elsif (not -r _) {
+            return "Can't read $varname file \"$value\"\n";
+        }
+        elsif (-z _) {
+            return "$varname file \"$value\" is empty\n";
+        }
+        else {
+            return undef;
+        }
+    }
+} # File_Or_URL_Error
+
+# ----------------------------------------------------------------------
+
+#
 # Read and parse the config file (name given on the command line) and
 # return the results as a hash (to be assigned to the global %Config).
 #
 sub Get_Config($) {
     my %Result = ();
     my($config_file) = @_;
+    my @errors = ();
+
+    #
+    # %Var_Info is a hash of hash references.
+    # Each element is basically a declaration for a configuration variable.
+    # This information is used for validity checking, and is local
+    # to Get_Config.
+    #
+    my %Var_Info = (
+        CONFIG_FILE_REVISION =>
+            { type => 'string', required => 0 },
+        TEMP_DIR =>
+            { type => 'existing_directory', required => 1 },
+        PATH =>
+            { type => 'path', required => 1 },
+        INSTALLER_USER =>
+            { type => 'user_name', required => 0, default => 'globus' },
+        INSTALLER_GROUP =>
+            { type => 'group_name', required => 0, default => 'globus' },
+        UMASK =>
+            { type => 'umask', required => 0, default => '022' },
+        CC =>
+            { type => 'cc', required => 1 },
+        USE_MPI =>
+            { type => 'boolean', required => 0, default => 0 },
+        GPT_TARBALL =>
+            { type => 'file_or_url', required => 1 },
+        BUNDLE =>
+            { type => 'array_of_file_or_url', required => 1 },
+        GPT_LOCATION =>,
+            { type => 'new_directory', required => 1 },
+        GLOBUS_LOCATION =>
+            { type => 'new_directory', required => 1 },
+        GLOBUS_VAR_DIRECTORY =>
+            { type => 'new_directory', required => 0 },
+        GRID_MAPFILE =>
+            { type => 'file_or_url', required => 0 },
+        HOST_CERT =>
+            { type => 'file', required => 0 },
+        HOST_KEY =>
+            { type => 'file', required => 0 },
+        LDAP_CERT =>
+            { type => 'file', required => 0 },
+        LDAP_KEY =>
+            { type => 'file', required => 0 },
+        BATCH_SYSTEM =>
+            { type => 'batch_system', required => 0 },
+        CA_CERT_TARBALL =>
+            { type => 'file_or_url', required => 0 }
+    );
 
     print "Getting configuration from $config_file\n";
 
-    my %count = ( CONFIG_FILE_REVISION => 0,
-
-                  TEMP_DIR             => 0,
-                  PATH                 => 0,
-                  INSTALLER_USER       => 0,
-                  INSTALLER_GROUP      => 0,
-                  UMASK                => 0,
-
-                  CC                   => 0,
-                  USE_MPI              => 0,
-
-                  GPT_TARBALL          => 0,
-                  BUNDLES              => 0,
-
-                  GPT_LOCATION         => 0,
-                  GLOBUS_LOCATION      => 0,
-                  GLOBUS_VAR_DIRECTORY => 0,
-
-                  GRID_MAPFILE         => 0,
-                  HOST_CERT            => 0,
-                  HOST_KEY             => 0,
-                  LDAP_CERT            => 0,
-                  LDAP_KEY             => 0,
-
-                  BATCH_SYSTEM         => 0,
-
-                  CA_CERT_TARBALL      => 0 );
-
+    #
+    # Read config variables from config file.
+    # Check for duplicate entries, unrecognized names, and syntax errors.
+    #
     open CONFIG, $config_file or die "$config_file: $!\n";
     while (<CONFIG>) {
+        #
+        # Strip comments (note that '#' introduces a comment, even in
+        # a string literal).
+        # Strip leading and trailing whitespace.
+        # Skip empty lines.
+        #
         s/#.*$//;
         s/^\s+//;
         s/\s+$//;
         next if /^$/;
-        if (/^(\w+)\s*(.*)$/) {
+        if (/^(\w+)\s+(.*)$/) {
             my ($name, $value) = ($1, $2);
-            if (defined $count{$name}) {
-                if ($count{$name} == 0) {
-                    #
-                    # First time we've seen this variable; just set it.
-                    #
-                    $Result{$name} = $value;
+            if (defined $Var_Info{$name}) {
+                my $Var = $Var_Info{$name};
+
+                if ($Var->{type} =~ /^array_of/) {
+                    push @{$Var->{value}}, $value;
                 }
                 else {
-                    #
-                    # We've seen this variable before; append value to
-                    # referenced array.
-                    #
-                    if ($count{$name} == 1) {
-                        #
-                        # Convert from simple scalar to array reference.
-                        #
-                        $Result{$name} = [ $Result{$name} ];
+                    if (defined $Var->{value}) {
+                        push @errors,
+                             "Duplicate entry for \"$name\" at line $.\n";
                     }
-                    push @{$Result{$name}}, $value;
+                    else {
+                        $Var->{value} = $value;
+                    }
                 }
-                $count{$name} ++;
             }
             else {
-                die "Unrecognized option in $config_file at line $.\n";
+                push @errors, "Unrecognized option \"$name\" at line $.\n"
             }
         }
         else {
-            die "Syntax error in $config_file at line $.\n";
+            push @errors, "Syntax error at line $.\n";
         }
     }
     close CONFIG;
 
-    my @missing = ();
-    my @extra = ();
-    foreach my $option (sort keys %count) {
-        if ($count{$option} == 0) {
-            push @missing, $option;
-        }
-        elsif ($count{$option} > 1) {
-            push @extra, $option if $option ne 'BUNDLES';
-        }
-    }
-
-    if (@missing or @extra) {
-        my @errors = ( ">>> Bad config file $config_file\n" );
-        foreach (@missing) {
-            push @errors, "    Missing option $_\n";
-        }
-        foreach (@extra) {
-            push @errors, "    Multiply specified option $_\n";
-        }
-        die @errors;
-    }
-
-    $Result{CONFIG_FILE_REVISION}
-        = Strip_Revision_String $Result{CONFIG_FILE_REVISION};
-
     #
-    # BATCH_SYSTEM is case-insensitive; map to lower case.
+    # Validate each variable, depending on its type.
     #
-    $Result{BATCH_SYSTEM} = lc $Result{BATCH_SYSTEM};
-
-    foreach my $key (sort keys %Result) {
-        my $value = $Result{$key};
-        if (ref $value eq 'ARRAY') {
-            printf "    %-20s => {\n", $key;
-            foreach my $elem (@$value) {
-                print "        \"$elem\"\n";
+    VAR:
+    foreach my $varname (sort keys %Var_Info) {
+        my $var = $Var_Info{$varname};
+        if (not defined $var->{value}) {
+            if ($var->{required}) {
+                push @errors, "Missing option $varname\n";
             }
-            print "    }\n";
+            elsif (defined $var->{default}) {
+                $var->{value} = $var->{default};
+            }
+            else {
+                $var->{value} = undef;
+                next VAR;
+            }
         }
+
+        #
+        # An arbitrary string.
+        #
+        if ($var->{type} eq 'string') {
+            #
+            # Nothing to validate
+            #
+        }
+
+        #
+        # An existing directory.
+        # It must be readable, writable, and searchable.
+        #
+        elsif ($var->{type} eq 'existing_directory') {
+            if (not (-d $var->{value} and -r _ and -w _ and -x _)) {
+                push @errors, "Bad $varname directory \"$var->{value}\"\n";
+            }
+        }
+
+        #
+        # A directory.
+        # If it exists, it must be empty.
+        # If it doesn't exist, it will be created later.
+        #
+        elsif ($var->{type} eq 'new_directory') {
+            my $dir = $var->{value};
+            if (-e $dir) {
+                if (-d $dir) {
+                    opendir DIR, $dir or die "${dir}: $!\n";
+                    my @files = grep { $_ ne '.' and $_ ne '..' } readdir DIR;
+                    closedir DIR;
+                    if (@files) {
+                        push @errors, "$varname \"$dir\" already exists " .
+                                      "and is not empty\n";
+                    }
+                }
+                else {
+                    push @errors, "$varname \"$dir\" already exists " .
+                                  "and is not a directory\n";
+                }
+            }
+        }
+
+        #
+        # A path, consisting of a colon-delimited list of directories.
+        # Each directory must exist, and must be readable and searchable.
+        #
+        elsif ($var->{type} eq 'path') {
+            foreach my $dir (split /:/, $var->{value}) {
+                if ($dir !~ /^\//) {
+                    push @errors,
+                         "Bad directory in ${varname}: \"$dir\"\n";
+                }
+                elsif (not -d $dir) {
+                    push @errors,
+                         "Nonexistent directory in ${varname}: \"$dir\"\n";
+                }
+                elsif (not -r $dir or not -x $dir) {
+                    push @errors,
+                         "Bad permissions on directory in " .
+                         "${varname}: \"$dir\"\n";
+                }
+            }
+        }
+
+        #
+        # A non-root Unix user name.
+        #
+        elsif ($var->{type} eq 'user_name') {
+            my @pw = getpwnam $var->{value};
+            if (not defined $pw[2]) {
+                push @errors, "Bad $varname \"$var->{value}\", no such user\n";
+            }
+            elsif ($pw[2] <= 0) {
+                push @errors, "Bad $varname \"$var->{value}\", uid = $pw[2]\n";
+            }
+        }
+
+        #
+        # A non-root Unix group name.
+        #
+        elsif ($var->{type} eq 'group_name') {
+            my @gr = getgrnam $var->{value};
+            if (not defined $gr[2]) {
+                push @errors, "Bad $varname \"$var->{value}\", no such group\n";
+            }
+            elsif ($gr[2] <= 0) {
+                push @errors, "Bad $varname \"$var->{value}\", gid = $gr[2]\n";
+            }
+        }
+
+        #
+        # A umask, a sequence of one or more octal digits.
+        #
+        elsif ($var->{type} eq 'umask') {
+            if ($var->{value} !~ /^[0-7]+$/) {
+                push @errors, "Bad $varname \"$var->{value}\"\n";
+            }
+        }
+
+        #
+        # A C compiler, to be used in a GPT flavor string.
+        # Either 'gcc' or 'vendorcc'.
+        #
+        elsif ($var->{type} eq 'cc') {
+            if ($var->{value} ne 'gcc' and $var->{value} ne 'vendorcc') {
+                push @errors, "$varname must be \"gcc\" or \"vendorcc\"\n";
+            }
+        }
+
+        #
+        # A Boolean value.
+        # False may be represented as '0', 'no', or 'false'.
+        # True may be represented as '1', 'yes', or 'true'.
+        # Value is case-insensitive.
+        #
+        elsif ($var->{type} eq 'boolean') {
+            if ($var->{value} eq '0' or
+                lc $var->{value} eq 'no' or
+                lc $var->{value} eq 'false')
+            {
+                $var->{value} = 0;
+            }
+            elsif ($var->{value} eq '1' or
+                lc $var->{value} eq 'yes' or
+                lc $var->{value} eq 'true')
+            {
+                $var->{value} = 1;
+            }
+            else {
+                push @errors, "$varname must be one of the following:\n" .
+                              "    0, no, false, 1, yes, true\n";
+            }
+        }
+
+        #
+        # A filename or a URL.
+        # See File_Or_URL_Error().
+        # 
+        elsif ($var->{type} eq 'file_or_url') {
+            my $error = File_Or_URL_Error $varname, $var->{value}, 1;
+            push @errors, $error if defined $error;
+        }
+
+        elsif ($var->{type} eq 'array_of_file_or_url') {
+            foreach my $item (@{$var->{value}}) {
+                my $error = File_Or_URL_Error $varname, $item, 1;
+                push @errors, $error if defined $error;
+            }
+        }
+
+        elsif ($var->{type} eq 'file') {
+            my $error = File_Or_URL_Error $varname, $var->{value}, 0;
+            push @errors, $error if defined $error;
+        }
+
+        elsif ($var->{type} eq 'batch_system') {
+            my @batch_systems = qw( condor easymcs fork glunix grd
+                                    loadleveler lsf nqe nswc pbs pexec
+                                    prun );
+            my %is_batch_system = map { ( $_ => 1 ) } @batch_systems;
+            if (not $is_batch_system{$var->{value}}) {
+                push @errors, "$varname must be one of:\n" .
+                              "    @batch_systems\n";
+            }
+
+        }
+
         else {
-            printf "    %-20s => \"%s\"\n", $key, $Result{$key};
+            #
+            # Note: the missing "\n" in the error message is deliberate.
+            # It causes Perl to print more information about the location
+            # of the error.
+            #
+            die "Internal error, bad variable type \"$var->{type}\"";
+        }
+
+    }
+
+    #
+    # Special check: GLOBUS_VAR_DIRECTORY must not be a subdirectory
+    # of GLOBUS_LOCATION.
+    #
+    if (defined $Var_Info{GLOBUS_VAR_DIRECTORY}->{value}) {
+        my $globus_dir = $Var_Info{GLOBUS_LOCATION}->{value};
+        my $var_dir = $Var_Info{GLOBUS_VAR_DIRECTORY}->{value};
+        if ($var_dir =~ /^\Q$globus_dir\E\//) {
+            push @errors, "GLOBUS_VAR_DIRECTORY may not be a subdirectory of " .
+                          "GLOBUS_LOCATION\n" .
+                          "To use \$GLOBUS_LOCATION/var, don't specify " .
+                          "GLOBUS_VAR_DIRECTORY.\n";
         }
     }
-    return %Result;
+
+    if (@errors) {
+        my $Error_s = (scalar @errors == 1 ? 'Error' : 'Errors');
+        die ">>> $Error_s in config file ${config_file}:\n",
+            @errors;
+    }
+    else {
+        foreach my $varname (keys %Var_Info) {
+            $Result{$varname} = $Var_Info{$varname}->{value};
+        }
+        return %Result;
+    }
 } # Get_Config
 
 # ----------------------------------------------------------------------
@@ -1255,102 +1504,6 @@ sub Execute(@) {
 # ----------------------------------------------------------------------
 
 #
-# Perform some checks on the configuration variables.
-#
-sub Check_Config_Vars() {
-    my @errors = ();
-
-    my @batch_systems = qw( condor easymcs fork glunix grd loadleveler
-                            lsf nqe nswc pbs pexec prun );
-    my %is_batch_system = map { ( $_ => 1 ) } @batch_systems;
-
-    if ($Config{BATCH_SYSTEM} ne 'none' and
-        not $is_batch_system{$Config{BATCH_SYSTEM}})
-    {
-        push @errors, "BATCH_SYSTEM must be \"none\" or one of:\n" .
-                      "    @batch_systems\n";
-    }
-
-    if ($Config{CC} ne 'gcc' and $Config{CC} ne 'vendorcc') {
-        push @errors, "CC must be \"gcc\" or \"vendorcc\"\n";
-    }
-
-    if ($Config{USE_MPI} ne '0' and $Config{USE_MPI} ne '1') {
-        push @errors, "USE_MPI must be \"0\" or \"1\"\n";
-    }
-
-    if (not (-d $Config{TEMP_DIR} and -w _)) {
-        push @errors, "Bad TEMP_DIR directory \"$Config{TEMP_DIR}\n";
-    }
-
-    foreach my $key (qw(GPT_TARBALL
-                        GRID_MAPFILE
-                        CA_CERT_TARBALL))
-    {
-        next if $Config{$key} =~ m<^(ftp|http)://>;
-        if (not (-f $Config{$key} and -r _)) {
-            push @errors, "Can't read $key file \"$Config{$key}\"\n";
-        }
-    }
-    foreach my $key (qw(HOST_CERT HOST_KEY
-                        LDAP_CERT LDAP_KEY))
-    {
-        if ($Config{$key} =~ m<^(ftp|http)://>) {
-            push @errors, "$key may not be downloaded\n";
-        }
-        if (not (-f $Config{$key} and -r _)) {
-            push @errors, "Can't read $key file \"$Config{$key}\"\n";
-        }
-    }
-    foreach my $bundle (@{$Config{BUNDLES}}) {
-        next if $bundle =~ m<^(ftp|http)://>;
-        if (not (-f $bundle and -r _)) {
-            push @errors, "Can't read bundle file $bundle\n";
-        }
-    }
-
-    DIR:
-    foreach my $key (qw(GPT_LOCATION GLOBUS_LOCATION GLOBUS_VAR_DIRECTORY)) {
-        my $dir = $Config{$key};
-        #
-        # GLOBUS_VAR_DIRECTORY is allowed to be empty.
-        # If it's non-empty, the requirements are the same as for
-        # GPT_LOCATION and GLOBUS_LOCATION: either it must not exist,
-        # or it must be an empty directory.
-        #
-        next DIR if $key eq 'GLOBUS_VAR_DIRECTORY' and $dir eq '';
-        if (-e $dir) {
-            if (-d $dir) {
-                opendir DIR, $dir or die "${dir}: $!\n";
-                my @files = grep { $_ ne '.' and $_ ne '..' } readdir DIR;
-                closedir DIR;
-                if (@files) {
-                    push @errors,
-                         "$key \"$dir\" already exists and is not empty\n";
-                }
-            }
-            else {
-                push @errors,
-                     "$key \"$dir\" already exists and is not a directory\n";
-            }
-        }
-    }
-
-    if ($Config{GLOBUS_VAR_DIRECTORY} =~ /^\Q$Config{GLOBUS_LOCATION}\E\//) {
-        push @errors, "GLOBUS_VAR_DIRECTORY may not be a subdirectory of " .
-                      "GLOBUS_LOCATION\n" .
-                      "To use \$GLOBUS_LOCATION/var, leave " .
-                      "GLOBUS_VAR_DIRECTORY blank.\n";
-    }
-    
-    if (@errors) {
-        die ">>> Error(s) in config file ${Config_File}:\n", @errors;
-    }
-} # Check_Config_Vars
-
-# ----------------------------------------------------------------------
-
-#
 # Confirm that the necessary services are specified in
 # /etc/services (or the NIS equivalent).
 #
@@ -1518,6 +1671,7 @@ sub Usage(@) {
     print <<"EOF";
 Usage: $Prog_Name [options] config_file
     -help               Display this message and exit.
+    -validate-only      Validate the configuration file and exit.
     -cleanup            Delete temporary directory on completion (default).
     -startup            Update system files and start services (default).
     -gpt-verbose        Pass -verbose option to gpt-install and/or gpt-build.
