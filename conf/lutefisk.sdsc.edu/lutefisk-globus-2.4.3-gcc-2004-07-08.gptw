@@ -1,0 +1,75 @@
+# $Id: lutefisk-globus-2.4.3-gcc-2004-07-08.gptw,v 1.1 2004-07-08 00:32:17-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-globus-2.4.3-gcc-2004-07-08.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3-gcc-2004-07-08
+GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3-gcc-2004-07-08
+
+GPT_TARBALL ~kst/repo.teragrid.org/open/gpt/3.1.1b5/gpt-3.1.1b5-src.tar.gz
+
+#
+# Build Globus 2.4.3 from source (updates are pre-applied)
+#
+.PREFIX ~kst/repo.teragrid.org/open/globus/2.4.3-r4
+
+BUNDLE globus-information-services-client-2.4.3-r4-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-sdk-2.4.3-r4-src_bundle.tar.gz    kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-server-2.4.3-r4-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+
+BUNDLE globus-data-management-client-2.4.3-r4-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-sdk-2.4.3-r4-src_bundle.tar.gz         kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-server-2.4.3-r4-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+
+BUNDLE globus-resource-management-client-2.4.3-r4-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-sdk-2.4.3-r4-src_bundle.tar.gz     kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-server-2.4.3-r4-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+
+#
+# globus_gram_reporter
+#
+.PREFIX ~kst/repo.teragrid.org/open/globus/2.4.3
+BUNDLE globus_gram_reporter-2.0.tar.gz            kind=source flavor=gcc32dbg
+BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz kind=source flavor=gcc32dbg
+
+# #
+# # uberftp
+# #
+# BUNDLE ~kst/src/uberftp/uberftp-1.3-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+
+#
+# Install individual Condor-G packages extracted from NMI 3.2 binary bundle
+#
+.PREFIX ~kst/repo.teragrid.org/open/condor-g/packages-NMI-3.2
+BUNDLE condor_base-0.2-i686-pc-linux-gnu-noflavor-pgm.tar.gz        kind=binary
+BUNDLE condor_base_libs-0.2-i686-pc-linux-gnu-noflavor-pgm.tar.gz   kind=binary
+BUNDLE condor_base_setup-0.2-i686-pc-linux-gnu-noflavor-pgm.tar.gz  kind=binary
+BUNDLE condor_config-0.2-i686-pc-linux-gnu-noflavor-pgm.tar.gz      kind=binary
+BUNDLE condor_dagman-0.2-i686-pc-linux-gnu-noflavor-pgm.tar.gz      kind=binary
+BUNDLE condor_submit-0.6-i686-pc-linux-gnu-noflavor-pgm.tar.gz      kind=binary
+
+#
+# Build myproxy
+#
+.PREFIX ~kst/repo.teragrid.org/open/myproxy/1.13
+BUNDLE myproxy-1.13.tar.gz                                         kind=source flavor=gcc32dbg
+
+#
+# Build uberftp
+#
+# The source bundle on the NCSA web site includes support packages from
+# Globus 3.2.0.  Use a modified version of the bundle, incorporating
+# packages from Globus 2.4.3.
+#
+.PREFIX ~kst/repo.teragrid.org/open/uberftp/1.5
+BUNDLE uberftp-1.5-tg-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+
+#
+# Build APST
+#
+.PREFIX ~kst/src/apst
+BUNDLE apst-2.2.0.tar.gz kind=source flavor=gcc32dbgpthr
+
+CREATE_BINARY_BUNDLE dir=~globus name=globus version=2.4.3 label=2.4.3-gcc-2004-07-08
