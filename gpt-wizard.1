@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.53 2004-04-13 15:38:10-07 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.54 2004-05-05 13:37:04-07 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -440,6 +440,18 @@ Use the "\-static" option when building bundles, packages, or updates with
 MPI flavors (such as mpicc32dbg).  This is a workaround for a bug that has
 shown up on the TeraGrid.  Static flavors are built first so the default
 executables in the bin, sbin, and libexec directories will be non-static.
+.br
+Type: boolean
+.br
+Optional.  Default is 0.
+
+.IP INTEL_WORKAROUND
+Implement a workaround for a problem with the Intel version 8 compiler
+(vendorcc flavors).  Create a temporary file containing the string
+"-no-gcc", and set the $ICCCFG environment variable to the name of the file.
+See Globus Bugzilla # 1651,
+.IR <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=16519> .
+(This is a bug in the Globus build procedure, not in Intel's compiler.)
 .br
 Type: boolean
 .br
