@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.36 2002-08-13 17:02:52-07 kst Exp $
+# $Id: gpt-wizard,v 1.37 2002-08-13 17:10:29-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -42,7 +42,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.36 $';
+my $Revision = Strip_Revision_String '$Revision: 1.37 $';
 my $Help = undef;
 my $Debugging = undef;
 my $Cleanup = 1;
@@ -216,7 +216,7 @@ else {
 if ($Config{BATCH_SYSTEM} ne 'none') {
     Execute @As_Installer,
             "$ENV{GLOBUS_LOCATION}/setup/globus/setup-globus-gram-job-manager",
-            $Config{BATCH_SYSTEM};
+            "-type=$Config{BATCH_SYSTEM}";
     my $libexec = "$ENV{GLOBUS_LOCATION}/libexec";
     push @manual_steps,
          "Fix $ENV{GLOBUS_LOCATION}/libexec/" .
