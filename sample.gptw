@@ -1,0 +1,78 @@
+# $Id: sample.gptw,v 1.1 2004-05-07 19:18:48-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/sample.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3
+GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3
+
+#
+# The directory ~kst/Globus contains a copy of the
+# Globus 2.4.3 directory tree, downloaded from
+# <ftp://ftp.globus.org/pub/gt2/2.4/2.4.3/>.
+#
+
+#
+# The directory ~kst/MyProxy contains a copy of the
+# latest myproxy source package, downloaded from
+# <ftp://ftp.ncsa.uiuc.edu/aces/myproxy/myproxy-1.13.tar.gz>.
+#
+
+
+.PREFIX ~kst/Globus/2.4.3/gpt
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+#
+# Build the 9 base bundles.  Some executable are built from more than
+# one bundle; the last one built determines the flavor of the default
+# executable.  By building the information-services bundle first, we
+# avoid having some default executables unnecessarily depend on the
+# pthreads library.
+#
+# If you wish to build more flavors for some bundles (e.g., debug and
+# non-debug), the flavor you specify last will control the flavor of
+# the default executables.
+#
+
+#
+# Build Globus 2.4.3 from source
+#
+.PREFIX ~kst/Globus/2.4.3/bundles/src
+BUNDLE globus-information-services-client-2.4.3-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-sdk-2.4.3-src_bundle.tar.gz    kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-server-2.4.3-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+
+BUNDLE globus-data-management-client-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-sdk-2.4.3-src_bundle.tar.gz         kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-server-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+
+BUNDLE globus-resource-management-client-2.4.3-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-sdk-2.4.3-src_bundle.tar.gz     kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-server-2.4.3-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+
+#
+# Apply all currently available updates
+#
+.PREFIX ~kst/Globus/2.4.3/updates/src
+UPDATE globus_common-3.17.tar.gz
+UPDATE globus_ftp_client-1.10.tar.gz
+UPDATE globus_ftp_control-1.10.tar.gz
+UPDATE globus_gridftp_server-1.12.tar.gz
+UPDATE globus_ldapmodules-0.14.tar.gz
+UPDATE globus_openldap-2.0.22.tar.gz
+UPDATE globus_openssl-0.20.tar.gz
+
+#
+# globus_gram_reporter
+#
+.PREFIX ~kst/Globus/2.4.3/extra/src
+BUNDLE globus_gram_reporter-2.0.tar.gz               kind=source flavor=gcc32dbg
+BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz    kind=source flavor=gcc32dbg
+
+#
+# Build myproxy
+#
+.PREFIX ~kst/MyProxy
+BUNDLE myproxy-1.13.tar.gz                           kind=source flavor=gcc32dbg
