@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.109 2002-11-01 19:56:20-08 kst Exp $
+# $Id: gpt-wizard,v 1.110 2002-11-01 20:08:25-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -71,7 +71,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.109 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.110 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -345,7 +345,7 @@ if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
 # Run gpt-install or gpt-build to install the bundles.
 ########################################
 
-foreach my $bundle ( @{$Config{BUNDLE}} ) {
+foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
     my $bundle_basename = File::Basename::basename $bundle;
 
     #
