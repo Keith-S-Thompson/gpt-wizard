@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.254 2004-03-08 22:02:39-08 kst Exp $
+# $Id: gpt-wizard,v 1.255 2004-03-08 22:04:32-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -183,7 +183,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.254 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.255 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1793,7 +1793,7 @@ sub Get_Config($) {
                 elsif (Is_Empty_Dir $dir) {
                     &$ERROR("$varname directory \"$dir\" is empty\n");
                 }
-                elsif (not (-r $dir and -w and -x _)) {
+                elsif (not (-r $dir and -w _ and -x _)) {
                     &$ERROR("Bad permissions on $varname directory \"$dir\"\n");
                 }
             }
