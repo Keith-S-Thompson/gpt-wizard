@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.139 2003-01-23 19:55:41-08 kst Exp $
+# $Id: gpt-wizard,v 1.140 2003-01-23 19:56:35-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -137,7 +137,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.139 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.140 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -1588,7 +1588,7 @@ sub Download_Files(@) {
                 elsif (-s $target_file == 0) {
                     die "Download failed for $target_file (empty file)\n";
                 }
-                open URL, ">$target_dir/.url" or die "$target_dir/$url: $!\n";
+                open URL, ">$target_dir/.url" or die "$target_dir/.url: $!\n";
                 print URL "$$ref\n";
                 close URL;
             }
