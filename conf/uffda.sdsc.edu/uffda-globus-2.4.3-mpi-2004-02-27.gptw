@@ -1,0 +1,58 @@
+# $Id: uffda-globus-2.4.3-mpi-2004-02-27.gptw,v 1.1 2004-02-27 01:32:34-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-globus-2.4.3-mpi-2004-02-27.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin:/usr/local/apps/mpich-1.2.5.2/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3-mpi-2004-02-27
+GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3-mpi-2004-02-27
+
+.PREFIX ~kst/repo.teragrid.org/open/globus/2.4.3
+
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+#
+# Build Globus 2.4.3 from source
+#
+BUNDLE globus-data-management-client-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-sdk-2.4.3-src_bundle.tar.gz         kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-server-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+
+BUNDLE globus-information-services-client-2.4.3-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-sdk-2.4.3-src_bundle.tar.gz    kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-server-2.4.3-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+
+BUNDLE globus-resource-management-client-2.4.3-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-sdk-2.4.3-src_bundle.tar.gz     kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-server-2.4.3-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+
+BUNDLE globus-resource-management-sdk-2.4.3-src_bundle.tar.gz     kind=source flavor=mpicc32dbg option=-static
+
+#
+# Apply all currently available updates
+#
+UPDATE updates/globus_gridftp_server-1.12.tar.gz
+UPDATE updates/globus_ldapmodules-0.14.tar.gz
+UPDATE updates/globus_openldap-2.0.22.tar.gz
+
+#
+# The following updates are for packages that were built with different
+# flavors with and without "-static".  As of release 0.6.1, gpt-wizard can
+# figure out what flavors to use, but not when it needs to use "-static"
+# for an update.  Specify explicitly the flavors and options needed to
+# apply these updates.  (A future version of gpt-wizard, probably 0.6.2
+# or 0.6.3, will take care of this.)
+#
+UPDATE updates/globus_common-3.17.tar.gz     flavor=gcc32dbg,gcc32dbgpthr
+UPDATE updates/globus_common-3.17.tar.gz     flavor=mpicc32dbg option=-static
+
+UPDATE updates/globus_ftp_client-1.10.tar.gz flavor=gcc32dbg
+UPDATE updates/globus_ftp_client-1.10.tar.gz flavor=mpicc32dbg option=-static
+
+UPDATE updates/globus_openssl-0.19.tar.gz    flavor=gcc32dbg,gcc32dbgpthr
+UPDATE updates/globus_openssl-0.19.tar.gz    flavor=mpicc32dbg option=-static
+
+.PREFIX ~kst/repo.teragrid.org/open/mpich/1.2.5.2
+
+MPICH_G2 mpich-1.2.5.2.tar.gz flavor=mpicc32dbg install=mpich-g2-1.2.5.2
