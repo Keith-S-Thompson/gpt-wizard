@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.204 2003-06-02 18:14:36-07 kst Exp $
+# $Id: gpt-wizard,v 1.205 2003-06-03 01:25:45-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -173,6 +173,7 @@ sub Is_Empty_Dir($);
 sub Fix_Setup_Script($);
 sub Inet_Config_Text($$);
 sub Manual_Steps_Text(@);
+sub Find_Command($$);
 sub Image($);
 sub Show_Version();
 sub Release_String();
@@ -191,7 +192,7 @@ my $Release_Revision = '1.202'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.204 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.205 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -243,6 +244,8 @@ my $Download_Initialized = undef;
 my %Local_File = ();
 my $download_index = 0;
 my $wget = undef;
+my $tar = undef;
+my $gzip = undef;
 
 my $temp_file_serial_number = 0;
 my @manual_steps = ();
@@ -422,10 +425,20 @@ if (not $AIX_Kludge) {
     my @files_before = readdir DIR;
     closedir DIR;
     my %already_existed = map { $_ => 1 } @files_before;
+    my @errors = ();
 
+    if (not defined $gzip) {
+        $gzip = Find_Command 'gzip', $Config{GZIP};
+    }
+    push @errors, "No gzip command found\n" if not defined $gzip;
+    if (not defined $tar) {
+        $tar = Find_Command 'tar', $Config{TAR};
+    }
+    push @errors, "No tar command found\n" if not defined $tar;
+    die @errors if @errors;
     # Execute @As_Installer, 'tar', 'zxf', $Local_File{$Config{GPT_TARBALL}};
-    Execute @As_Installer, 'sh', '-c',
-            "gzip -d < $Local_File{$Config{GPT_TARBALL}} | tar xf -";
+    Execute @As_Installer, '/bin/sh', '-c',
+            "$gzip -d < $Local_File{$Config{GPT_TARBALL}} | $tar xf -";
 
     opendir DIR, '.' or die ".: $!\n";
     my @files_after = readdir DIR;
@@ -1284,6 +1297,10 @@ sub Get_Config($) {
             { type => 'existing_directory', required => 0 },
         WGET =>
             { type => 'executable_file', required => 0 },
+        TAR =>
+            { type => 'executable_file', required => 0 },
+        GZIP =>
+            { type => 'executable_file', required => 0 },
         PATH =>
             { type => 'path', required => 1 },
         ENV =>
@@ -1915,20 +1932,8 @@ sub Init_Download() {
     die "No DOWNLOAD_DIR specified\n" if not defined $Config{DOWNLOAD_DIR};
 
     if (not defined $wget) {
-        if (defined $Config{WGET}) {
-            $wget = $Config{WGET};
-        }
-        else {
-            DIR:
-            foreach my $dir (split /:/, $ENV{PATH}) {
-                if (-x "$dir/wget") {
-                    $wget = "$dir/wget";
-                    last DIR;
-                }
-            }
-        }
+        $wget = Find_Command 'wget', $Config{WGET};
     }
-
     die "No wget command found\n" if not defined $wget;
 
     my @subdirs = ();
@@ -2763,6 +2768,27 @@ sub Manual_Steps_Text(@) {
               Time_Image(time) . "\n";
     return $result;
 } # Manual_Steps_Text
+
+# ----------------------------------------------------------------------
+
+#
+# If a configuration variable has been specified for the command, return
+# its value; otherwise search for it in $PATH.
+#
+sub Find_Command($$) {
+    my ($name, $config) = @_;
+    if (defined $config) {
+        return $config;
+    }
+    else {
+        foreach my $dir (split /:/, $ENV{PATH}) {
+            if (-x "$dir/$name") {
+                return "$dir/$name";
+            }
+        }
+    }
+    return undef;
+} # Find_Command
 
 # ----------------------------------------------------------------------
 
