@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.38 2002-08-14 01:33:40-07 kst Exp $
+# $Id: gpt-wizard,v 1.39 2002-08-14 14:32:36-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -15,6 +15,14 @@
 #
 #     Assume CA_CERT_TARBALL is a flattened tar file (once I've
 #     actually made it that way).
+#
+#     Execute "-user=..." seems to have problems detecting errors in
+#     the child process.  Diagnose and fix.
+#
+#     In Execute(), figure out the right way to set and restore
+#     effective(?) user and group ids, preferably without having to do
+#     an extra fork.
+#
 
 use strict;
 
@@ -42,7 +50,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.38 $';
+my $Revision = Strip_Revision_String '$Revision: 1.39 $';
 my $Help = undef;
 my $Debugging = undef;
 my $Cleanup = 1;
@@ -568,6 +576,25 @@ sub Execute(@) {
             # Set the real and effective user (and group) id,
             # and continue to handle the call.
             #
+            # To be honest, I don't quite understand the distinction
+            # between "real" and "effective" user and group ids, so I
+            # set both just to be sure.
+            #
+            # Probably a better approach would be to temporarily set
+            # the effective(?) user and group ids, run the command,
+            # and set them back, without forking a child process; some
+            # day I'll figure out how to do this.
+            #
+            # Setting the group id(s) turns out not to be as simple
+            # as setting the user id(s).  For whatever reason, just
+            # assigning to $( and $) doesn't work.  The following seems
+            # to work, though it may be overkill.  I *think* I need to
+            # call POSIX::setgid *before* setting $< and $>; otherwise
+            # I no longer have root privileges.
+            #
+            if (defined $gid) {
+                POSIX::setgid $gid;
+            }
             $< = $uid;
             $> = $uid;
             if (defined $gid) {
