@@ -1,9 +1,9 @@
-# $Id: tg-login1.ncsa.teragrid.orgglobus-3.2.0-mpicc-test.gptw,v 1.1 2004-06-21 17:42:12-07 kst Exp $
+# $Id: tg-login1.ncsa.teragrid.orgglobus-3.2.0-mpicc-test.gptw,v 1.2 2004-06-21 18:00:33-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/tg-login1.ncsa.teragrid.org/tg-login1.ncsa.teragrid.orgglobus-3.2.0-mpicc-test.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
-PATH /usr/bin:/bin:/usr/local/mpich/mpich-gm-1.2.5..10-gcc-r1/bin
+PATH /usr/bin:/bin:/scratch/kst/apps/mpich-gm-1.2.5..10-gcc-r1/bin
 
 GLOBUS_LOCATION    /scratch/kst/apps/globus-3.2.0-mpicc-test
 
