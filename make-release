@@ -1,7 +1,13 @@
 #!/usr/bin/perl -w
 
-# $Id: make-release,v 1.4 2003-05-16 12:26:50-07 kst Exp $
+# $Id: make-release,v 1.5 2003-05-16 12:43:16-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/make-release,v $
+
+#
+# TO DO:
+#
+# Add Relnotes to %needs_editing; make Edit_File invoke an editor.
+#
 
 use strict;
 
