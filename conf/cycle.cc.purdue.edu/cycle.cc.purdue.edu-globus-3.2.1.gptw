@@ -1,7 +1,7 @@
-# $Id: cycle.cc.purdue.edu-globus-3.2.1.gptw,v 1.1 2004-07-14 01:18:34-07 kst Exp $
+# $Id: cycle.cc.purdue.edu-globus-3.2.1.gptw,v 1.2 2004-07-15 19:36:57-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/cycle.cc.purdue.edu/cycle.cc.purdue.edu-globus-3.2.1.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 TEMP_DIR ~ibmsupt/scratch/tmpdir
 
@@ -22,9 +22,9 @@ GPT_TARBALL ~ibmsupt/src/gpt/gpt-3.2-src.tar.gz
 #
 # Build Globus 3.2.1 from source.
 #
-BUNDLE globus-information-services-client-3.2.1-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
-BUNDLE globus-information-services-sdk-3.2.1-src_bundle.tar.gz    kind=source flavor=vendorcc64dbgpthr
-BUNDLE globus-information-services-server-3.2.1-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
+# BUNDLE globus-information-services-client-3.2.1-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
+# BUNDLE globus-information-services-sdk-3.2.1-src_bundle.tar.gz    kind=source flavor=vendorcc64dbgpthr
+# BUNDLE globus-information-services-server-3.2.1-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
 
 BUNDLE globus-data-management-client-3.2.1-src_bundle.tar.gz      kind=source flavor=vendorcc64dbg
 BUNDLE globus-data-management-sdk-3.2.1-src_bundle.tar.gz         kind=source flavor=vendorcc64dbg
