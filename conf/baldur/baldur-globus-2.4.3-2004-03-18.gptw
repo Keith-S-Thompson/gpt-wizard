@@ -1,7 +1,7 @@
-# $Id: baldur-globus-2.4.3-2004-03-18.gptw,v 1.2 2004-03-18 21:56:28-08 kst Exp $
+# $Id: baldur-globus-2.4.3-2004-03-18.gptw,v 1.3 2004-03-18 22:52:30-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/baldur/baldur-globus-2.4.3-2004-03-18.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.2 $
+CONFIG_FILE_REVISION    $Revision: 1.3 $
 
 PATH /usr/bin:/bin
 
@@ -16,7 +16,7 @@ GPT_TARBALL gpt-3.0.1-src.tar.gz
 .PREFIX ~kst/Globus/2.4.3-kst
 BUNDLE globus-data-management-client-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
 BUNDLE globus-data-management-sdk-2.4.3-src_bundle.tar.gz         kind=source flavor=gcc32dbg
-BUNDLE globus-data-management-server-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+# BUNDLE globus-data-management-server-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
 BUNDLE globus-information-services-client-2.4.3-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
 BUNDLE globus-information-services-sdk-2.4.3-src_bundle.tar.gz    kind=source flavor=gcc32dbgpthr
 BUNDLE globus-information-services-server-2.4.3-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
