@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.265 2004-03-15 18:06:19-08 kst Exp $
+# $Id: gpt-wizard,v 1.266 2004-03-15 18:09:23-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -182,12 +182,12 @@ $| = 1;
 
 my $Start_Time       = time;
 
-my $Release_Number   = '0.7.0'; # most recent release
-my $Release_Revision = '1.264'; # RCS/CVS revision of most recent release
+my $Release_Number   = '0.7.1'; # most recent release
+my $Release_Revision = '1.266'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.265 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.266 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
