@@ -1,0 +1,17 @@
+# $Id: ds001.sdsc.edu-nmi-5.1-bin-test1.gptw,v 1.1 2004-09-09 10:14:04-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds001.sdsc.edu/ds001.sdsc.edu-nmi-5.1-bin-test1.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+.PARAM NMI ~kst/NMI/5.1
+
+PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
+
+TEMP_DIR ~kst # not enough room in /tmp
+
+GLOBUS_LOCATION    ~kst/apps/powerpc-ibm-aix5.2.0.0/nmi-1.5-bin-test1
+GLOBUS_LOCAL_DIRECTORY ~kst/var/nmi-1.5-bin-test1
+
+GPT_TARBALL $NMI/tools/gpt-3.2-src.tar.gz
+
+BUNDLE $NMI/aix-52/gpt-bundles/nmi-all-NMI-5.1-aix-powerpc-5.2-bin.tar.gz kind=binary
