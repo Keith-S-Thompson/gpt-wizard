@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.245 2004-03-04 15:24:42-08 kst Exp $
+# $Id: gpt-wizard,v 1.246 2004-03-04 16:37:05-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -74,11 +74,6 @@
 #     Globus security stuff in $GLOBUS_LOCATION/etc.  This is useful
 #     for a client-only installation.
 #
-#     More generally, allow gpt-wizard to be executed, with some
-#     restrictions, by a non-root account (preferably "globus").
-#     Anything that needs to be done by root would be added to
-#     @manual_steps.
-#
 #     Possibly make "setup-gsi" optional, configure /etc/grid-security
 #     by brute force.  Find out more about the implications of doing this.
 #
@@ -92,10 +87,6 @@
 #               globus-user-ssl.conf.42864e48
 #               grid-security.conf.42864e48
 #
-#     If GLOBUS_HOSTNAME is specified, set the $GLOBUS_HOSTNAME
-#     environment variable in inetd.conf or xinetd config files.
-#     (Is this necessary?  Probably not.)  (Yes, it is.)
-#
 #     Optionally generate a Bourne shell script to do the installation
 #     rather than actually doing the installation.  Low priority.
 #
@@ -104,7 +95,7 @@
 #     *if* it exists, and there's a "condor" user (and group?
 #     -- or just use user condor's default group).
 #     I've seen problems with the condor daemons not being able to
-#     write their log files.  (For now, we mention it in @manual_steps.)
+#     write their log files.  For now, we mention it in @manual_steps.
 #
 #     Currently, if INSTALLER_USER is not root, the GSI-OpenSSH
 #     postinstall script can't read the ssh private host keys,
@@ -130,7 +121,7 @@
 #     and packages (and mention rpms).
 #
 #     Support adding updates to an existing installation, including
-#     adding information to the $GLOBUS_LOCAITON/.gpt-wizard directory.
+#     adding information to the $GLOBUS_LOCATION/.gpt-wizard directory.
 #
 #     For updates, figure out how to apply options (particularly
 #     "-static") depending on how the package was initially built.
@@ -201,7 +192,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.245 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.246 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -2829,6 +2820,11 @@ sub Fix_Setup_Script($) {
 sub Inet_Config_Text($$) {
     my($daemon, $service) = @_;
 
+    my $env_arg = "LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib";
+    if (defined $Config{GLOBUS_HOSTNAME}) {
+        $env_arg .= " GLOBUS_HOSTNAME=$Config{GLOBUS_HOSTNAME}";
+    }
+
     if ("$daemon/$service" eq 'xinetd/gsigatekeeper') {
         return <<"EOF";
 service gsigatekeeper
@@ -2837,7 +2833,7 @@ service gsigatekeeper
     protocol        = tcp
     wait            = no
     user            = root
-    env             = LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib
+    env             = $env_arg
     server          = $Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper
     server_args     = -conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf
     disable         = no
@@ -2852,7 +2848,7 @@ service gsiftp
     socket_type     = stream
     wait            = no
     user            = root
-    env             = LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib
+    env             = $env_arg
     server          = $Config{GLOBUS_LOCATION}/sbin/in.ftpd
     server_args     = -l -a -G $Config{GLOBUS_LOCATION}
     log_on_success  += DURATION USERID
@@ -2864,15 +2860,13 @@ EOF
     }
     elsif ("$daemon/$service" eq 'inetd/gsigatekeeper') {
         return "gsigatekeeper   stream tcp nowait root " .
-               "/usr/bin/env env " .
-                   "LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib " .
+               "/usr/bin/env env $env_arg " .
                "$Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper " .
                "-conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf\n";
     }
     elsif ("$daemon/$service" eq 'inetd/gsiftp') {
         return "gsiftp          stream tcp nowait root " .
-               "/usr/bin/env env " .
-                   "LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib " .
+               "/usr/bin/env env $env_arg " .
                "$Config{GLOBUS_LOCATION}/sbin/in.ftpd " .
                "-l -a -G $Config{GLOBUS_LOCATION}\n";
     }
