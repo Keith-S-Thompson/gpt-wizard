@@ -1,19 +1,7 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.5 2002-08-08 16:33:50-07 kst Exp $
+# $Id: gpt-wizard,v 1.6 2002-08-09 19:49:06-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
-
-#
-# To do:
-# Add a config file.
-# Things to configure:
-#     Where to get bundles.
-#     Where to install GPT ($GPT_LOCATION).
-#     Where to install Globus et al ($GLOBUS_LOCATION).
-#     Where to get grid-mapfile, hostcert.pem, hostkey.pem.
-#     Where to get CA signing certs.
-#     Whether to use inetd or xinetd (and perhaps some more details).
-#
 
 use strict;
 
@@ -29,6 +17,9 @@ sub Elapsed_Time_Image($);
 
 my $Prog_Name = File::Basename::basename $0;
 my $temp_file_serial_number = 0;
+
+Usage if scalar @ARGV != 1;
+my %Config = Get_Config $ARGV[0];
 
 my @As_Globus = qw(-time -verbose -check -user=globus);
 my @As_Root   = qw(-time -verbose -check);
@@ -46,6 +37,14 @@ if ($< != 0) {
 
 $| = 1;
 
+my $start_dir = `pwd`;
+die "pwd failed\n" if $? != 0;
+chomp $start_dir;
+
+if ($Config{OS} ne 'linux') {
+    die "Unsupported OS: $Config{OS}\n";
+}
+
 my @globus_pw = getpwnam 'globus';
 die ">>> No user globus\n" unless $#globus_pw >= 2;
 my @globus_gr = getgrnam 'globus';
@@ -55,22 +54,24 @@ my $globus_gid = $globus_gr[2];
 die ">>> globus_uid = $globus_uid\n" unless $globus_uid > 0;
 die ">>> globus_gid = $globus_gid\n" unless $globus_gid > 0;
 
-my $gpt_tarball       = '/home/kst/src/NMI/tools/gpt-2.1-src.tar.gz';
 my $bundle_dir        = '/home/kst/src/NMI/linux/gpt-bundles';
 my $nmi_client_bundle = "$bundle_dir/nmi-client-NMI-1.0.0-i686.gpt.tar.gz";
 my $nmi_server_bundle = "$bundle_dir/nmi-server-NMI-1.0.0-i686.gpt.tar.gz";
 
 #
-# Install GPT in /usr/local/apps/gpt-2.1
+# Install GPT
 #
 my $tmp_dir = "/tmp/gpt-build-$$";
 print Time_Image, "\n";
 mkdir $tmp_dir or die "$tmp_dir: $!\n";
 chown $globus_uid, $globus_gid, $tmp_dir or die "$tmp_dir: $!\n";
 chdir $tmp_dir or die "$tmp_dir: $!\n";
-Execute @As_Globus, 'tar', 'zxf', $gpt_tarball;
-chdir "gpt-2.1" or die "gpt-2.1: $!\n";
-$ENV{GPT_LOCATION} = '/usr/local/apps/gpt-2.1';
+Execute @As_Globus, 'tar', 'zxf', $Config{GPT_TARBALL};
+my $gpt_src_dir = File::Basename::basename $Config{GPT_TARBALL};
+$gpt_src_dir =~ s/\.tar\.gz$//;
+$gpt_src_dir =~ s/-src$//;
+chdir $gpt_src_dir or die "${gpt_src_dir}: $!\n";
+$ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
 mkdir $ENV{GPT_LOCATION} or die "$ENV{GPT_LOCATION}: $!\n";
 chown $globus_uid, $globus_gid, $ENV{GPT_LOCATION}
     or die "$ENV{GPT_LOCATION}: $!\n";
@@ -78,7 +79,8 @@ Execute @As_Globus, './build_gpt';
 
 #
 # <http://www.nsf-middleware.org/documentation/GPT/index.htm>
-# says to delete these two files.
+# says to delete these two files.  They seem to be installed
+# if you use the RPM, but not if you use the source tarball.
 #
 my @files_to_delete = ();
 foreach my $file ('/etc/profile.d/gpt.sh', '/etc/profile.d/gpt.csh') {
@@ -89,20 +91,23 @@ if (@files_to_delete) {
     unlink @files_to_delete or warn ">>> $!\n";
 }
 
-# chdir $ENV{HOME};
-# system 'rm', '-rf', $tmp_dir;
+print "% chdir $start_dir\n";
+chdir $start_dir or die "${start_dir}: $!\n";
+Execute '-verbose', 'rm', '-rf', $tmp_dir;
 
 #
 # Confirm GPT installation
 #
 Execute @As_Globus, "$ENV{GPT_LOCATION}/sbin/gpt-install", '-version';
 
-$ENV{GLOBUS_LOCATION} = '/usr/local/apps/nmi-1.0.0';
+$ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATIN};
 mkdir $ENV{GLOBUS_LOCATION} or die "$ENV{GLOBUS_LOCATION}: $!\n";
 chown $globus_uid, $globus_gid, $ENV{GLOBUS_LOCATION}
     or die "$ENV{GLOBUS_LOCATION}: $!\n";
 
-foreach my $bundle ( $nmi_client_bundle, $nmi_server_bundle) {
+foreach my $bundle ( $Config{NMI_CLIENT_BUNDLE},
+                     $Config{NMI_SERVER_BUNDLE})
+{
     Execute @As_Globus, "$ENV{GPT_LOCATION}/sbin/gpt-install", $bundle;
 }
 
@@ -114,20 +119,136 @@ Execute @As_Globus, "-input=0\n0\nn\n\n",
 Execute @As_Root, "-input=y\nq\n",
         "$ENV{GLOBUS_LOCATION}/setup/globus/setup-gsi";
 
-print <<"EOF";
-To do:
-    Create files in /etc/grid-security:
-        grid-mapfile
-        hostcert.pem
-        hostkey.pem
-    Copy additional CA signing certs to /etc/grid-security/certificates
-    Create files in /etc/xinetd.d:
-        gsigatekeeper
-        gsiftp
-    /etc/init.d/xinetd reload
-EOF
+Execute qw(-verbose -check),
+        'cp', $Config{GRID_MAPFILE}, '/etc/grid-security/grid-mapfile';
+Execute qw(-verbose -check),
+        'cp', $Config{HOST_CERT},    '/etc/grid-security/hostcert.pem';
+Execute qw(-verbose -check),
+        'cp', $Config{HOST_KEY},     '/etc/grid-security/hostkey.pem';
+
+chmod 0444, '/etc/grid-security/grid-mapfile';
+chmod 0444, '/etc/grid-security/hostcert.pem';
+chmod 0400, '/etc/grid-security/hostkey.pem';
+
+chdir '/etc/grid-security' or die "/etc/grid-security: $!\n";
+rename 'certificates', 'certificates.orig';
+Execute qw(-verbose -check),
+        'tar', 'zxf', $Config{CA_CERT_TARBALL};
+
+opendir DIR, $Config{XINETD_DIR} or die "$Config{XINETD_DIR}: $!\n";
+my @files = grep { $_ ne '.' and $_ ne '..' } sort readdir DIR;
+closedir DIR;
+
+foreach my $file (@files) {
+    print "Copying $file to /etc/xinetd.d\n";
+    open IN, "< $Config{XINETD_DIR}/$file"
+        or die "$Config{XINETD_DIR}/${file}: $!\n";
+    open OUT, "> /etc/xinetd.d/$file"
+        or die "/etc/xinetd.d/${file}: $!\n";
+    while (<IN>) {
+        s/\@(\w+)\@/Substitute $1/eg;
+        print OUT;
+    }
+    close IN;
+    close OUT;
+}
+
+Execute qw(-verbose -check), qw(/etc/init.d/xinetd reload);
 
 ########################################################################
+
+#
+# Read and parse the config file (name given on the command line) and
+# return the results as a hash (to be assigned to the global %Config).
+#
+sub Get_Config($) {
+    my %Result = ();
+    my($config_file) = @_;
+    print "Getting configuration from $config_file\n";
+
+    my %options = ( OS                => 0,
+                    GPT_BUNDLE        => 0,
+                    NMI_CLIENT_BUNDLE => 0,
+                    NMI_SERVER        => 0,
+                    GPT_LOCATION      => 0,
+                    GLOBUS_LOCATION   => 0,
+                    GRID_MAPFILE      => 0,
+                    HOST_CERT         => 0,
+                    HOST_KEY          => 0,
+                    CA_CERT_TARBALL   => 0,
+                    XINETD_DIR        => 0 );
+
+    open CONFIG, $config_file or die "$config_file: $!\n";
+    while (<CONFIG>) {
+        s/#.*$//;
+        s/^\s+//;
+        s/\s+$//;
+        next if /^$/;
+        if (/^(\w+)\s*(.*)$/) {
+            my ($name, $value) = ($1, $2);
+            if (defined $options{$name}) {
+                $Result{$1} = $2;
+                $options{$1} ++;
+            }
+            else {
+                die "Unrecognized option in $config_file at line $.\n";
+            }
+        }
+        else {
+            die "Syntax error in $config_file at line $.\n";
+        }
+    }
+    close CONFIG;
+
+    my @missing = ();
+    my @extra = ();
+    foreach my $option (sort keys %options) {
+        if ($options{$option} == 0) {
+            push @missing, $option;
+        }
+        elsif ($options{$option} > 1) {
+            push @extra, $option;
+        }
+    }
+
+    if (@missing or @extra) {
+        my @errors = ( ">>> Bad config file $config_file\n" );
+        foreach (@missing) {
+            push @errors, "    Missing option $_\n";
+        }
+        foreach (@extra) {
+            push @errors, "    Multiply specified option $_\n";
+        }
+        die @errors;
+    }
+
+    #
+    # OS name is case-insensitive; map to lower case.
+    #
+    $Result{OS} = lc $Result{OS};
+
+#   if ($Debugging) {
+#       print "Result:\n";
+#       foreach my $key (sort keys %Result) {
+#           printf "    %-20s => \"%s\"\n", $key, $Result{$key};
+#       }
+#   }
+    return %Result;
+} # Get_Config
+
+# ----------------------------------------------------------------------
+
+sub Substitute($) {
+    my($key) = @_;
+    if (defined $Config{$key}) {
+        return $Config{$key};
+    }
+    else {
+        die "Unrecognized substitution key: $key\n";
+    }
+} # Substitute
+
+# ----------------------------------------------------------------------
 
 sub Elapsed_Time_Image($) {
     my($seconds) = @_;
@@ -382,7 +503,7 @@ sub Execute(@) {
 sub Usage(@) {
     print @_ if @_;
     print <<"EOF";
-Usage: $Prog_Name ... (TBD)
+Usage: $Prog_Name config_file
 EOF
     exit 1;
 } # Usage
