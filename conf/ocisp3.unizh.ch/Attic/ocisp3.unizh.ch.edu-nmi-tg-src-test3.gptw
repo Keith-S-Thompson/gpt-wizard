@@ -1,7 +1,7 @@
-# $Id: ocisp3.unizh.ch.edu-nmi-tg-src-test3.gptw,v 1.1 2004-11-06 21:00:54-08 kst Exp $
+# $Id: ocisp3.unizh.ch.edu-nmi-tg-src-test3.gptw,v 1.2 2004-11-06 21:13:43-08 kst dead $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ocisp3.unizh.ch/Attic/ocisp3.unizh.ch.edu-nmi-tg-src-test3.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin:/usr/lpp/LoadL/full/bin 
 
