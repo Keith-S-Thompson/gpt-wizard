@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: make-release,v 1.3 2003-04-01 17:32:42-08 kst Exp $
+# $Id: make-release,v 1.4 2003-05-16 12:26:50-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/make-release,v $
 
 use strict;
@@ -8,6 +8,7 @@ use strict;
 sub File_Info($);
 sub Next_Revision($);
 sub Edit_File($);
+sub Usage(@);
 
 $| = 1;
 
@@ -15,7 +16,7 @@ my $release_number = undef;
 if (scalar @ARGV == 1 and $ARGV[0] =~ /^\d[\d.]*\d$/) {
     $release_number = $ARGV[0];
 }
-die "Usage: $0 release-number\n" if not defined $release_number;
+Usage if not defined $release_number;
 
 my $release_symbol = "release_$release_number";
 $release_symbol =~ s/\./_/g;
@@ -236,3 +237,13 @@ sub Edit_File($) {
     unlink $file;
     rename "$file.$$", $file;
 } # Edit_File
+
+# ----------------------------------------------------------------------
+
+sub Usage(@) {
+    print @_ if @_;
+    print <<"EOF";
+Usage: $0 release-number
+Don't forget to update Relnotes first.
+EOF
+} # Usage
