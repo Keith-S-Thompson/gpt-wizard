@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.44 2004-03-15 17:59:39-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.45 2004-03-15 18:06:19-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -83,7 +83,7 @@ If the
 .I gpt\-wizard
 command is executed from the root account, most of the installation
 steps will actually be performed by a non\-root account such as
-"globus" (see the INSTALLER_USER configuration variable).  If it's
+"globus" (see the INSTALLER_USER configuration option).  If it's
 executed from a non\-root account, all installation steps will of
 course be performed by that account; any steps that require root access
 will be included in the summary of manual steps to be performed later.
@@ -162,7 +162,7 @@ Location for
 .IR gpt\-wizard 's
 temporary working directory.  The temporary directory will be
 created under the specified directory.  This overrides the TEMP_DIR
-configuration variable.  If neither is specified, the default is /tmp.
+configuration option.  If neither is specified, the default is /tmp.
 
 .IP \-cleanup
 Delete the temporary working directory on completion.
@@ -238,7 +238,7 @@ character at the end of a line (possibly followed by whitespace) indicates
 a line continuation.  Everything from a
 .B '#'
 character to the end of the line is treated as a comment and ignored.
-(This means that a variable value cannot include a
+(This means that an option value cannot include a
 .B '#'
 character; there is no mechanism for specifying a literal
 .BR '#' .)
@@ -249,19 +249,19 @@ and
 .B '#'
 characters on the same physical line is undefined; don't try it.
 
-Each line consists of a variable name, followed by whitespace, followed
-by the value of the variable.  All variable names must be specified
-in upper case.  The value is generally an arbitrary string, which
-may include embedded blanks.  There may be restrictions depending on
-the type of the variable (see below).  String values are not enclosed
-in quotation marks; any quotation marks are simply taken as part of
-the value.  For Boolean variables a false value  may be specified
-as "0", "no", or "false", and a true value may be specified as "1",
+Each line consists of an option name, followed by whitespace, followed
+by the value of the option.  All option names must be specified in
+upper case.  The value is generally an arbitrary string, which may
+include embedded blanks.  There may be restrictions depending on the
+type of the option (see below).  String values are not enclosed in
+quotation marks; any quotation marks are simply taken as part of
+the value.  For Boolean option a false value may be specified as
+"0", "no", or "false", and a true value may be specified as "1",
 "yes", or "true" (without the quotation marks, of course); the value
-is case\-insensitive.  Some variables are optional, some are mandatory,
-and some may appear multiple times.  Certain variables may also
-have attributes associated with them; these are given in the form
-"name=value" on the same line.
+is case\-insensitive.  Some configuration options are optional, some
+are mandatory, and some may appear multiple times.  Certain options
+may also have attributes associated with them; these are given in
+the form "name=value" on the same line.
 
 If a value starts with
 .IR ~user , 
@@ -282,7 +282,7 @@ up to release 0.4, supported specification of URLs (starting with either
 "ftp://" or "http://") for some files.  This is no longer supported;
 all files must be directly visible.  (This feature wasn't being used, and I'm
 not certain that it worked properly.)  The DOWNLOAD_DIR and WGET
-configuration variables are no longer supported.
+configuration options are no longer supported.
 
 .SH CONFIGURATION OPTIONS
 
@@ -313,7 +313,7 @@ Optional.
 Specifies that this configuration file is for an update to an existing
 Globus installation.  If this is specified, the GLOBUS_LOCATION
 directory must already exist, and must contain a Globus installation,
-and the GPT_TARBALL variable may not be specified.  This feature is
+and the GPT_TARBALL option may not be specified.  This feature is
 new in release 0.7.0, and should be used with some caution.
 .br
 (This is not to be confused with the UPDATE option, which specifies
@@ -371,6 +371,7 @@ Mandatory.
 .IP ENV
 An environment variable setting, of the form "VAR" or "VAR=value".
 If no value is specified, the variable is set to the empty string.
+See also the GLOBUS_HOSTNAME option.
 .br
 Type: string
 .br
@@ -549,7 +550,7 @@ Type: new directory (must be empty if it already exists).
 Optional.
 .br
 Note: This replaces and generalizes the GLOBUS_VAR_DIRECTORY
-configuration variable from earlier versions of
+configuration option from earlier versions of
 .IR gpt\-wizard .
 
 .IP GLOBUS_HOSTNAME
