@@ -1,7 +1,7 @@
-$Id: README,v 1.13 2004-02-14 16:53:50-08 kst Exp $
+$Id: README,v 1.14 2004-02-17 04:58:51-08 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/README,v $
 
-This is gpt-wizard release 0.6.
+This is gpt-wizard release 0.6.1.
 
 gpt-wizard is a Perl script designed to automate much of the process
 of building and installing Globus and related software.
