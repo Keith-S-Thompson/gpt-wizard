@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.236 2004-02-14 16:54:23-08 kst Exp $
+# $Id: gpt-wizard,v 1.237 2004-02-17 03:54:52-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -185,7 +185,7 @@ my $Release_Revision = '1.236'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.236 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.237 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -623,8 +623,8 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         if ($bundle->{is_update}) {
             push @options, '-update';
         }
-        if (defined $bundle->{options}) {
-            push @options, split(',', $bundle->{options});
+        if (defined $bundle->{option}) {
+            push @options, split(',', $bundle->{option});
         }
 
         my @flavors = ();
@@ -647,6 +647,9 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         my @options = ();
         if ($GPT_Verbose) {
             push @options, '-verbose';
+        }
+        if (defined $bundle->{option}) {
+            push @options, split(',', $bundle->{option});
         }
         #
         # $GPT_Log and $GPT_Install_Only are inapplicable for gpt-install.
