@@ -1,0 +1,45 @@
+# $Id: baldur-globus-3.2.0.gptw,v 1.1 2004-06-03 14:48:18-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/baldur/baldur-globus-3.2.0.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION /usr/local/apps/globus-3.2.0
+
+.PREFIX ~kst/Globus/3.2.0/gpt
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+SHOW_COMPILER_VERSION gcc --version
+
+#
+# Build Globus 3.2.0 from source (updated bundles)
+#
+.PREFIX ~kst/Globus/3.2.0/bundles/src/kst
+BUNDLE globus-information-services-client-3.2-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-sdk-3.2-src_bundle.tar.gz    kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-server-3.2-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+BUNDLE globus-data-management-client-3.2-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-sdk-3.2-src_bundle.tar.gz         kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-server-3.2-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-client-3.2-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-sdk-3.2-src_bundle.tar.gz     kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-server-3.2-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+
+#
+# gram_reporter
+#
+.PREFIX ~kst/Globus/3.2.0/schedulers/gram-reporters
+BUNDLE globus_gram_reporter-2.0.tar.gz                          kind=source flavor=gcc32dbg
+BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz               kind=source flavor=gcc32dbg
+
+#
+# Apply all current updates
+#
+.PREFIX ~kst/Globus/3.2.0/updates/src
+UPDATE globus_common-4.10.tar.gz
+UPDATE globus_core-3.11.tar.gz
+UPDATE globus_ftp_control-1.14.tar.gz
+UPDATE globus_io-5.3.tar.gz
+UPDATE globus_openssl-1.11.tar.gz
+UPDATE globus_xio-0.7.tar.gz
