@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.10 2003-03-11 15:43:08-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.11 2003-03-11 16:57:18-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -52,7 +52,7 @@ gpt-wizard \- Build and install GPT bundles
 .B "gpt-wizard [options] config-file"
 
 .SH VERSION
-This documentation is for release 0.2 of
+This documentation is for release 0.2+ of
 .IR gpt-wizard .
 
 .SH DESCRIPTION
@@ -137,9 +137,9 @@ building anything.  Useful to detect errors in a configuration file.
 Delete the temporary working directory on completion.
 This is the default behavior.  Use "-nocleanup" to keep the
 temporary working directory.  (Its name will be something like
-.I /tmp/nmi-wizard-1043365463-17640
+.I /tmp/gpt-wizard-1043365463-17640
 or
-.IR TEMP_DIR/nmi-wizard-1043365463-17640 ;
+.IR TEMP_DIR/gpt-wizard-1043365463-17640 ;
 see
 .BR "CONFIGURATION OPTIONS" ,
 below.
@@ -273,7 +273,7 @@ Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
 .br
 Example:
 .br
-.B "	CONFIG_FILE_REVISION $Revision: 1.10 $"
+.B "	CONFIG_FILE_REVISION $Revision: 1.11 $"
 .br
 Type: string
 .br
