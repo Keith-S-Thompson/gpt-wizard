@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.83 2002-10-09 18:47:36-07 kst Exp $
+# $Id: gpt-wizard,v 1.84 2002-10-09 18:49:37-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -64,7 +64,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.83 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.84 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -725,7 +725,7 @@ sub Get_Config($) {
         CONFIG_FILE_REVISION =>
             { type => 'string', required => 0 },
         TEMP_DIR =>
-            { type => 'existing_directory', required => 1 },
+            { type => 'existing_directory', required => 0, default => '/tmp' },
         PATH =>
             { type => 'path', required => 1 },
         INSTALLER_USER =>
