@@ -1,0 +1,23 @@
+# $Id: dtf-test1.sdsc.teragrid.org-openldap-test.gptw,v 1.1 2004-09-13 17:16:45-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test1.sdsc.teragrid.org/dtf-test1.sdsc.teragrid.org-openldap-test.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+.PARAM REPO              /work/kst/repo.teragrid.org
+.PARAM GLOBUS_243        /work/kst/Globus/2.4.3
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION        /work/globus/apps/openldap-test
+
+#
+# Use the latest beta GPT release
+#
+GPT_TARBALL $REPO/open/gpt/3.1.1b5/gpt-3.1.1b5-src.tar.gz
+
+.PREFIX $REPO/open/globus/2.4.3-r4
+
+BUNDLE $GLOBUS_243/packages/src/globus_libtool-0.3.tar.gz     kind=source flavor=gcc64dbgpthr
+BUNDLE $GLOBUS_243/packages/src/globus_cyrus-sasl-0.4.tar.gz  kind=source flavor=gcc64dbgpthr
+BUNDLE $GLOBUS_243/updates/src/globus_openssl-0.20.tar.gz    kind=source flavor=gcc64dbgpthr
+BUNDLE $GLOBUS_243/updates/src/globus_openldap-2.0.22.tar.gz kind=source flavor=gcc64dbgpthr
