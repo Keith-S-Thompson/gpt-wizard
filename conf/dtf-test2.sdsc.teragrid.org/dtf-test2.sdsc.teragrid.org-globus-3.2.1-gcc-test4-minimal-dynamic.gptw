@@ -1,11 +1,11 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-3.2.1-gcc-test4-minimal-dynamic.gptw,v 1.1 2004-08-04 19:33:35-07 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-3.2.1-gcc-test4-minimal-dynamic.gptw,v 1.2 2004-08-11 18:42:48-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-3.2.1-gcc-test4-minimal-dynamic.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
 
-GLOBUS_LOCATION /work/globus/apps/globus-3.2.1-gcc-test4-min
+GLOBUS_LOCATION /work/globus/apps/globus-3.2.1-gcc-test4-minimal-dynamic
 
 .PREFIX /work/kst/repo.teragrid.org/open/gpt/3.2
 GPT_TARBALL gpt-3.2-src.tar.gz
