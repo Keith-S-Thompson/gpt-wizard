@@ -1,7 +1,33 @@
-$Id: Relnotes,v 1.14 2004-03-17 03:57:25-08 kst Exp $
+$Id: Relnotes,v 1.15 2004-04-13 15:38:06-07 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.7.2 to release 0.7.3:
+
+    Implemented some heuristics to determine a good order for building
+    different flavors for an update package.  (The order can determine
+    which version of an executable is installed as the default).
+    If MPI_FLAVORS_ARE_STATIC is specified, the static flavors will
+    be built first, so the default executables are the dynamically
+    linked ones.
+
+    Note: When building the 9 basic Globus bundles, I recommend
+    building the information-services bundles *first*, so the default
+    executables aren't the ones that depend on the pthreads library.
+
+    New command-line option: "-force-arch".
+    gpt-wizard is currently only supported on Linux, SunOS (Solaris),
+    and AIX; this option lets you override the check.  This is for
+    experimental purposes.
+
+    For MPICH-G2, create the ".globus-location" file unconditionally.
+
+    A failed "~user" expansion in a configuration file is now a
+    fatal error.
+
+    Old releases of gpt-wizard are now in the OLD subdirectory on
+    the ftp site.
 
 Changes from release 0.7.1 to release 0.7.2:
 
