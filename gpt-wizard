@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.174 2003-03-11 15:18:17-08 kst Exp $
+# $Id: gpt-wizard,v 1.175 2003-03-14 10:54:03-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -118,6 +118,13 @@
 #     and/or add an optional config var or two to specify how to get
 #     files from CVS.
 #
+#     chown -R condor.condor $GLOBUS_LOCATION/var/condor
+#     (or something like that)
+#     *if* it exists, and there's a "condor" user (and group?
+#     -- or just use user condor's default group).
+#     I've seen problems with the condor daemons not being able to
+#     write their log files.
+#
 
 require 5.004;
 
@@ -172,7 +179,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.174 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.175 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
