@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.29 2002-08-13 14:57:54-07 kst Exp $
+# $Id: gpt-wizard,v 1.30 2002-08-13 15:03:46-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -39,8 +39,12 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = '$Revision: 1.29 $';
-if ($Revision =~ /^\$Revision: 1.29 $$/) {
+my $Revision = '$Revision: 1.30 $';
+#
+# Don't let RCS step on the search pattern.
+#
+my $rev_tag = '$' . 'Revision:';
+if ($Revision =~ /^$rev_tag ([\\d.]+) \$$/) {
     $Revision = $1;
 }
 my $Help = undef;
@@ -354,10 +358,10 @@ sub Get_Config($) {
     }
 
     #
-    # Don't let RCS modify the search pattern.
+    # Don't let RCS step on the search pattern.
     #
     my $revision_tag = '$' . 'Revision:';
-    if ($Result{CONFIG_FILE_REVISION} =~ /^$revision_tag: ([\d.]+) \$$/) {
+    if ($Result{CONFIG_FILE_REVISION} =~ /^$revision_tag ([\d.]+) \$$/) {
         $Result{CONFIG_FILE_REVISION} = $1;
     }
 
