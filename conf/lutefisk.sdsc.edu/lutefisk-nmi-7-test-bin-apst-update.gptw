@@ -1,0 +1,13 @@
+# $Id: lutefisk-nmi-7-test-bin-apst-update.gptw,v 1.1 2005-02-04 23:36:28-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-nmi-7-test-bin-apst-update.gptw,v $
+
+CONFIG_FILE_REVISION	$Revision: 1.1 $
+
+IS_UPDATE	1
+
+PATH		/usr/bin:/bin:/usr/local/apps/apache-ant-1.6.2/bin
+ENV		JAVA_HOME=/usr/local/apps/j2sdk1.4.2_05
+
+GLOBUS_LOCATION	/usr/local/apps/nmi-7-test-bin
+
+BUNDLE		~kst/src/apst/apst-2.2.0.tar.gz kind=source flavor=gcc32dbgpthr
