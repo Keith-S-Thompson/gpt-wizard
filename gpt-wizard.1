@@ -1,7 +1,7 @@
-.\"
+i\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.32 2004-02-13 20:05:37-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.33 2004-02-14 03:33:03-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -279,10 +279,10 @@ home directory.  If there is no such user, no substitution is done
 by the value of $HOME is not supported.)
 
 Previous versions of
-.Ir gpt\-wizard ,
-up to release 0.4 supported specification of URLs (starting with either
+.IR gpt\-wizard ,
+up to release 0.4, supported specification of URLs (starting with either
 "ftp://" or "http://") for some files.  This is no longer supported;
-all files must be directly visible.  (It wasn't being used, and I'm
+all files must be directly visible.  (This feature wasn't being used, and I'm
 not certain that it worked properly.)  The DOWNLOAD_DIR and WGET
 configuration variables are no longer supported.
 
@@ -300,7 +300,7 @@ Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
 .br
 Example:
 .br
-.B "	CONFIG_FILE_REVISION $Revision: 1.32 $"
+.B "	CONFIG_FILE_REVISION $Revision: 1.33 $"
 .br
 Type: string
 .br
@@ -392,7 +392,8 @@ Optional.  Default is 022.
 .IP GPT_TARBALL
 The location of the source tarball
 .RI ( *.tar.gz )
-file for GPT.  Binary and RPM distributions are not yet supported.
+file for GPT.  Binary and RPM distributions of GPT are not yet supported
+though binary and RPM GPT bundles are supported).
 .br
 As of
 .I gpt\-wizard
@@ -523,7 +524,8 @@ Optional.
 
 .IP GRID_MAPFILE
 The name of a file to be copied to
-.IR /etc/grid\-security/grid\-mapfile .
+.I /etc/grid\-security/grid\-mapfile
+if the "-startup" option is specified.
 This is a text file mapping Globus certificate subject names to Unix
 account names.  See the Globus documentation for more information.
 .br
@@ -534,7 +536,8 @@ Optional.
 .IP HOST_CERT
 The name of a file containing the Globus host certificate,
 also known as the gatekeeper certificate.  It will be copied to
-.IR /etc/grid\-security/hostcert.pem .
+.I /etc/grid\-security/hostcert.pem
+if the "-startup" option is specified.
 .br
 Type: file name
 .br
@@ -543,7 +546,8 @@ Optional.
 .IP HOST_KEY
 The name of a file containing the Globus host private key, also known as
 the gatekeeper key.  It will be copied to
-.IR /etc/grid\-security/hostkey.pem .
+.I /etc/grid\-security/hostkey.pem
+if the "-startup" option is specified.
 .br
 Type: file name
 .br
@@ -554,7 +558,8 @@ The name of a file containing the Globus LDAP certificate, to be used
 for non\-anonymous MDS queries (see the
 .I grid\-info\-search
 command).  It will be copied to
-.IR /etc/grid\-security/ldap/ldapcert.pem .
+.I /etc/grid\-security/ldap/ldapcert.pem
+if the "-startup" option is specified.
 .br
 Type: file name
 .br
@@ -565,7 +570,8 @@ The name of a file containing the Globus LDAP private key, to be used
 for non\-anonymous MDS queries (see the
 .I grid\-info\-search
 command).  It will be copied to
-.IR /etc/grid\-security/ldap/ldapkey.pem .
+.I /etc/grid\-security/ldap/ldapkey.pem
+if the "-startup" option is specified.
 .br
 Type: file name
 .br
