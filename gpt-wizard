@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.225 2004-02-11 20:39:49-08 kst Exp $
+# $Id: gpt-wizard,v 1.226 2004-02-11 21:49:29-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -105,11 +105,6 @@
 #     Optionally generate a Bourne shell script to do the installation
 #     rather than actually doing the installation.  Low priority.
 #
-#     Specify CVS files somehow -- perhaps via a fake "cvs://" URL (ick)
-#     and/or add an optional config var or two to specify how to get
-#     files from CVS.  (Low priority; it's usually better just to build
-#     from a local working copy.)
-#
 #     chown -R condor.condor $GLOBUS_LOCATION/var/condor
 #     (or something like that)
 #     *if* it exists, and there's a "condor" user (and group?
@@ -164,9 +159,6 @@ use POSIX ();
 sub Strip_Revision_String($);
 sub Get_Config($);
 sub Get_System_Information();
-sub URL_Protocol($);
-sub Check_URLs(@);
-sub Download_Files(@);
 sub Elapsed_Time_Image($);
 sub Time_Image($);
 sub Make_Temp_File($);
@@ -202,7 +194,7 @@ my $Release_Revision = '1.221'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.225 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.226 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -247,17 +239,11 @@ $SIG{__DIE__} = \&Die_Handler;
 $SIG{INT}     = \&Signal_Handler;
 $SIG{TERM}    = \&Signal_Handler;
 
-#
-# A hash mapping URLs (ftp or http) to cached local files.
-#
-my $Download_Initialized = undef;
-my %Local_File = ();
-my $download_index = 0;
-my $wget = undef;
-my $tar = undef;
-my $gzip = undef;
+my $tar = undef; 
+my $gzip = undef; 
 
 my $temp_file_serial_number = 0;
+
 my @manual_steps = ();
 
 #
@@ -324,11 +310,6 @@ if ($< != 0) {
     die ">>> $Program_Name must be run as root\n";
 }
 
-if (exists $Config{urls}) {
-    die "No DOWNLOAD_DIR specified\n" if not defined $Config{DOWNLOAD_DIR};
-    Check_URLs @{$Config{urls}};
-}
-
 exit 0 if $Validate_Only;
 
 ########################################################################
@@ -392,25 +373,6 @@ if (not $Cleanup) {
 }
 
 ########################################################################
-# Download any files specified by ftp:// or http:// URLs
-# For security reasons, certificates and keys may not be downloaded.
-########################################################################
-my @file_names = ();
-
-foreach my $var (qw(GPT_TARBALL GRID_MAPFILE CA_CERT_TARBALL)) {
-    push @file_names, $Config{$var} if defined $Config{$var};
-}
-
-for (my $i = 0; $i <= $#{$Config{BUNDLE}}; $i ++) {
-    push @file_names, $Config{BUNDLE}->[$i];
-}
-for (my $i = 0; $i <= $#{$Config{UPDATE}}; $i ++) {
-    push @file_names, $Config{UPDATE}->[$i];
-}
-
-Download_Files @file_names;
-
-########################################################################
 # Set the $GLOBUS_HOSTNAME environment variable if specified.
 # This is necessary if the system hostname doesn't match the
 # externally visible network name (e.g., on a typical Rocks cluster).
@@ -446,9 +408,9 @@ if (not $AIX_Kludge) {
     }
     push @errors, "No tar command found\n" if not defined $tar;
     die @errors if @errors;
-    # Execute @As_Installer, 'tar', 'zxf', $Local_File{$Config{GPT_TARBALL}};
+    # Execute @As_Installer, 'tar', 'zxf', $Config{GPT_TARBALL};
     Execute @As_Installer, '/bin/sh', '-c',
-            "$gzip -d < $Local_File{$Config{GPT_TARBALL}} | $tar xf -";
+            "$gzip -d < $Config{GPT_TARBALL} | $tar xf -";
 
     opendir DIR, '.' or die ".: $!\n";
     my @files_after = readdir DIR;
@@ -667,7 +629,7 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
             push @options, '-std-flavors';
         }
         Execute @As_Installer_GPT,
-                $gpt_build_command, @options, $Local_File{$bundle}, @flavors;
+                $gpt_build_command, @options, $bundle, @flavors;
     }
     elsif ($bundle_kind eq 'binary' or $bundle_kind eq 'rpm') {
         #
@@ -682,12 +644,12 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         #
         if ($bundle_kind eq 'binary') {
             Execute @As_Installer_GPT,
-                    $gpt_install_command, @options, $Local_File{$bundle};
+                    $gpt_install_command, @options, $bundle;
         }
         else {
             $Using_RPM = 1;
             Execute @As_Root_GPT,
-                    $gpt_install_command, @options, $Local_File{$bundle};
+                    $gpt_install_command, @options, $bundle;
         }
     }
     else {
@@ -917,7 +879,7 @@ if ($Startup) {
     if (defined $Config{GRID_MAPFILE}) {
         Backup '/etc/grid-security/grid-mapfile';
         Execute @As_Root,
-                'cp', $Local_File{$Config{GRID_MAPFILE}},
+                'cp', $Config{GRID_MAPFILE},
                       '/etc/grid-security/grid-mapfile';
         chmod 0444, '/etc/grid-security/grid-mapfile';
     }
@@ -1021,7 +983,7 @@ if ($Startup and defined $Config{CA_CERT_TARBALL}) {
     mkdir $ca_cert_dir, 0777 or die "$ca_cert_dir: $!\n";
     print "% cd $ca_cert_dir\n";
     chdir $ca_cert_dir or die "$ca_cert_dir: $!\n";
-    Execute @As_Root, 'tar', 'zxf', $Local_File{$Config{CA_CERT_TARBALL}};
+    Execute @As_Root, 'tar', 'zxf', $Config{CA_CERT_TARBALL};
 }
 else {
     push @manual_steps,
@@ -1215,12 +1177,11 @@ sub Strip_Revision_String($) {
 
 #
 # Called by Get_Config.
-# Return an error message for a given filename or URL.
+# Return an error message for a given filename.
 # Return undef if there's no problem.
 #
-sub File_Or_URL_Error(@) {
+sub File_Error(@) {
     my $varname = undef;
-    my $url_ok = undef;
     my $executable = undef;
     my $name = undef;
 
@@ -1228,63 +1189,39 @@ sub File_Or_URL_Error(@) {
         if ($arg =~ /^-varname=(.*)$/) {
             $varname = $1;
         }
-        elsif ($arg eq '-url-ok') {
-            $url_ok = 1;
-        }
         elsif ($arg eq '-executable') {
             $executable = 1;
         }
         elsif ($arg =~ /^-/) {
-            die "Internal error, File_Or_URL_Error, arg \"$arg\"\n";
+            die "Internal error, File_Error, arg \"$arg\"\n";
         }
         else {
             $name = $arg;
         }
     }
 
-    my $protocol = URL_Protocol $name;
-    if (defined $protocol) {
-        if ($url_ok) {
-            if ($protocol eq 'http' or $protocol eq 'ftp') {
-                #
-                # This will be checked via Check_URLs after Get_Config
-                # is finished (to guarantee that we know where the "wget"
-                # command is).
-                #
-                return undef;
-            }
-            else {
-                return "$varname URL \"$name\", unsupported protocol\n";
-            }
-        }
-        else {
-            return "$varname file \"$name\", URL not allowed\n";
-        }
+    if ($name !~ /^\//) {
+        return "$varname file \"$name\", relative path not allowed\n";
+    }
+    elsif (not -e $name) {
+        return "$varname file \"$name\" does not exist\n";
+    }
+    elsif (not -f _) {
+        return "$varname file \"$name\" is not an ordinary file\n";
+    }
+    elsif (not $executable and not -r _) {
+        return "Can't read $varname file \"$name\"\n";
+    }
+    elsif (-z _) {
+        return "$varname file \"$name\" is empty\n";
+    }
+    elsif ($executable and not -x _) {
+        return "$varname file \"$name\" is not executable\n";
     }
     else {
-        if ($name !~ /^\//) {
-            return "$varname file \"$name\", relative path not allowed\n";
-        }
-        elsif (not -e $name) {
-            return "$varname file \"$name\" does not exist\n";
-        }
-        elsif (not -f _) {
-            return "$varname file \"$name\" is not an ordinary file\n";
-        }
-        elsif (not $executable and not -r _) {
-            return "Can't read $varname file \"$name\"\n";
-        }
-        elsif (-z _) {
-            return "$varname file \"$name\" is empty\n";
-        }
-        elsif ($executable and not -x _) {
-            return "$varname file \"$name\" is not executable\n";
-        }
-        else {
-            return undef;
-        }
+        return undef;
     }
-} # File_Or_URL_Error
+} # File_Error
 
 # ----------------------------------------------------------------------
 
@@ -1352,13 +1289,9 @@ sub Next_Line($) {
 # Read and parse the config file (name given on the command line) and
 # return the results as a hash (to be assigned to the global %Config).
 #
-# An additional hash entry, 'urls', is a reference to an array of any
-# URLs specified in the config file.
-#
 sub Get_Config($) {
     my($config_file) = @_;
     my @errors = ();
-    my @urls = ();
     my $default_prefix = undef;
 
     #
@@ -1372,10 +1305,6 @@ sub Get_Config($) {
             { type => 'string', required => 0 },
         TEMP_DIR =>
             { type => 'existing_directory', required => 0, default => '/tmp' },
-        DOWNLOAD_DIR =>
-            { type => 'existing_directory', required => 0 },
-        WGET =>
-            { type => 'executable_file', required => 0 },
         TAR =>
             { type => 'executable_file', required => 0 },
         GZIP =>
@@ -1393,11 +1322,11 @@ sub Get_Config($) {
         UMASK =>
             { type => 'umask', required => 0, default => '022' },
         GPT_TARBALL =>
-            { type => 'file_or_url', required => 1 },
+            { type => 'file', required => 1 },
         BUNDLE =>
-            { type => 'array_of_file_or_url', required => 1 },
+            { type => 'array_of_file', required => 1 },
         UPDATE =>
-            { type => 'array_of_file_or_url', required => 0 },
+            { type => 'array_of_file', required => 0 },
         PRE_POSTINSTALL =>
             { type => 'string', required => 0 },
         GPT_LOCATION =>
@@ -1409,7 +1338,7 @@ sub Get_Config($) {
         GLOBUS_HOSTNAME =>
             { type => 'string', required => 0 },
         GRID_MAPFILE =>
-            { type => 'file_or_url', required => 0 },
+            { type => 'file', required => 0 },
         HOST_CERT =>
             { type => 'file', required => 0 },
         HOST_KEY =>
@@ -1423,7 +1352,7 @@ sub Get_Config($) {
         JOB_MANAGER =>
             { type => 'job_manager', required => 0 },
         CA_CERT_TARBALL =>
-            { type => 'file_or_url', required => 0 }
+            { type => 'file', required => 0 }
     );
 
     print "Getting configuration from $config_file\n";
@@ -1442,19 +1371,15 @@ sub Get_Config($) {
             # Assume a username consists of one or more word
             # characters or hyphens.
             #
-            # This substitution does not occur for URLs (since URLs
-            # can't start with '~').
-            #
             $value =~ s/^~[\w-]+/Expand_Tilde $&/e;
 
             #
             # .PREFIX is not a true configuration option.  Instead, it
             # allows a default directory prefix to be set for options
-            # that specify file names or URLs.  The default prefix, if
-            # any, is prepended, with a '/' character, to any following
-            # file or directory specifications.  It does not apply to
-            # options given as absolute file names (starting with '/'
-            # or '~') or as URLs.
+            # that specify file names.  The default prefix, if any, is
+            # prepended, with a '/' character, to any following file or
+            # directory specifications.  It does not apply to options
+            # given as absolute file names (starting with '/' or '~').
             #
             # This is in effect a limited macro facility, intended
             # to avoid extremely long lines in configuration files.
@@ -1462,7 +1387,7 @@ sub Get_Config($) {
             # on actual options after they're expanded.
             #
             # This expansion is performed only for options of type 'file',
-            # 'file_or_url', and 'array_of_file_or_url'.
+            # and 'array_of_file'.
             # 
             if ($name eq '.PREFIX') {
                 $default_prefix = $value;
@@ -1472,17 +1397,13 @@ sub Get_Config($) {
                 my $Var = $Var_Info{$name};
 
                 if ($Var->{type} eq 'file' or
-                    $Var->{type} eq 'file_or_url' or
-                    $Var->{type} eq 'array_of_file_or_url')
+                    $Var->{type} eq 'array_of_file')
                 {
                     #
                     # Prepend the default prefix (if any) only if the
                     # value is a relative pathname.
                     #
-                    if (not defined URL_Protocol $value and
-                        $value !~ m<^/> and
-                        defined $default_prefix)
-                    {
+                    if ($value !~ m<^/> and defined $default_prefix) {
                         $value = "$default_prefix/$value";
                     }
                     #
@@ -1766,37 +1687,20 @@ sub Get_Config($) {
             }
         }
 
-        #
-        # A filename or a URL.
-        # See File_Or_URL_Error().
-        # 
-        elsif ($var->{type} eq 'file_or_url') {
-            my $error = File_Or_URL_Error
-                            "-varname=$varname", "-url-ok", $var->{value};
-            push @errors, $error if defined $error;
-            if (defined URL_Protocol $var->{value}) {
-                push @urls, $var->{value};
-            }
-        }
-
-        elsif ($var->{type} eq 'array_of_file_or_url') {
+        elsif ($var->{type} eq 'array_of_file') {
             foreach my $item (@{$var->{value}}) {
-                my $error = File_Or_URL_Error
-                                "-varname=$varname", "-url-ok", $item;
+                my $error = File_Error "-varname=$varname", $item;
                 push @errors, $error if defined $error;
-                if (defined URL_Protocol $var->{value}) {
-                    push @urls, $var->{value};
-                }
             }
         }
 
         elsif ($var->{type} eq 'file') {
-            my $error = File_Or_URL_Error "-varname=$varname", $var->{value};
+            my $error = File_Error "-varname=$varname", $var->{value};
             push @errors, $error if defined $error;
         }
 
         elsif ($var->{type} eq 'executable_file') {
-            my $error = File_Or_URL_Error
+            my $error = File_Error
                             "-varname=$varname", "-executable", $var->{value};
             push @errors, $error if defined $error;
         }
@@ -1876,9 +1780,6 @@ sub Get_Config($) {
     foreach my $varname (keys %Var_Info) {
         $Result{$varname} = $Var_Info{$varname}->{value};
     }
-    if (@urls) {
-        $Result{urls} = \@urls;
-    }
 
     foreach my $key (sort keys %Result) {
         my $value = $Result{$key};
@@ -1886,16 +1787,14 @@ sub Get_Config($) {
             printf "    %-20s => {\n", $key;
             foreach my $elem (@$value) {
                 my @fields = ("\"$elem\"");
-                if ($key ne 'urls') {
-                    if (defined $Bundle_Kind{$elem}) {
-                        push @fields, "kind=$Bundle_Kind{$elem}";
-                    }
-                    if (defined $Bundle_Option{$elem}) {
-                        push @fields, "option=$Bundle_Option{$elem}";
-                    }
-                    if (defined $Bundle_Flavor{$elem}) {
-                        push @fields, "flavor=$Bundle_Flavor{$elem}";
-                    }
+                if (defined $Bundle_Kind{$elem}) {
+                    push @fields, "kind=$Bundle_Kind{$elem}";
+                }
+                if (defined $Bundle_Option{$elem}) {
+                    push @fields, "option=$Bundle_Option{$elem}";
+                }
+                if (defined $Bundle_Flavor{$elem}) {
+                    push @fields, "flavor=$Bundle_Flavor{$elem}";
                 }
                 print "        @fields\n";
             }
@@ -2029,154 +1928,6 @@ sub Get_System_Information() {
 
     return %Result;
 } # Get_System_Information
-
-# ----------------------------------------------------------------------
-
-#
-# Read the DOWNLOAD_DIR and initialize the mapping of URLs to cached
-# downloaded files.
-#
-sub Init_Download() {
-    return if $Download_Initialized;
-
-    die "No DOWNLOAD_DIR specified\n" if not defined $Config{DOWNLOAD_DIR};
-
-    if (not defined $wget) {
-        $wget = Find_Command 'wget', $Config{WGET};
-    }
-    die "No wget command found\n" if not defined $wget;
-
-    my @subdirs = ();
-
-    opendir DIR, $Config{DOWNLOAD_DIR} or die "$Config{DOWNLOAD_DIR}: $!\n";
-    foreach my $subdir (sort readdir DIR) {
-        next if $subdir !~ /^\d+$/;
-        $download_index = $subdir + 1 if $subdir >= $download_index;
-        my $url_file = "$Config{DOWNLOAD_DIR}/$subdir/.url";
-        open URL, $url_file or next;
-        my $url = <URL>;
-        close URL;
-        chomp $url;
-        $Local_File{$url} = "$Config{DOWNLOAD_DIR}/$subdir/" .
-                            File::Basename::basename $url;
-    }
-    closedir DIR;
-
-    $Download_Initialized = 1;
-} # Init_Download
-
-# ----------------------------------------------------------------------
-
-#
-# Returns the protocol of a URL, generally 'http' or 'ftp'.
-# If the argument is not a URL, returns undef.
-#
-sub URL_Protocol($) {
-    if ($_[0] =~ m<^(\w+)://>) {
-        return $1;
-    }
-    else {
-        return undef;
-    }
-} # URL_Protocol
-
-# ----------------------------------------------------------------------
-
-#
-# Given a list of URLs, verify that each one exists.
-# Uses "wget --spider".
-# (Note that "wget --spider" doesn't work for ftp URLs, so they
-# aren't currently checked.)
-#
-sub Check_URLs(@) {
-    Init_Download;
-    die "No wget command found or specified\n" if not defined $wget;
-    my @bad_urls = ();
-
-    foreach my $url (@_) {
-        if (URL_Protocol $url eq 'http') {
-            my $result = system $wget, '--spider', '-o', '/dev/null', $url;
-            if ($result != 0) {
-                push @bad_urls, $url;
-            }
-        }
-    }
-
-    if (@bad_urls) {
-        my $message;
-        if (scalar @bad_urls == 1) {
-            $message = ">>> The following URL does not exist:\n";
-        }
-        else {
-            $message = ">>> The following URLs do not exist:\n";
-        }
-        foreach my $url (@bad_urls) {
-            $message .= "    $url\n";
-        }
-        die $message;
-    }
-} # Check_URLs
-
-# ----------------------------------------------------------------------
-
-#
-# Download any files specified by an "http://" or "ftp://" URL.
-# Update %Local_File entries to point to downloaded files.
-#
-# Arguments are file names or URLs.
-#
-sub Download_Files(@) {
-    my @names = @_;
-    my $changed_dir = 0;
-
-    foreach my $name (@names) {
-        if (defined URL_Protocol $name) {
-            Init_Download;
-
-            if (not defined $Local_File{$name}) {
-                my $target_dir = sprintf "%s/%03d",
-                                         $Config{DOWNLOAD_DIR},
-                                         $download_index++;
-                my $target_file = "$target_dir/" .
-                                  File::Basename::basename $name;
-
-                print "% mkdir $target_dir\n";
-                mkdir $target_dir, 0777 or die "$target_dir: $!\n";
-                chown $installer_uid, $installer_gid, $target_dir
-                    or die "$target_dir: $!\n";
-
-                print "% cd $target_dir\n";
-                chdir $target_dir or die "$target_dir: $!\n";
-                $changed_dir = 1;
-
-                Execute @As_Installer,
-                        $wget, '-o', '/dev/null', $name;
-                if (not -e $target_file) {
-                    die "Download failed for $target_file (no file)\n";
-                }
-                elsif (-s $target_file == 0) {
-                    die "Download failed for $target_file (empty file)\n";
-                }
-                open URL, ">$target_dir/.url" or die "$target_dir/.url: $!\n";
-                print URL "$name\n";
-                close URL;
-                chown $installer_uid, $installer_gid, "$target_dir/.url";
-                #
-                # Ignore any errors from chown (no biggie if it fails).
-                #
-                $Local_File{$name} = $target_file;
-            }
-        }
-        else {
-            $Local_File{$name} = $name;
-        }
-    }
-
-    if ($changed_dir) {
-        print "% cd $working_dir\n";
-        chdir $working_dir or die "$working_dir: $!\n";
-    }
-} # Download_Files
 
 # ----------------------------------------------------------------------
 
