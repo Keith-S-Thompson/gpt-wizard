@@ -1,6 +1,6 @@
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.3 2003-01-22 18:51:27-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.4 2003-01-23 15:55:47-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -47,13 +47,14 @@
 gpt-wizard \- Build and install GPT bundles
 .SH SYNOPSYS
 .B "gpt-wizard -help"
+.br
 .B "gpt-wizard [options] config-file"
 
 .SH DESCRIPTION
 The
 .I gpt-wizard
-command builds and installs a specified set of GPT bundles, driven
-by a simple ASCII configuration file.
+command builds and installs a specified set of GPT bundles, driven by a
+simple ASCII configuration file.  (GPT is the Grid Packaging Toolkit.)
 
 .SH OPTIONS
 .IP -help
@@ -98,7 +99,8 @@ This doesn't affect binary installations
 .B NOTE:
 This option is probably obsolete for the current version of
 .IR GPT .
--gpt-ignore-errors
+
+.IP -gpt-ignore-errors
 Ignore errors from
 .I gpt-install
 and
@@ -109,7 +111,8 @@ Not recommended.
 Use an existing GPT installation.  This was implemented to work around
 some obscure problems on an AIX system.  Not recommended unless you know
 what you're doing.
--debugging
+
+.IP -debugging
 Enable debugging output.
 
 .SH CONFIGURATION FILE
@@ -148,7 +151,7 @@ these are given in the form "name=value" on the same line.
 .SH CONFIGURATION OPTIONS
 
 .IP CONFIG_FILE_REVISION
-Usually an RCS or CVS "$Revision: 1.3 $" tag.
+Usually an RCS or CVS "$Revision: 1.4 $" tag.
 .br
 Type: string
 .br
@@ -256,7 +259,7 @@ The same attributes may be specified as for bundles.
 .br
 Type: file or URL
 .br
-Optional.  Multiple updates may be specified.
+Optional.  Multiple update packages may be specified.
 
 .IP PRE_POSTINSTALL
 Specify a command to be executed before running gpt-postinstall.
@@ -299,6 +302,25 @@ Optional.
 
 .IP GLOBUS_HOSTNAME
 ...
+
+.SH REFERENCES
+
+.IP GPT
+GPT is the Grid Packaging Toolkit, developed at NCSA.  It is the
+method used to install Globus for releases 2.0 and later.
+
+.IP Globus
+The Globus Project develops the Globus Toolkit.  If you've read this far,
+you probably already know what that is.
+.br
+See <http://www.globus.org>.
+
+.IP NMI
+NMI, or NSF Middleware Infrastructure, is a project sponsored by the
+National Science Foundation.  It packages and distributes Globus and
+other grid-related software components.
+.br
+See <http://www.nsf-middleware.org>.
 
 .SH AUTHOR
 Keith Thompson, San Diego Supercomputer Center, kst@sdsc.edu
