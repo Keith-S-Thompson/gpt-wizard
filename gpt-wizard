@@ -1,12 +1,15 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.41 2002-08-16 17:58:29-07 kst Exp $
+# $Id: gpt-wizard,v 1.42 2002-08-16 20:37:10-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
 # To do:
 #
-#     Start other services (configurable).
+#     Start services other than GRIS (make it configurable).
+#
+#     May need to update lines in inetd.conf or files in xinetd.d
+#     for services other than gsigatekeeper and gsiftp.
 #
 #     We warn about putting parts of Globus on local file
 #     systems; consider automating this (?).
@@ -18,15 +21,12 @@
 #     actually made it that way).
 #
 #     Execute "-user=..." seems to have problems detecting errors in
-#     the child process.  Diagnose and fix.
+#     the child process.  Diagnose and fix.  Or just set and restore
+#     things correctly; see next item.
 #
 #     In Execute(), figure out the right way to set and restore
 #     effective(?) user and group ids, preferably without having to do
 #     an extra fork.
-#
-#     Be more careful about existing files in /etc/grid-security,
-#     /etc/xinetd.conf.  Use the new function Backup() (written but
-#     not yet called).
 #
 
 use strict;
@@ -58,10 +58,10 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.41 $';
-my $Help = undef;
+my $Revision = Strip_Revision_String '$Revision: 1.42 $';
+my $Help      = undef;
 my $Debugging = undef;
-my $Cleanup = 1;
+my $Cleanup   = 1;
 my @Opts = ( 'help'      => \$Help,
              'debugging' => \$Debugging,
              'cleanup!'  => \$Cleanup );
@@ -79,10 +79,13 @@ my %Config = Get_Config $ARGV[0];
 Check_Config_Vars();
 
 my %Sys = Get_System_Information;
+if ($Sys{OS} ne 'linux') {
+    die "Unsupported OS \"$Sys{OS}\"\n";
+}
 
 Check_Services;
 
-my @As_Root      = qw(-time -verbose -check);
+my @As_Root      =  qw(-time -verbose -check);
 my @As_Installer = (qw(-time -verbose -check),
                    "-user=$Config{INSTALLER_USER}.$Config{INSTALLER_GROUP}");
 
@@ -98,6 +101,10 @@ if ($< != 0) {
 }
 
 $| = 1;
+
+########################################################################
+# Create a temporary working directory and set some variables.
+########################################################################
 
 print Time_Image time, "\n";
 print "$Prog_Name revision $Revision processing ",
@@ -122,61 +129,128 @@ chown $installer_uid, $installer_gid, $working_dir
 chmod 0700, $working_dir or warn "$working_dir: $!\n";
 chdir $working_dir or die "$working_dir: $!\n";
 
-#
+########################################################################
 # Install GPT
-#
+########################################################################
+
+########################################
+# Unpack the source tarball.  See what the tar command created.
+# If there's exactly one new thing in the current directory, assume it's
+# the extracted source directory.
+########################################
+
+opendir DIR, '.' or die ".: $!\n";
+my @files_before = readdir DIR;
+closedir DIR;
+my %already_existed = map { $_ => 1 } @files_before;
+
 Execute @As_Installer, 'tar', 'zxf', $Config{GPT_TARBALL};
-chdir $Config{GPT_SRC_DIR} or die "$Config{GPT_SRC_DIR}: $!\n";
-$ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
-if (not -d $ENV{GPT_LOCATION}) {
-    mkdir $ENV{GPT_LOCATION} or die "$ENV{GPT_LOCATION}: $!\n";
-    chown $installer_uid, $installer_gid, $ENV{GPT_LOCATION}
-        or die "$ENV{GPT_LOCATION}: $!\n";
+
+opendir DIR, '.' or die ".: $!\n";
+my @files_after = readdir DIR;
+closedir DIR;
+
+my @new_files = ();
+foreach my $file (@files_after) {
+    push @new_files, $file if not $already_existed{$file};
 }
+
+if (scalar @new_files == 0) {
+    die "Can't determine GPT source directory, tar didn't create anything\n";
+}
+elsif (scalar @new_files == 1) {
+    my $src_dir = $new_files[0];
+    chdir $src_dir or die "$working_dir/$src_dir: $!\n";
+}
+else {
+    die "Can't determine GPT source directory, tar created (@new_files)\n";
+}
+
+########################################
+# Create the $GPT_LOCATION directory if it doesn't already exist.
+# (If it exists it must be empty; this is handled in Get_Config.)
+########################################
+
+$ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
+if (not -d $Config{GPT_LOCATION}) {
+    mkdir $Config{GPT_LOCATION} or die "$Config{GPT_LOCATION}: $!\n";
+    chown $installer_uid, $installer_gid, $Config{GPT_LOCATION}
+        or die "$Config{GPT_LOCATION}: $!\n";
+}
+
+########################################
+# Run build-gpt to install GPT
+########################################
 Execute @As_Installer, './build_gpt';
 
-#
+########################################
 # <http://www.nsf-middleware.org/documentation/GPT/index.htm>
 # says to delete these two files.  They seem to be installed
 # if you use the RPM, but not if you use the source tarball.
-#
-my @files_to_delete = ();
-foreach my $file ('/etc/profile.d/gpt.sh', '/etc/profile.d/gpt.csh') {
-    push @files_to_delete, $file if -e $file;
-}
-if (@files_to_delete) {
-    print "% unlink @files_to_delete\n";
-    unlink @files_to_delete or warn ">>> $!\n";
-}
+# So in reality, these files probably won't exist in the first place;
+# ignore any errors from unlink().
+########################################
+unlink '/etc/profile.d/gpt.sh',
+       '/etc/profile.d/gpt.csh';
 
-#
+########################################################################
 # Confirm GPT installation
-#
-Execute @As_Installer, "$ENV{GPT_LOCATION}/sbin/gpt-install", '-version';
+########################################################################
+Execute @As_Installer, "$Config{GPT_LOCATION}/sbin/gpt-install", '-version';
 
+########################################################################
+# Install bundles (presumably Globus et al)
+########################################################################
+
+########################################
+# Create the $GLOBUS_LOCATION directory if it doesn't already exist.
+# (If it exists it must be empty; this is handled in Get_Config.)
+########################################
 $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
-if ($ENV{GLOBUS_LOCATION} ne $ENV{GPT_LOCATION}) {
-    if (not -d $ENV{GLOBUS_LOCATION}) {
-        mkdir $ENV{GLOBUS_LOCATION} or die "$ENV{GLOBUS_LOCATION}: $!\n";
-        chown $installer_uid, $installer_gid, $ENV{GLOBUS_LOCATION}
-            or die "$ENV{GLOBUS_LOCATION}: $!\n";
+if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
+    if (not -d $Config{GLOBUS_LOCATION}) {
+        mkdir $Config{GLOBUS_LOCATION} or die "$Config{GLOBUS_LOCATION}: $!\n";
+        chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCATION}
+            or die "$Config{GLOBUS_LOCATION}: $!\n";
     }
 }
 
+########################################
+# Run gpt-install to install the bundles.
+########################################
 foreach my $bundle ( @{$Config{BUNDLES}} ) {
-    Execute @As_Installer, "$ENV{GPT_LOCATION}/sbin/gpt-install", $bundle;
+    Execute @As_Installer, "$Config{GPT_LOCATION}/sbin/gpt-install", $bundle;
 }
 
+########################################################################
+# Post-installation
+########################################################################
+
+########################################
+# Run gpt-postinstall.
+# Annoyingly, it waits for user input; force-feed it to keep it happy.
+# BUILD SCRIPTS SHOULD NOT WAIT FOR USER INPUT!
+########################################
 Execute @As_Installer, "-input=0\n0\nn\n\n",
-        "$ENV{GPT_LOCATION}/sbin/gpt-postinstall";
+        "$Config{GPT_LOCATION}/sbin/gpt-postinstall";
 
+########################################
+# Run setup-gsi to create /etc/grid-security
+# (but we're going to replace it in a moment).
+########################################
 Execute @As_Root, "-input=y\nq\n",
-        "$ENV{GLOBUS_LOCATION}/setup/globus/setup-gsi";
+        "$Config{GLOBUS_LOCATION}/setup/globus/setup-gsi";
 
+########################################
+# Now copy files to /etc/grid-security.
+########################################
+Backup '/etc/grid-security/grid-mapfile';
 Execute @As_Root,
         'cp', $Config{GRID_MAPFILE}, '/etc/grid-security/grid-mapfile';
+Backup '/etc/grid-security/hostcert.pem';
 Execute @As_Root,
         'cp', $Config{HOST_CERT},    '/etc/grid-security/hostcert.pem';
+Backup '/etc/grid-security/hostkey.pem';
 Execute @As_Root,
         'cp', $Config{HOST_KEY},     '/etc/grid-security/hostkey.pem';
 
@@ -185,65 +259,106 @@ chmod 0444, '/etc/grid-security/hostcert.pem';
 chmod 0400, '/etc/grid-security/hostkey.pem';
 
 chdir '/etc/grid-security' or die "/etc/grid-security: $!\n";
-rename 'certificates', 'certificates.orig';
+Backup 'certificates';
 Execute @As_Root,
         'tar', 'zxf', $Config{CA_CERT_TARBALL};
 
+####################################
+# The LDAP certificate and key need to be in $GLOBUS_LOCATION/etc,
+# not in /etc/grid-security.  I'm not sure why.
+####################################
+Backup "$Config{GLOBUS_LOCATION}/etc/server.cert";
 Execute @As_Installer,
-        'cp', $Config{LDAP_CERT}, "$ENV{GLOBUS_LOCATION}/etc/server.cert";
+        'cp', $Config{LDAP_CERT}, "$Config{GLOBUS_LOCATION}/etc/server.cert";
+Backup "$Config{GLOBUS_LOCATION}/etc/server.key";
 Execute @As_Installer,
-        'cp', $Config{LDAP_KEY}, "$ENV{GLOBUS_LOCATION}/etc/server.key";
-chmod 0400, "$ENV{GLOBUS_LOCATION}/etc/server.key";
+        'cp', $Config{LDAP_KEY}, "$Config{GLOBUS_LOCATION}/etc/server.key";
+chmod 0400, "$Config{GLOBUS_LOCATION}/etc/server.key";
 
-opendir DIR, $Config{INET_DIR} or die "$Config{INET_DIR}: $!\n";
-my @files = grep { $_ ne '.' and $_ ne '..' } sort readdir DIR;
-closedir DIR;
-
-if ($Config{INET_DAEMON} eq 'xinetd') {
-    foreach my $file (@files) {
-        print "Copying $file to /etc/xinetd.d\n";
-        open IN, "< $Config{INET_DIR}/$file"
-            or die "$Config{INET_DIR}/${file}: $!\n";
-        open OUT, "> /etc/xinetd.d/$file"
-            or die "/etc/xinetd.d/${file}: $!\n";
-        while (<IN>) {
-            s/\@(\w+)\@/Substitute $1/eg;
-            print OUT;
-        }
-        close IN;
-        close OUT;
-    }
-    Execute @As_Root, qw(/etc/init.d/xinetd reload);
-}
-else {
-    my $update = "Update /etc/inetd.conf:\n";
-    foreach my $file (@files) {
-        $update .= "  ${file}:\n";
-        open IN, "< $Config{INET_DIR}/$file"
-            or die "$Config{INET_DIR}/${file}: $!\n";
-        while (<IN>) {
-            chomp;
-            s/\@(\w+)\@/Substitute $1/eg;
-            $update .= "    $_\n";
-        }
-        close IN;
-    }
-    if (-x '/etc/init.d/inet') {
-        $update .= "Execute as root \"/etc/init.d/inet reload\"\n";
+if ($Sys{INET_DAEMON} eq 'xinetd') {
+    my $xinetd_dir = '/etc/xinetd.d';
+    if (not -d $xinetd_dir) {
+        push @manual_steps,
+             "You seem to be running xinetd, but there is " .
+             "no $xinetd_dir directory.\n" .
+             "Your humble installation script is confused.\n" .
+             "You're on your own.\n";
     }
     else {
-        $update .= "Reload or restart inetd\n";
+        my $file1 = "$xinetd_dir/gsigatekeeper";
+        Backup $file1;
+        open FILE, "> $file1" or die "${file1}: $!\n";
+        print FILE <<"EOF";
+service gsigatekeeper
+{
+    socket_type  = stream
+    protocol     = tcp
+    wait         = no
+    user         = root
+    server       = $Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper
+    server_args  = -conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf
+    disable      = no
+}
+EOF
+
+        my $file2 = "$xinetd_dir/gsiftp";
+        Backup $file2;
+        open FILE, "> $file2" or die "${file2}: $!\n";
+        print FILE <<"EOF";
+service gsiftp
+{
+    instances               = 1000
+    socket_type             = stream
+    wait                    = no
+    user                    = root
+    server                  = $Config{GLOBUS_LOCATION}/sbin/in.ftpd
+    server_args             = -l -a -G /usr/nmi
+    log_on_success         += DURATION USERID
+    log_on_failure         += USERID
+    nice                    = 10
+    disable                 = no
+}
+EOF
+
+        Execute @As_Root, qw(/etc/init.d/xinetd reload);
     }
+}
+else {
+    #
+    # For inetd, we need to update /etc/inetd.conf.
+    # Since this involves editing an existing file (which requires
+    # some care about its previous contents), and some sites might
+    # want to use things like tcpd, we'll let the user do this manually.
+    #
+    my $update = "Update /etc/inetd.conf:\n";
+
+    $update .= "gsigatekeeper:\n";
+    $update .= "gsigatekeeper   stream tcp nowait root " .
+               "$Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper " .
+               "globus-gatekeeper " .
+               "-conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf\n";
+
+    $update .= "gsiftp:\n";
+    $update .= "gsiftp  stream  tcp     nowait  root    " .
+               "$Config{GLOBUS_LOCATION}/sbin/in.ftpd in.ftpd -l -a";
+
+    $update .= "Allow for any site-specific conventions for /etc/inetd.conf\n";
+
+    $update .= "Execute as root \"$Sys{NET_DAEMON_RELOAD}\"\n";
     push @manual_steps, $update;
 }
 
+########################################
+# Configure batch jobmanager
+########################################
+
 if ($Config{BATCH_SYSTEM} ne 'none') {
     Execute @As_Installer,
-            "$ENV{GLOBUS_LOCATION}/setup/globus/setup-globus-gram-job-manager",
-            "-type=$Config{BATCH_SYSTEM}";
-    my $libexec = "$ENV{GLOBUS_LOCATION}/libexec";
+        "$Config{GLOBUS_LOCATION}/setup/globus/setup-globus-gram-job-manager",
+        "-type=$Config{BATCH_SYSTEM}";
+    my $libexec = "$Config{GLOBUS_LOCATION}/libexec";
     push @manual_steps,
-         "Fix $ENV{GLOBUS_LOCATION}/libexec/" .
+         "Fix $Config{GLOBUS_LOCATION}/libexec/" .
          "globus-script-$Config{BATCH_SYSTEM}-* if necessary\n";
 }
 
@@ -252,25 +367,34 @@ push @manual_steps,
      "the var directory, are on a local file system\n";
 
 Execute @As_Installer,
-        "$ENV{GLOBUS_LOCATION}/sbin/SXXgris", 'start';
+        "$Config{GLOBUS_LOCATION}/sbin/SXXgris", 'start';
 push @manual_steps,
-     "Arrange for \"$ENV{GLOBUS_LOCATION}/sbin/SXXgris start\"\n" .
+     "Arrange for \"$Config{GLOBUS_LOCATION}/sbin/SXXgris start\"\n" .
      "to be executed by user \"$Config{INSTALLER_USER}\" on system boot\n";
 
 push @manual_steps,
-     "Configure to report to a GIIS server\n";
+     "Configure to report to a GIIS server if desired\n";
 
-chdir $ENV{HOME};
+chdir '/tmp';
 if ($Cleanup) {
     Execute @As_Root, 'rm', '-rf', $working_dir;
 }
 
+########################################################################
+# Some things can't be easily automated, some things shouldn't be
+# automated, and some things I just haven't gotten around to automating
+# yet.  Tell the user what still needs to be done manally.  All these
+# things are collected and printed in one well-marked block at the end
+# of the log.
+########################################################################
 print '*' x 72, "\n";
 print ">>> To be done manually:\n";
 print join "\n", @manual_steps;
 print '*' x 72, "\n";
 print Time_Image time, "\n";
 
+########################################################################
+# Subroutines
 ########################################################################
 
 #
@@ -303,8 +427,6 @@ sub Get_Config($) {
 
     my %count = ( CONFIG_FILE_REVISION => 0,
 
-                  OS                   => 0,
-
                   TEMP_DIR             => 0,
                   PATH                 => 0,
                   INSTALLER_USER       => 0,
@@ -312,7 +434,6 @@ sub Get_Config($) {
                   UMASK                => 0,
 
                   GPT_TARBALL          => 0,
-                  GPT_SRC_DIR          => 0,
                   BUNDLES              => 0,
 
                   GPT_LOCATION         => 0,
@@ -326,10 +447,7 @@ sub Get_Config($) {
 
                   BATCH_SYSTEM         => 0,
 
-                  CA_CERT_TARBALL      => 0,
-
-                  INET_DAEMON          => 0,
-                  INET_DIR             => 0 );
+                  CA_CERT_TARBALL      => 0 );
 
     open CONFIG, $config_file or die "$config_file: $!\n";
     while (<CONFIG>) {
@@ -397,10 +515,9 @@ sub Get_Config($) {
         = Strip_Revision_String $Result{CONFIG_FILE_REVISION};
 
     #
-    # OS, BATCH_SYSTEM, and INET_DAEMON are case-insensitive; map to
+    # BATCH_SYSTEM and INET_DAEMON are case-insensitive; map to
     # lower case.
     #
-    $Result{OS}           = lc $Result{OS};
     $Result{BATCH_SYSTEM} = lc $Result{BATCH_SYSTEM};
     $Result{INET_DAEMON}  = lc $Result{INET_DAEMON};
 
@@ -422,6 +539,9 @@ sub Get_Config($) {
 
 # ----------------------------------------------------------------------
 
+#
+# Collect system information and return it in a hash.
+#
 sub Get_System_Information() {
     my %Result = ();
 
@@ -460,10 +580,47 @@ sub Get_System_Information() {
 
     if (scalar @inetd_processes == 1 and scalar @xinetd_processes == 0) {
         $Result{NET_DAEMON} = 'inetd';
+        $Result{NET_DAEMON_PID} = $inetd_processes[0];
+        if (-x '/etc/init.d/inet') {
+            $Result{NET_DAEMON_RELOAD} = '/etc/init.d/inet reload';
+        }
+        elsif (-x '/etc/rc.d/init.d/inet') {
+            $Result{NET_DAEMON_RELOAD} = '/etc/rc.d/init.d/inet reload';
+        }
+        else {
+            $Result{NET_DAEMON_RELOAD} = "kill -HUP $Result{NET_DAEMON_PID}";
+        }
     }
     elsif (scalar @inetd_processes == 0 and scalar @xinetd_processes == 1) {
         $Result{NET_DAEMON} = 'xinetd';
+        $Result{NET_DAEMON_PID} = $xinetd_processes[0];
+        if (-x '/etc/init.d/xinetd') {
+            $Result{NET_DAEMON_RELOAD} = '/etc/init.d/xinetd reload';
+        }
+        elsif (-x '/etc/rc.d/init.d/xinetd') {
+            $Result{NET_DAEMON_RELOAD} = '/etc/rc.d/init.d/xinetd reload';
+        }
+        else {
+            $Result{NET_DAEMON_RELOAD} = '';
+        }
     }
+
+    print "System Information:\n";
+    foreach my $key (sort keys %Result) {
+        my $value = $Result{$key};
+        if (ref $value eq 'ARRAY') {
+            printf "    %-20s => {\n", $key;
+            foreach my $elem (@$value) {
+                print "        \"$elem\"\n";
+            }
+            print "    }\n";
+        }
+        else {
+            printf "    %-20s => \"%s\"\n", $key, $Result{$key};
+        }
+    }
+
+    return %Result;
 } # Get_System_Information
 
 # ----------------------------------------------------------------------
@@ -480,6 +637,10 @@ sub Substitute($) {
 
 # ----------------------------------------------------------------------
 
+#
+# Given a number of seconds (possibly fractional), return a readable
+# string, similar to the format used by the csh "time" builtin command.
+#
 sub Elapsed_Time_Image($) {
     my($seconds) = @_;
 
@@ -499,6 +660,10 @@ sub Elapsed_Time_Image($) {
 
 # ----------------------------------------------------------------------
 
+#
+# Given a raw timestamp, return a human-readable string.
+# Time zone is UTC, format is basically ISO-8601.
+#
 sub Time_Image($) {
     my($time) = @_;
     my($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst)
@@ -510,6 +675,9 @@ sub Time_Image($) {
 
 # ----------------------------------------------------------------------
 
+#
+# Create a unique temporary file and return its name.
+#
 sub Make_Temp_File($) {
     my($content) = @_;
     my $filename = sprintf "$working_dir/input-%03d",
@@ -522,6 +690,11 @@ sub Make_Temp_File($) {
 
 # ----------------------------------------------------------------------
 
+#
+# Given a numeric value returned by system(), interpret it
+# and return the result as a hash reference.
+# Die if result indicates failure and second argument is true.
+#
 sub Get_Result($$) {
     my ($status, $check) = @_;
     my $Result = {};
@@ -560,6 +733,20 @@ sub Get_Result($$) {
 
 # ----------------------------------------------------------------------
 
+#
+# Execute a command with arguments.
+# The command name is preceded by zero or more options starting with '-'.
+#
+# -verbose      Print command to stdout before executing.
+# -time         Like csh "time" command
+# -background   Run command in background; don't wait for completion.
+# -check        Die if command fails.
+# -user=name    Execute as specified user (and group).
+#               Name can be "user", "user.group", or "user:group".
+# -stdin=file   Redirect stdin from specified file.
+# -input=string Redirect stdin from temp file with specified contents.
+#
+# 
 sub Execute(@) {
     my @args = @_;
     my $Verbose = 0;
@@ -756,6 +943,9 @@ sub Execute(@) {
 
 # ----------------------------------------------------------------------
 
+#
+# Perform some checks on the configuration variables.
+#
 sub Check_Config_Vars() {
     my @errors = ();
 
@@ -764,10 +954,6 @@ sub Check_Config_Vars() {
                             lsf nqe nswc pbs pexec prun );
     my %is_inet_daemon  = map { ( $_ => 1 ) } @inet_daemons;
     my %is_batch_system = map { ( $_ => 1 ) } @batch_systems;
-
-    if ($Config{OS} ne 'linux') {
-        push @errors, "Unsupported OS \"$Config{OS}\"\n";
-    }
 
     if (not $is_inet_daemon{$Config{INET_DAEMON}}) {
         push @errors, "INET_DAEMON must be one of: @inet_daemons\n";
@@ -827,6 +1013,10 @@ sub Check_Config_Vars() {
 
 # ----------------------------------------------------------------------
 
+#
+# Confirm that the necessary services are specified in
+# /etc/services (or the NIS equivalent).
+#
 sub Check_Services() {
     my %expected_name = ( 2119 => 'gsigatekeeper',
                           2135 => 'gris',
@@ -854,9 +1044,14 @@ sub Check_Services() {
 
 # ----------------------------------------------------------------------
 
+#
+# Calls to die() cause this function to be called before exiting.
+# Clean up temporary directory.
+#
 sub Die_Handler($) {
     if ($Cleanup and defined $working_dir) {
         print ">>> Cleaning up\n";
+        chdir '/tmp';
         Execute @As_Root, 'rm', '-rf', $working_dir;
     }
     print Time_Image time, "\n";
@@ -864,6 +1059,10 @@ sub Die_Handler($) {
 
 # ----------------------------------------------------------------------
 
+#
+# Given a time, return an ASCII UTC timestamp suitable for use
+# in a file name, such as "2002-08-16-183304".
+#
 sub Timestamp_Of($) {
     my($time) = @_;
     my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) =
@@ -874,12 +1073,18 @@ sub Timestamp_Of($) {
 
 # ----------------------------------------------------------------------
 
+#
+# Rename the specified file by appending its last modification time to
+# its name.  Do nothing if file doesn't exist.  May be used on directories
+# as well as ordinary files.
+#
 sub Backup($) {
     my($filename) = @_;
     my @stat;
 
+    return if not -e $filename;
     @stat = stat $filename or die "${filename}: $!\n";
-    my $timestamp = Timestamp_Of $stat[9];
+    my $timestamp = Timestamp_Of $stat[9]; # mtime
     my $new_name = "$filename-$timestamp";
     rename $filename, $new_name or die "$new_name: $!\n";
 } # Backup
