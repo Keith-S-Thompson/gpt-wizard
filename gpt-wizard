@@ -1,21 +1,15 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.25 2002-08-13 13:50:41-07 kst Exp $
+# $Id: gpt-wizard,v 1.26 2002-08-13 14:26:27-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
 # To do:
 #
-#     Start other services (optional?).
+#     Start other services (configurable).
 #
-#     Define a list syntax for the config file; specify a list of
-#     GPT bundles.
-#
-#     Cope somehow with parts of Globus that need to be on local
-#     filesystems; at least mention in postinstall instructions.
-#
-#     Pick a better name for @postinstall_instructions to avoid
-#     confusion with gpt-postinstall.
+#     We warn about putting parts of Globus on local file
+#     systems; consider automating this.
 #
 #     Automatically set up to report to one or more GIIS servers.
 #
@@ -40,8 +34,8 @@ sub Debug(@);
 sub Usage(@);
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = '$Revision: 1.25 $';
-if ($Revision =~ /^\$Revision: 1.25 $$/) {
+my $Revision = '$Revision: 1.26 $';
+if ($Revision =~ /^\$Revision: 1.26 $$/) {
     $Revision = $1;
 }
 my $Help = undef;
@@ -56,7 +50,7 @@ Usage if $Help;
 $SIG{__DIE__} = \&Die_Handler;
 
 my $temp_file_serial_number = 0;
-my @postinstall_instructions = ();
+my @manual_steps = ();
 
 Usage if scalar @ARGV != 1;
 my $Config_File = $ARGV[0];
@@ -92,10 +86,6 @@ my $installer_uid = $installer_pw[2];
 my $installer_gid = $installer_gr[2];
 die ">>> installer_uid = $installer_uid\n" unless $installer_uid > 0;
 # die ">>> installer_gid = $installer_gid\n" unless $installer_gid > 0;
-
-my $bundle_dir        = '/home/kst/src/NMI/linux/gpt-bundles';
-my $nmi_client_bundle = "$bundle_dir/nmi-client-NMI-1.0.0-i686.gpt.tar.gz";
-my $nmi_server_bundle = "$bundle_dir/nmi-server-NMI-1.0.0-i686.gpt.tar.gz";
 
 $ENV{PATH} = $Config{PATH};
 umask oct $Config{UMASK} or die "umask $Config{UMASK}: $!\n";
@@ -142,9 +132,7 @@ mkdir $ENV{GLOBUS_LOCATION} or die "$ENV{GLOBUS_LOCATION}: $!\n";
 chown $installer_uid, $installer_gid, $ENV{GLOBUS_LOCATION}
     or die "$ENV{GLOBUS_LOCATION}: $!\n";
 
-foreach my $bundle ( $Config{NMI_CLIENT_BUNDLE},
-                     $Config{NMI_SERVER_BUNDLE})
-{
+foreach my $bundle ( @{$Config{BUNDLE}} ) {
     Execute @As_Installer, "$ENV{GPT_LOCATION}/sbin/gpt-install", $bundle;
 }
 
@@ -197,27 +185,27 @@ if ($Config{INET_DAEMON} eq 'xinetd') {
     Execute @As_Root, qw(/etc/init.d/xinetd reload);
 }
 else {
-    push @postinstall_instructions,
-         "Manually update /etc/inetd.conf:\n";
+    push @manual_steps,
+         "Update /etc/inetd.conf:\n";
     foreach my $file (@files) {
-        push @postinstall_instructions,
+        push @manual_steps,
              "  ${file}:\n";
         open IN, "< $Config{INET_DIR}/$file"
             or die "$Config{INET_DIR}/${file}: $!\n";
         while (<IN>) {
             chomp;
             s/\@(\w+)\@/Substitute $1/eg;
-            push @postinstall_instructions,
+            push @manual_steps,
                  "    $_\n";
         }
         close IN;
     }
     if (-x '/etc/init.d/inet') {
-        push @postinstall_instructions,
+        push @manual_steps,
              "Execute as root \"/etc/init.d/inet reload\"\n";
     }
     else {
-        push @postinstall_instructions,
+        push @manual_steps,
              "Reload or restart inetd\n";
     }
 }
@@ -227,16 +215,23 @@ if (defined $Config{BATCH_SYSTEM}) {
             "$ENV{GLOBUS_LOCATION}/setup/globus/setup-globus-gram-job-manager",
             $Config{BATCH_SYSTEM};
     my $libexec = "$ENV{GLOBUS_LOCATION}/libexec";
-    push @postinstall_instructions,
+    push @manual_steps,
          "Fix $ENV{GLOBUS_LOCATION}/libexec/" .
          "globus-script-$Config{BATCH_SYSTEM}-* if necessary\n";
 }
 
+push @manual_steps,
+     "Make sure that certain parts of the Globus installation, particularly\n" .
+     "   the var directory, are on a local file system\n";
+
 Execute @As_Installer,
         "$ENV{GLOBUS_LOCATION}/sbin/SXXgris", 'start';
-push @postinstall_instructions,
+push @manual_steps,
      "Arrange for \"$ENV{GLOBUS_LOCATION}/sbin/SXXgris start\"\n" .
      "    to be executed by user \"$Config{INSTALLER_USER}\" on system boot\n";
+
+push @manual_steps,
+     "Configure to report to a GIIS server\n";
 
 chdir $ENV{HOME};
 if ($Cleanup) {
@@ -245,7 +240,7 @@ if ($Cleanup) {
 
 print '*' x 72, "\n";
 print ">>> To be done manually:\n";
-print @postinstall_instructions;
+print @manual_steps;
 print '*' x 72, "\n";
 print Time_Image time, "\n";
 
@@ -258,38 +253,38 @@ print Time_Image time, "\n";
 sub Get_Config($) {
     my %Result = ();
     my($config_file) = @_;
+
     print "Getting configuration from $config_file\n";
 
-    my %options = ( CONFIG_FILE_REVISION => 0,
+    my %count = ( CONFIG_FILE_REVISION => 0,
 
-                    OS                   => 0,
+                  OS                   => 0,
 
-                    TEMP_DIR             => 0,
-                    PATH                 => 0,
-                    INSTALLER_USER       => 0,
-                    INSTALLER_GROUP      => 0,
-                    UMASK                => 0,
+                  TEMP_DIR             => 0,
+                  PATH                 => 0,
+                  INSTALLER_USER       => 0,
+                  INSTALLER_GROUP      => 0,
+                  UMASK                => 0,
 
-                    GPT_TARBALL          => 0,
-                    GPT_SRC_DIR          => 0,
-                    NMI_CLIENT_BUNDLE    => 0,
-                    NMI_SERVER_BUNDLE    => 0,
+                  GPT_TARBALL          => 0,
+                  GPT_SRC_DIR          => 0,
+                  BUNDLE               => 0,
 
-                    GPT_LOCATION         => 0,
-                    GLOBUS_LOCATION      => 0,
+                  GPT_LOCATION         => 0,
+                  GLOBUS_LOCATION      => 0,
 
-                    GRID_MAPFILE         => 0,
-                    HOST_CERT            => 0,
-                    HOST_KEY             => 0,
-                    LDAP_CERT            => 0,
-                    LDAP_KEY             => 0,
+                  GRID_MAPFILE         => 0,
+                  HOST_CERT            => 0,
+                  HOST_KEY             => 0,
+                  LDAP_CERT            => 0,
+                  LDAP_KEY             => 0,
 
-                    BATCH_SYSTEM         => 0,
+                  BATCH_SYSTEM         => 0,
 
-                    CA_CERT_TARBALL      => 0,
+                  CA_CERT_TARBALL      => 0,
 
-                    INET_DAEMON          => 0,
-                    INET_DIR             => 0 );
+                  INET_DAEMON          => 0,
+                  INET_DIR             => 0 );
 
     open CONFIG, $config_file or die "$config_file: $!\n";
     while (<CONFIG>) {
@@ -299,9 +294,27 @@ sub Get_Config($) {
         next if /^$/;
         if (/^(\w+)\s*(.*)$/) {
             my ($name, $value) = ($1, $2);
-            if (defined $options{$name}) {
-                $Result{$1} = $2;
-                $options{$1} ++;
+            if (defined $count{$name}) {
+                if ($count{$name} == 0) {
+                    #
+                    # First time we've seen this variable; just set it.
+                    #
+                    $Result{$name} = $value;
+                }
+                else {
+                    #
+                    # We've seen this variable before; append value to
+                    # referenced array.
+                    #
+                    if ($count{$name} == 1) {
+                        #
+                        # Convert from simple scalar to array reference.
+                        #
+                        $Result{$name} = [ $Result{$name} ];
+                    }
+                    push @{$Result{$name}}, $value;
+                }
+                $count{$name} ++;
             }
             else {
                 die "Unrecognized option in $config_file at line $.\n";
@@ -315,12 +328,12 @@ sub Get_Config($) {
 
     my @missing = ();
     my @extra = ();
-    foreach my $option (sort keys %options) {
-        if ($options{$option} == 0) {
+    foreach my $option (sort keys %count) {
+        if ($count{$option} == 0) {
             push @missing, $option;
         }
-        elsif ($options{$option} > 1) {
-            push @extra, $option;
+        elsif ($count{$option} > 1) {
+            push @extra, $option if $option ne 'BUNDLE';
         }
     }
 
@@ -335,7 +348,11 @@ sub Get_Config($) {
         die @errors;
     }
 
-    if ($Result{FILE_REVISION} =~ /^\$Revision: 1.25 $$/) {
+    #
+    # Don't let RCS modify the search pattern.
+    #
+    my $revision_tag = '$' . 'Revision:';
+    if ($Result{FILE_REVISION} =~ /^$revision_tag: ([\d.]+) \$$/) {
         $Result{FILE_REVISION} = $1;
     }
 
@@ -351,7 +368,17 @@ sub Get_Config($) {
         $Result{BATCH_SYSTEM} = undef;
     }
     foreach my $key (sort keys %Result) {
-        printf "    %-20s => \"%s\"\n", $key, $Result{$key};
+        my $value = $Result{$key};
+        if (ref $value eq 'ARRAY') {
+            printf "    %-20s => {\n", $key;
+            foreach my $elem (@$value) {
+                print "        $elem\n";
+            }
+            print "    }\n";
+        }
+        else {
+            printf "    %-20s => \"%s\"\n", $key, $Result{$key};
+        }
     }
     return %Result;
 } # Get_Config
@@ -656,7 +683,7 @@ sub Check_Config_Vars() {
         }
     }
 
-    foreach my $key (qw(GPT_TARBALL NMI_CLIENT_BUNDLE NMI_SERVER_BUNDLE
+    foreach my $key (qw(GPT_TARBALL
                         GRID_MAPFILE
                         HOST_CERT HOST_KEY
                         LDAP_CERT LDAP_KEY
@@ -664,6 +691,11 @@ sub Check_Config_Vars() {
     {
         if (not (-f $Config{$key} and -r _)) {
             push @errors, "Can't read $key file \"$Config{$key}\"\n";
+        }
+    }
+    foreach my $bundle (@{$Config{BUNDLE}}) {
+        if (not (-f $bundle and -r _)) {
+            push @errors, "Can't read bundle file $bundle\n";
         }
     }
 
