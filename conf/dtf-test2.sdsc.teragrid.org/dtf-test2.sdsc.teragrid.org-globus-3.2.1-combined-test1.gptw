@@ -1,9 +1,9 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-3.2.1-combined-test1.gptw,v 1.1 2004-08-10 18:07:26-07 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-3.2.1-combined-test1.gptw,v 1.2 2004-08-10 18:23:24-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-3.2.1-combined-test1.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
-PATH /usr/bin:/bin:/opt/torque/bin:/usr/local/apps/mpich/intel8-r2/bin
+PATH /usr/bin:/bin:/usr/local/apps/intel/compiler8/bin:/opt/torque/bin:/usr/local/apps/mpich/intel8-r2/bin
 
 GLOBUS_LOCATION    /work/globus/apps/globus-3.2.1-combined-test1
 GLOBUS_LOCAL_DIRECTORY   /var/globus/globus-3.2.1-combined-test1
