@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.76 2002-10-04 02:11:01-07 kst Exp $
+# $Id: gpt-wizard,v 1.77 2002-10-04 18:15:58-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -10,10 +10,6 @@
 #
 #     May need to update lines in inetd.conf or files in xinetd.d
 #     for services other than gsigatekeeper and gsiftp.
-#
-#     We warn about putting parts of Globus on local file systems;
-#     automate this.  Provide a variable (ignored if empty) pointing to
-#     a local directory, e.g., /scratch/slocal/globus/nmi-1.1.0.
 #
 #     Automatically set up to report to one or more GIIS servers.
 #     Configure this.
@@ -39,6 +35,7 @@
 #     left blank?
 #
 #     Provide an option to just validate the config file.
+#
 
 use strict;
 
@@ -74,7 +71,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.76 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.77 $';
 my $Help              = undef;
 my $Debugging         = undef;
 my $Cleanup           = 1;
@@ -211,7 +208,7 @@ else {
 
 ########################################
 # Create the $GPT_LOCATION directory if it doesn't already exist.
-# (If it exists it must be empty; this is handled in Get_Config.)
+# (If it exists it must be empty; this is handled in Check_Config_Vars.)
 ########################################
 
 $ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
@@ -280,7 +277,8 @@ if (not $using_old_gpt) {
 
 ########################################
 # Create the $GLOBUS_LOCATION directory if it doesn't already exist.
-# (If it exists it must be empty; this is handled in Get_Config.)
+# (If it exists it must be an empty directory; this is handled in
+# Check_Config_Vars.)
 ########################################
 $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
 if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
@@ -290,6 +288,18 @@ if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
         chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCATION}
             or die "$Config{GLOBUS_LOCATION}: $!\n";
     }
+}
+
+########################################
+# If GLOBUS_VAR_DIRECTORY is defined in the config file, create it and
+# make $GLOBUS_LOCATION/var a symlink to it.  (The $GLOBUS_LOCATION/var
+# directory must be on a local filesystem, so root can write to logs.)
+########################################
+if ($Config{GLOBUS_VAR_DIRECTORY} ne "") {
+    mkdir $Config{GLOBUS_VAR_DIRECTORY}, 0777
+        or die "$Config{GLOBUS_VAR_DIRECTORY}: $!\n";
+    symlink $Config{GLOBUS_VAR_DIRECTORY}, "$ENV{GLOBUS_LOCATION}/var"
+        or die "$ENV{GLOBUS_LOCATION}/var: $!\n";
 }
 
 ########################################
@@ -608,6 +618,7 @@ sub Get_Config($) {
 
                   GPT_LOCATION         => 0,
                   GLOBUS_LOCATION      => 0,
+                  GLOBUS_VAR_DIRECTORY => 0,
 
                   GRID_MAPFILE         => 0,
                   HOST_CERT            => 0,
@@ -1221,8 +1232,16 @@ sub Check_Config_Vars() {
         }
     }
 
-    foreach my $key (qw(GPT_LOCATION GLOBUS_LOCATION)) {
+    DIR:
+    foreach my $key (qw(GPT_LOCATION GLOBUS_LOCATION GLOBUS_VAR_DIRECTORY)) {
         my $dir = $Config{$key};
+        #
+        # GLOBUS_VAR_DIRECTORY is allowed to be empty.
+        # If it's non-empty, the requirements are the same as for
+        # GPT_LOCATION and GLOBUS_LOCATION: either it must not exist,
+        # or it must be an empty directory.
+        #
+        next DIR if $key eq 'GLOBUS_VAR_DIRECTORY' and $dir eq '';
         if (-e $dir) {
             if (-d $dir) {
                 opendir DIR, $dir or die "${dir}: $!\n";
@@ -1238,6 +1257,13 @@ sub Check_Config_Vars() {
                      "$key \"$dir\" already exists and is not a directory\n";
             }
         }
+    }
+
+    if ($Config{GLOBUS_VAR_DIRECTORY} =~ /^\Q$Config{GLOBUS_LOCATION}\E\//) {
+        push @errors, "GLOBUS_VAR_DIRECTORY may not be a subdirectory of " .
+                      "GLOBUS_LOCATION\n" .
+                      "To use \$GLOBUS_LOCATION/var, leave " .
+                      "GLOBUS_VAR_DIRECTORY blank.\n";
     }
     
     if (@errors) {
