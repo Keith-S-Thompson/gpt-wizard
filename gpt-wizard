@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.68 2002-08-22 11:13:54-07 kst Exp $
+# $Id: gpt-wizard,v 1.69 2002-08-22 13:40:12-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -62,22 +62,24 @@ sub Usage(@);
 #
 $SIG{__WARN__} = sub { die @_ };
 
-my $Prog_Name        = File::Basename::basename $0;
-my $Revision         = Strip_Revision_String '$Revision: 1.68 $';
-my $Help             = undef;
-my $Debugging        = undef;
-my $Cleanup          = 1;
-my $Startup          = 1;
-my $GPT_Verbose      = undef;
-my $GPT_Log          = undef;
-my $GPT_Install_Only = undef;
-my @Opts = ( 'help!'             => \$Help,
-             'debugging!'        => \$Debugging,
-             'cleanup!'          => \$Cleanup,
-             'startup!'          => \$Startup,
-             'gpt-verbose!'      => \$GPT_Verbose,
-             'gpt-log!'          => \$GPT_Log,
-             'gpt-install-only!' => \$GPT_Install_Only );
+my $Prog_Name         = File::Basename::basename $0;
+my $Revision          = Strip_Revision_String '$Revision: 1.69 $';
+my $Help              = undef;
+my $Debugging         = undef;
+my $Cleanup           = 1;
+my $Startup           = 1;
+my $GPT_Verbose       = undef;
+my $GPT_Log           = undef;
+my $GPT_Install_Only  = undef;
+my $GPT_Ignore_Errors = undef;
+my @Opts = ( 'help!'              => \$Help,
+             'debugging!'         => \$Debugging,
+             'cleanup!'           => \$Cleanup,
+             'startup!'           => \$Startup,
+             'gpt-verbose!'       => \$GPT_Verbose,
+             'gpt-log!'           => \$GPT_Log,
+             'gpt-install-only!'  => \$GPT_Install_Only,
+             'gpt-ignore-errors!' => \$GPT_Ignore_Errors );
 Getopt::Long::GetOptions @Opts or Usage;
 Usage if $Help;
 
@@ -106,6 +108,10 @@ Check_Services;
 my @As_Root      =  qw(-time=5 -verbose -check);
 my @As_Installer = (qw(-time=5 -verbose -check),
                     "-user=$Config{INSTALLER_USER}.$Config{INSTALLER_GROUP}");
+my @As_Installer_GPT = @As_Installer;
+if ($GPT_Ignore_Errors) {
+    @As_Installer_GPT = grep { $_ ne '-static' } @As_Installer;
+}
 
 my $CLK_TCK;
 eval { $CLK_TCK = &POSIX::CLK_TCK };
@@ -322,7 +328,7 @@ foreach my $bundle ( @{$Config{BUNDLES}} ) {
         else {
             push @options, '-std-flavors';
         }
-        Execute @As_Installer,
+        Execute @As_Installer_GPT,
                 $gpt_build_command, @options, $bundle, @flavors;
     }
     else {
@@ -336,7 +342,7 @@ foreach my $bundle ( @{$Config{BUNDLES}} ) {
         #
         # $GPT_Log and $GPT_Install_Only are inapplicable for gpt-install.
         #
-        Execute @As_Installer,
+        Execute @As_Installer_GPT,
                 $gpt_install_command, @options, $bundle;
     }
 }
@@ -1358,17 +1364,18 @@ sub Usage(@) {
     print @_ if @_;
     print <<"EOF";
 Usage: $Prog_Name [options] config_file
-    -help              Display this message and exit.
-    -cleanup           Delete temporary directory on completion (default).
-    -startup           Update system files and start services (default).
-    -gpt-verbose       Pass -verbose option to gpt-install and/or gpt-build.
-    -gpt-log           Pass -log=... option to gpt-build.
-                       Implies -nocleanup, since logs are written to the
-                       temporary directory.
-                       Doesn't affect binary installations (gpt-install).
-    -gpt-install-only  Pass -install-only option to gpt-build.
-                       Doesn't affect binary installations (gpt-install).
-    -debugging         Enable debugging.
+    -help               Display this message and exit.
+    -cleanup            Delete temporary directory on completion (default).
+    -startup            Update system files and start services (default).
+    -gpt-verbose        Pass -verbose option to gpt-install and/or gpt-build.
+    -gpt-log            Pass -log=... option to gpt-build.
+                        Implies -nocleanup, since logs are written to the
+                        temporary directory.
+                        Doesn't affect binary installations (gpt-install).
+    -gpt-install-only   Pass -install-only option to gpt-build.
+                        Doesn't affect binary installations (gpt-install).
+    -gpt-ignore-errors  Ignore errors from gpt-install and gpt-build.
+    -debugging          Enable debugging.
 Most options can be negated by prepending "no".
 For example, "-nocleanup" inhibits cleanup.
 EOF
