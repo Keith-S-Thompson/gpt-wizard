@@ -1,7 +1,12 @@
-$Id: Relnotes,v 1.5 2003-07-01 11:51:43-07 kst Exp $
+$Id: Relnotes,v 1.6 2003-08-12 20:07:51-07 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.3.2 to release 0.3.3:
+
+    Bug fix: Don't localize grid-info.conf.
+    See <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=660#c8>.
 
 Changes from release 0.3.1 to release 0.3.2:
 
@@ -13,7 +18,7 @@ Changes from release 0.3.1 to release 0.3.2:
     Clearer messages when gpt-wizard terminates abnormally.
 
     Updated list of files under $GLOBUS_LOCATION/etc that
-    need to be lozalized if GLOBUS_LOCAL_DIRECTORY is set; see
+    need to be localized if GLOBUS_LOCAL_DIRECTORY is set; see
     <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=660#c8>
 
 Changes from release 0.3 to release 0.3.1:
