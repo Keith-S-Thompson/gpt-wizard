@@ -1,0 +1,15 @@
+# $Id: uffda-nmi-5.1-bin.gptw,v 1.1 2005-03-02 20:43:49-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-nmi-5.1-bin.gptw,v $
+
+CONFIG_FILE_REVISION	$Revision: 1.1 $
+
+PATH		/usr/bin:/bin:/usr/local/apps/apache-ant-1.6.2/bin
+ENV		JAVA_HOME=/usr/local/apps/j2sdk1.4.2
+
+GLOBUS_LOCATION	/usr/local/apps/nmi-5.1-bin
+
+.PREFIX		~kst/NMI/5.1
+
+GPT_TARBALL	tools/gpt-3.2-src.tar.gz
+
+BUNDLE		linux-x86-rh90/gpt-bundles/nmi-all-NMI-5.1-linux-x86-rh90-bin.tar.gz kind=binary
