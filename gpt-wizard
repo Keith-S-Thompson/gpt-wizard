@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.99 2002-10-28 17:52:01-08 kst Exp $
+# $Id: gpt-wizard,v 1.100 2002-10-28 17:55:23-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -70,7 +70,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.99 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.100 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -818,7 +818,7 @@ sub Get_Config($) {
         if (/^(\w+)\s+(.*)$/) {
             my ($name, $value) = ($1, $2);
             if ($name eq 'BUNDLE') {
-                if ($value =~ /^(.*)\s*:\s*(binary|source)$/i) {
+                if ($value =~ /^(.*\S)\s*:\s*(binary|source)$/i) {
                     $value = $1;
                     my $kind = lc $2;
                     if ($kind eq 'binary') {
