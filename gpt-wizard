@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.35 2002-08-13 16:52:15-07 kst Exp $
+# $Id: gpt-wizard,v 1.36 2002-08-13 17:02:52-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -42,7 +42,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.35 $';
+my $Revision = Strip_Revision_String '$Revision: 1.36 $';
 my $Help = undef;
 my $Debugging = undef;
 my $Cleanup = 1;
@@ -97,12 +97,12 @@ die ">>> installer_uid = $installer_uid\n" unless $installer_uid > 0;
 $ENV{PATH} = $Config{PATH};
 umask oct $Config{UMASK} or die "umask $Config{UMASK}: $!\n";
 
-my $tmp_dir = "$Config{TEMP_DIR}/install-nmi-" . time . "-$$";
-mkdir $tmp_dir or die "$tmp_dir: $!\n";
-chown $installer_uid, $installer_gid, $tmp_dir
-    or die "$tmp_dir: $!\n";
-chmod 0700, $tmp_dir or warn "$tmp_dir: $!\n";
-chdir $tmp_dir or die "$tmp_dir: $!\n";
+my $working_dir = "$Config{TEMP_DIR}/install-nmi-" . time . "-$$";
+mkdir $working_dir or die "$working_dir: $!\n";
+chown $installer_uid, $installer_gid, $working_dir
+    or die "$working_dir: $!\n";
+chmod 0700, $working_dir or warn "$working_dir: $!\n";
+chdir $working_dir or die "$working_dir: $!\n";
 
 #
 # Install GPT
@@ -238,7 +238,7 @@ push @manual_steps,
 
 chdir $ENV{HOME};
 if ($Cleanup) {
-    Execute @As_Root, 'rm', '-rf', $tmp_dir;
+    Execute @As_Root, 'rm', '-rf', $working_dir;
 }
 
 print '*' x 72, "\n";
@@ -442,7 +442,7 @@ sub Time_Image($) {
 
 sub Make_Temp_File($) {
     my($content) = @_;
-    my $filename = sprintf "$Config{TEMP_DIR}/input-%02d",
+    my $filename = sprintf "$working_dir/input-%03d",
                            $temp_file_serial_number ++;
     open TMP, ">$filename" or die "${filename}: $!\n";
     print TMP $content;
@@ -753,9 +753,9 @@ sub Check_Services() {
 # ----------------------------------------------------------------------
 
 sub Die_Handler($) {
-    if ($Cleanup and defined $tmp_dir) {
+    if ($Cleanup and defined $working_dir) {
         print ">>> Cleaning up\n";
-        Execute @As_Root, 'rm', '-rf', $tmp_dir;
+        Execute @As_Root, 'rm', '-rf', $working_dir;
     }
     print Time_Image time, "\n";
 } # Die_Handler
