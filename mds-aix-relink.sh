@@ -1,9 +1,14 @@
 #!/bin/sh
 
-# $Id: mds-aix-relink.sh,v 1.2 2002-12-04 22:01:36-08 kst Exp $
+# $Id: mds-aix-relink.sh,v 1.3 2002-12-06 16:28:30-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/mds-aix-relink.sh,v $
 
 #
+# Based on Ben Clifford <benc@isi.edu>'s fixup script,
+# <http://www.isi.edu/~benc/AIX/mds-aix-relink-2002-10-28.sh>,
+# with modifications by Keith Thompson <kst@sdsc.edu>.
+#
+
 # TO DO
 #
 # Set BUILD_DIR more sensibly.
