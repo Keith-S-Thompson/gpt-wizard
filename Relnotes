@@ -1,7 +1,32 @@
-$Id: Relnotes,v 1.1 2003-01-27 16:03:31-08 kst Exp $
+$Id: Relnotes,v 1.2 2003-03-11 15:04:53-08 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.1.1 to release 0.2:
+
+    Bug fixes and enhancements for inetd and xinetd configuration.
+
+    The default for the "-startup" option is now "-nostartup".
+
+    Use wget for both ftp and http URLs; dropped use of ncftpget.
+
+    New config variable WGET specifies the full path to the "wget"
+    command; if not set, search in the specified PATH.
+
+    Create a $GLOBUS_LOCATION/.gpt-wizard directory containing a
+    copy of the config file and an "info" file with information about
+    the build.
+
+    Support line continuation with '\' in config file.
+
+    Added ".PREFIX" pseudo-option, prepended to any following file
+    or URL options specified with relative pathnames.
+
+    Miscellaneous bug fixes.
+
+    (In spite of all this, the TODO list has gotten longer, not
+    shorter.)
 
 Changes from release 0.1 to release 0.1.1:
 
