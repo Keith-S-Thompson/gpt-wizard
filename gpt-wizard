@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.151 2003-02-12 17:52:14-08 kst Exp $
+# $Id: gpt-wizard,v 1.152 2003-02-13 15:07:08-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -163,6 +163,7 @@ sub Fix_Setup_Script($);
 sub Inet_Config_Text($$);
 sub Image($);
 sub Show_Version();
+sub Release_String();
 sub Debug(@);
 sub Usage(@);
 
@@ -173,9 +174,18 @@ $SIG{__WARN__} = sub { die @_ };
 
 $| = 1;
 
+#
+# The following Release_Info table must be updated manually on each
+# new release.  It's intended to map release numbers to RCS revisions,
+# which should should correspond to RCS symbolic names.  (Automatating
+# this is theoretically possible, but probably more effort than it's
+# worth.
+#
+my $Release_Info = [ { release => '0.1',   revision => '1.144' },
+                     { release => '0.1.1', revision => '1.146' } ];
+
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.151 $';
-my $Release           = '0.1.1+';
+my $Revision          = Strip_Revision_String '$Revision: 1.152 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -2344,8 +2354,50 @@ sub Debug(@) {
 
 # ----------------------------------------------------------------------
 
+sub Compare_Version($$) {
+    my @a = split /\./, $_[0];
+    my @b = split /\./, $_[1];
+    my $last;
+    if ($#a < $#b) {
+        $last = $#a;
+    }
+    else {
+        $last = $#b;
+    }
+    for (my $i = 0; $i <= $last; $i ++) {
+        my $cmp = ($a[$i] <=> $b[$i]);
+        if ($cmp != 0) {
+            return $cmp;
+        }
+    }
+
+    return 0;
+} # Compare_Version
+
+# ----------------------------------------------------------------------
+
+sub Release_String() {
+    my $at_least;
+    foreach my $ref (@$Release_Info) {
+        if ($ref->{revision} eq $Revision) {
+            return "release $ref->{release}";
+        }
+        elsif (Compare_Version($ref->{revision}, $Revision) < 0) {
+            $at_least = $ref->{release};
+        }
+    }
+    if (defined $at_least) {
+        return "release $at_least+";
+    }
+    else {
+        return "Unknown release";
+    }
+} # Release_String
+
+# ----------------------------------------------------------------------
+
 sub Show_Version() {
-    print "$Prog_Name release $Release (revision $Revision)\n";
+    print "$Prog_Name ", Release_String(), " (revision $Revision)\n";
     exit 1;
 } # Show_Version
 
