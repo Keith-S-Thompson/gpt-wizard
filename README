@@ -1,0 +1,21 @@
+$Id: README,v 1.1 2003-01-24 17:28:39-08 kst Exp $
+$Source: /home/kst/CVS_smov/tools/gpt-wizard/README,v $
+
+This is gpt-wizard release 0.1.  gpt-wizard is a Perl script designed
+to automate much of the process of building and installing Globus
+and related software.
+
+Files included in this distribution:
+
+README			This file.
+INSTALL			The (trivial) installation instructions.
+gpt-wizard		The gpt-wizard command itself.
+gpt-wizard.1		The man page in nroff source format.
+gpt-wizard.1.txt	The man page, formatted as plain text.
+gpt-wizard.1.ps		The man page, formatted as PostScript
+sample.conf		A sample configuration file.
+
+The primary document is the man page.  There is also some lower-level
+documentation included as comments in the gpt-wizard script itself.
+(No I didn't use Perl's standard POD documentation format; it's
+just comments.)
