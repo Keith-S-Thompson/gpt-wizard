@@ -1,9 +1,9 @@
-# $Id: orion-globus-2.4.3-gcc-r3.gptw,v 1.1 2004-03-02 11:01:19-08 kst Exp $
+# $Id: orion-globus-2.4.3-gcc-r3.gptw,v 1.2 2004-03-02 11:02:27-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/orion.sdsc.edu/orion-globus-2.4.3-gcc-r3.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
-PATH /usr/bin:/usr/local/bin
+PATH /usr/bin:/usr/ccs/bin:/usr/local/bin
 
 GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3-gcc-r3
 GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3-gcc-r3
