@@ -1,11 +1,11 @@
-# $Id: ocisp3.unizh.ch.edu-globus-2.4.3-vendorcc-test1.gptw,v 1.2 2004-09-07 20:34:13-07 kst Exp $
+# $Id: ocisp3.unizh.ch.edu-globus-2.4.3-vendorcc-test1.gptw,v 1.3 2004-09-07 20:42:14-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ocisp3.unizh.ch/ocisp3.unizh.ch.edu-globus-2.4.3-vendorcc-test1.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.2 $
+CONFIG_FILE_REVISION    $Revision: 1.3 $
 
 .PARAM REPO ~kst/repo.teragrid.org
 
-PATH /usr/vac/bin:/usr/bin
+PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
 
 GLOBUS_LOCATION    ~kst/apps/powerpc-ibm-aix5.2.0.0/globus-2.4.3-vendorcc-r4
 GLOBUS_LOCAL_DIRECTORY ~kst/var/globus-2.4.3-vendorcc-r4
