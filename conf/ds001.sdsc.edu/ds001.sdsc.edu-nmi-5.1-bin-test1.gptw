@@ -1,7 +1,7 @@
-# $Id: ds001.sdsc.edu-nmi-5.1-bin-test1.gptw,v 1.1 2004-09-09 10:14:04-07 kst Exp $
+# $Id: ds001.sdsc.edu-nmi-5.1-bin-test1.gptw,v 1.2 2004-09-09 13:37:10-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds001.sdsc.edu/ds001.sdsc.edu-nmi-5.1-bin-test1.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 .PARAM NMI ~kst/NMI/5.1
 
