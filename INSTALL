@@ -1,4 +1,4 @@
-# $Id: INSTALL,v 1.1 2003-01-24 17:28:37-08 kst Exp $
+# $Id: INSTALL,v 1.2 2003-03-11 15:08:43-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/INSTALL,v $
 
 Installation is simple; there's no configure script and no Makefile.
@@ -16,8 +16,9 @@ File::Basename, Getopt::Long, and POSIX modules, all of which are
 part of the standard Perl distribution.
 
 If you want to specify ftp and/or http URLs for some files, you'll
-need to have the ncftpget and/or wget command in the $PATH that you
-specify in the config file.
+need to have the wget command.  If it's not in the PATH that you
+specify in the config file, you can specify its location with the
+WGET configuration variable.
 
 gpt-wizard is currently supported on Linux, SunOS (Solaris), and AIX
 systems, but automated service startup is only supported on Linux.
