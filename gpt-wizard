@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.223 2004-02-08 13:39:22-08 kst Exp $
+# $Id: gpt-wizard,v 1.224 2004-02-11 20:17:45-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -164,6 +164,11 @@
 #         flavors for which
 #             $GLOBUS_LOCATION/include/globus_config.h
 #         doesn't exist.
+#     Another possible approach:
+#         After installating everything, look under $GLOBUS_LOCATION
+#         to determine which flavors need globus_config.h -- i.e.,
+#         any subdirectory of $GLOBUS_LOCATION/include that contains a
+#         globus_common.h file but not a globus_config.h file.
 #     See <http://www-fp.globus.org/gt2.4/install.html>.
 #
 #     Drop support for GPT 1.X.
@@ -221,7 +226,7 @@ my $Release_Revision = '1.221'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.223 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.224 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
