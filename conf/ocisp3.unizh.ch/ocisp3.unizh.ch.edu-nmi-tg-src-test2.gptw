@@ -1,7 +1,7 @@
-# $Id: ocisp3.unizh.ch.edu-nmi-tg-src-test2.gptw,v 1.2 2004-11-05 20:20:36-08 kst Exp $
+# $Id: ocisp3.unizh.ch.edu-nmi-tg-src-test2.gptw,v 1.3 2004-11-06 00:10:46-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ocisp3.unizh.ch/ocisp3.unizh.ch.edu-nmi-tg-src-test2.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.2 $
+CONFIG_FILE_REVISION    $Revision: 1.3 $
 
 PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
 
@@ -33,8 +33,8 @@ BUNDLE globus-resource-management-server-1.0-src_bundle.tar.gz  kind=source flav
 
 .PREFIX $NMI_DIR/globus-src/packages
 BUNDLE globus_gram_job_manager_setup_fork-1.1.tar.gz kind=source flavor=vendorcc32dbg
-BUNDLE globus_gram_reporter-2.0.tar.gz               kind=source flavor=vendorcc32dbg
-BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz    kind=source flavor=vendorcc32dbg
+# BUNDLE globus_gram_reporter-2.0.tar.gz               kind=source flavor=vendorcc32dbg
+# BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz    kind=source flavor=vendorcc32dbg
 
 .PREFIX $NMI_DIR/globus-src/updates
 UPDATE globus_common-3.17.tar.gz
