@@ -1,7 +1,45 @@
-$Id: Relnotes,v 1.11 2004-02-17 05:00:38-08 kst Exp $
+$Id: Relnotes,v 1.12 2004-03-15 17:50:24-08 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.6.1 to release 0.7.0:
+
+    New configuration option IS_UPDATE.
+    This is an optional boolean option, off by default.
+    If set, apply updates to an existing Globus installation.
+
+    New configuration option MPICH-G2.
+    If set, build and install MPICH-G2.
+    See man page for details.
+
+    New configuration option MPI_FLAVORS_ARE_STATIC.
+    This is an optional boolean option, off by default.
+    If set, all flavors whose names start with "mpi" (e.g.,
+    "mpicc32dbg") are to be built with the "-static" option.
+    See <https://bugzilla.ncsa.uiuc.edu/show_bug.cgi?id=46>.
+
+    New command-line option "-temp-dir <dir>", overrides the TEMP_DIR
+    configuration option.
+
+    Show command-line arguments at top of output.
+
+    Kill any running subprocesses when gpt-wizard is killed by
+    a signal.
+
+    Bail out after 100 errors in config file.
+
+    Better handling of GLOBUS_HOSTNAME: if specified, set the
+    environment variable in the inetd or xinetd configuration.
+
+    Deleted obsolete command-line option "-gpt-install-only".
+
+    Show "-nonroot" option for "setup-gsi".
+
+    Bug fix: Don't try to set up a jobmanager if we haven't run
+    gpt-postinstall.
+
+    Bug fix: Corrected typo in suggested inetd.conf lines.
 
 Changes from release 0.6 to release 0.6.1:
 
