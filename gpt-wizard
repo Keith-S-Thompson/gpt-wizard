@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.85 2002-10-09 18:57:42-07 kst Exp $
+# $Id: gpt-wizard,v 1.86 2002-10-09 19:06:28-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -64,7 +64,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.85 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.86 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -1031,8 +1031,25 @@ sub Get_Config($) {
         foreach my $varname (keys %Var_Info) {
             $Result{$varname} = $Var_Info{$varname}->{value};
         }
-        return %Result;
     }
+
+    foreach my $key (sort keys %Result) {
+        my $value = $Result{$key};
+        if (ref $value eq 'ARRAY') {
+            printf "    %-20s => {\n", $key;
+            foreach my $elem (@$value) {
+                print "        \"$elem\"\n";
+            }
+            print "    }\n";
+        }
+        else {
+            printf "    %-20s => %s\n",
+                   $key,
+                   defined $value ? "\"$value\"" : 'undef';
+        }
+    }
+
+    return %Result;
 } # Get_Config
 
 # ----------------------------------------------------------------------
