@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.105 2002-10-31 15:52:09-08 kst Exp $
+# $Id: gpt-wizard,v 1.106 2002-10-31 17:35:06-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -70,7 +70,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.105 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.106 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -950,6 +950,7 @@ sub Get_Config($) {
         if (not defined $var->{value}) {
             if ($var->{required}) {
                 push @errors, "Missing option $varname\n";
+                next VAR;
             }
             elsif (defined $var->{default}) {
                 $var->{value} = $var->{default};
