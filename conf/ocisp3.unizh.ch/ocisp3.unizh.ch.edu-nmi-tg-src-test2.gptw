@@ -1,16 +1,16 @@
-# $Id: ocisp3.unizh.ch.edu-nmi-tg-src-test2.gptw,v 1.1 2004-11-05 16:50:38-08 kst Exp $
+# $Id: ocisp3.unizh.ch.edu-nmi-tg-src-test2.gptw,v 1.2 2004-11-05 20:20:36-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ocisp3.unizh.ch/ocisp3.unizh.ch.edu-nmi-tg-src-test2.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
 
-TEMP_DIR ~kst/tmpdir     # not enough room in /tmp
+TEMP_DIR ~globus/tmpdir     # not enough room in /tmp
 
 .PARAM NMI_DIR /u/kst/NMI/ftp.isi.edu/src
-.PARAM APPS_DIR /u/kst/apps/powerpc-ibm-aix5.2.0.0
-.PARAM VAR_DIR /u/kst/var
-.PARAM GLOBUS_SUBDIR nmi-tg-src-test2
+.PARAM APPS_DIR /u/globus/apps
+.PARAM VAR_DIR /var/globus
+.PARAM GLOBUS_SUBDIR nmi-tg-src-test3
 
 GLOBUS_LOCATION       $APPS_DIR/$GLOBUS_SUBDIR
 GLOBUS_LOCAL_DIRECTORY $VAR_DIR/$GLOBUS_SUBDIR
