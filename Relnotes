@@ -1,7 +1,21 @@
-$Id: Relnotes,v 1.15 2004-04-13 15:38:06-07 kst Exp $
+$Id: Relnotes,v 1.16 2004-05-08 01:07:11-07 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.7.3 to release 0.7.4:
+
+    New configuration option: INTEL_WORKAROUND.  This implements
+    a workaround for a problem in the interaction between
+    Intel's version 8 compiler and the Globus configuration
+    and build procedure.  See Globus Bugzilla # 1651,
+    <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=1651>
+
+    Updated sample configuration file, now called "sample.gptw"
+    (was "sample.conf").
+
+    Expanded user instructions (disable GIIS, set $GLOBUS_LOCATION
+    before running setup-gsi).
 
 Changes from release 0.7.2 to release 0.7.3:
 
