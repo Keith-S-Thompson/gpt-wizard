@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.148 2003-02-04 01:07:32-08 kst Exp $
+# $Id: gpt-wizard,v 1.149 2003-02-06 18:38:58-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -82,6 +82,10 @@
 #     Possibly make "setup-gsi" optional, configure /etc/grid-security
 #     by brute force.  Find out more about the implications of doing this.
 #
+#     Optionally allow use of an existing /etc/grid-security directory.
+#     If this option is not selected, warn (or die?) if one already
+#     exists.
+#
 #     Allow GPT to be installed from an RPM or binary package.
 #
 #     Deal with globus-host-ssl.conf.42864e48
@@ -156,7 +160,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.148 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.149 $';
 my $Release           = '0.1.1+';
 my $Help              = undef;
 my $Show_Version      = undef;
