@@ -1,12 +1,17 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.15 2002-08-10 17:31:36-07 kst Exp $
+# $Id: gpt-wizard,v 1.16 2002-08-10 17:35:20-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
 # To do:
-# Install LDAP certificates
-# Start other services
+#     Install LDAP certificates.
+#     Start other services (optional?).
+#     When running as "globus", set groupid as well (set $( and $)).
+#     Let config file specify (non-root) installation user and group
+#         (currently hardwired to "globus").
+#     Handle inetd as well as xinetd.
+#         Probably want to update /etc/inetd.conf manually.
 #
 
 use strict;
