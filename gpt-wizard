@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.59 2002-08-20 18:57:30-07 kst Exp $
+# $Id: gpt-wizard,v 1.60 2002-08-20 19:56:25-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -27,14 +27,6 @@
 #     Smarter handling of flavors for source installations,
 #     particularly for vendorcc; see build-gt2.
 #
-#     The required input for gpt-postinstall will depend on which bundles
-#     have been installed and the order in which the postinstallation
-#     actions are performed.  How the heck do I deal with that?
-#     Possibilities:
-#         Put input string in config file.
-#         Associate an input string with each bundle (how?) and run
-#         gpt-postinstall for each bundle.
-#
 
 use strict;
 
@@ -57,6 +49,7 @@ sub Die_Handler($);
 sub Timestamp_Of($);
 sub Backup($);
 sub Test_File_Creation();
+sub Inet_Config_Text($$);
 sub Image($);
 sub Debug(@);
 sub Usage(@);
@@ -67,13 +60,15 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.59 $';
+my $Revision  = Strip_Revision_String '$Revision: 1.60 $';
 my $Help      = undef;
 my $Debugging = undef;
 my $Cleanup   = 1;
+my $Startup   = 1;
 my @Opts = ( 'help'      => \$Help,
              'debugging' => \$Debugging,
-             'cleanup!'  => \$Cleanup );
+             'cleanup!'  => \$Cleanup,
+             'startup!'  => \$Startup );
 Getopt::Long::GetOptions @Opts or Usage;
 Usage if $Help;
 
@@ -94,9 +89,9 @@ if ($Sys{OSNAME} ne 'linux') {
 
 Check_Services;
 
-my @As_Root      =  qw(-time -verbose -check);
-my @As_Installer = (qw(-time -verbose -check),
-                   "-user=$Config{INSTALLER_USER}.$Config{INSTALLER_GROUP}");
+my @As_Root      =  qw(-time=5 -verbose -check);
+my @As_Installer = (qw(-time=5 -verbose -check),
+                    "-user=$Config{INSTALLER_USER}.$Config{INSTALLER_GROUP}");
 
 my $CLK_TCK;
 eval { $CLK_TCK = &POSIX::CLK_TCK };
@@ -232,6 +227,13 @@ if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
 my $Installing_kx509 = 0;
 
 foreach my $bundle ( @{$Config{BUNDLES}} ) {
+    #
+    # If we're installing kx509, we'll need to supply more
+    # input to gpt-postinstall.  Ick.
+    #
+    if ($bundle =~ /^kx509/ or $bundle =~ /^nmi/) {
+        $Installing_kx509 = 1;
+    }
     if ($bundle =~ /src\.tar\.gz$/) {
         my @options = (); # qw(-install-only);
         my @flavors = ();
@@ -259,13 +261,6 @@ foreach my $bundle ( @{$Config{BUNDLES}} ) {
                 @flavors;
     }
     else {
-        #
-        # If we're installing kx509, we'll need to supply more
-        # input to gpt-postinstall.
-        #
-        if ($bundle =~ /^kx509/ or $bundle =~ /^nmi/) {
-            $Installing_kx509 = 1;
-        }
         Execute @As_Installer,
                 "$Config{GPT_LOCATION}/sbin/gpt-install",
                 $bundle;
@@ -288,38 +283,6 @@ $input_string .= "\n"; # Globus
 Execute @As_Installer, "-input=$input_string",
         "$Config{GPT_LOCATION}/sbin/gpt-postinstall";
 
-########################################
-# Run setup-gsi to create /etc/grid-security
-# (but we're going to replace its contents in a moment).
-########################################
-Execute @As_Root, "-input=y\nq\n",
-        "$Config{GLOBUS_LOCATION}/setup/globus/setup-gsi";
-
-########################################
-# Now copy files to /etc/grid-security.
-########################################
-Backup '/etc/grid-security/grid-mapfile';
-Execute @As_Root,
-        'cp', $Config{GRID_MAPFILE}, '/etc/grid-security/grid-mapfile';
-chmod 0444, '/etc/grid-security/grid-mapfile';
-
-Backup '/etc/grid-security/hostcert.pem';
-Execute @As_Root,
-        'cp', $Config{HOST_CERT}, '/etc/grid-security/hostcert.pem';
-chmod 0444, '/etc/grid-security/hostcert.pem';
-
-Backup '/etc/grid-security/hostkey.pem';
-Execute @As_Root,
-        'cp', $Config{HOST_KEY}, '/etc/grid-security/hostkey.pem';
-chmod 0400, '/etc/grid-security/hostkey.pem';
-
-my $ca_cert_dir = '/etc/grid-security/certificates';
-Backup $ca_cert_dir;
-mkdir $ca_cert_dir or die "$ca_cert_dir: $!\n";
-chdir $ca_cert_dir or die "$ca_cert_dir: $!\n";
-Execute @As_Root,
-        'tar', 'zxf', $Config{CA_CERT_TARBALL};
-
 ####################################
 # The LDAP certificate and key need to be in $GLOBUS_LOCATION/etc,
 # not in /etc/grid-security.  I'm not sure why.
@@ -332,6 +295,73 @@ Execute @As_Installer,
         'cp', $Config{LDAP_KEY}, "$Config{GLOBUS_LOCATION}/etc/server.key";
 chmod 0400, "$Config{GLOBUS_LOCATION}/etc/server.key";
 
+########################################
+# Configure batch jobmanager
+########################################
+
+if ($Config{BATCH_SYSTEM} ne 'none') {
+    Execute @As_Installer,
+        "$Config{GLOBUS_LOCATION}/setup/globus/setup-globus-gram-job-manager",
+        "-type=$Config{BATCH_SYSTEM}";
+    my $libexec = "$Config{GLOBUS_LOCATION}/libexec";
+    push @manual_steps,
+         "Fix $Config{GLOBUS_LOCATION}/libexec/" .
+         "globus-script-$Config{BATCH_SYSTEM}-* if necessary\n";
+}
+
+########################################
+# Run setup-gsi to create /etc/grid-security
+# (but we're going to replace its contents in a moment).
+########################################
+if ($Startup) {
+    Execute @As_Root, "-input=y\nq\n",
+            "$Config{GLOBUS_LOCATION}/setup/globus/setup-gsi";
+}
+else {
+    push @manual_steps,
+         "As root, run $Config{GLOBUS_LOCATION}/setup/globus/setup-gsi\n";
+}
+
+########################################
+# Now copy files to /etc/grid-security.
+########################################
+if ($Startup) {
+    Backup '/etc/grid-security/grid-mapfile';
+    Execute @As_Root,
+            'cp', $Config{GRID_MAPFILE}, '/etc/grid-security/grid-mapfile';
+    chmod 0444, '/etc/grid-security/grid-mapfile';
+
+    Backup '/etc/grid-security/hostcert.pem';
+    Execute @As_Root,
+            'cp', $Config{HOST_CERT}, '/etc/grid-security/hostcert.pem';
+    chmod 0444, '/etc/grid-security/hostcert.pem';
+
+    Backup '/etc/grid-security/hostkey.pem';
+    Execute @As_Root,
+            'cp', $Config{HOST_KEY}, '/etc/grid-security/hostkey.pem';
+    chmod 0400, '/etc/grid-security/hostkey.pem';
+}
+else {
+    push @manual_steps,
+         "Set up /etc/grid-security directory.\n" .
+         "Create grid-mapfile (444), hostcert.pem (444), hostkey.pem (400),\n" .
+         "all owned by root.\n";
+}
+
+if ($Startup) {
+    my $ca_cert_dir = '/etc/grid-security/certificates';
+    Backup $ca_cert_dir;
+    mkdir $ca_cert_dir or die "$ca_cert_dir: $!\n";
+    chdir $ca_cert_dir or die "$ca_cert_dir: $!\n";
+    Execute @As_Root,
+            'tar', 'zxf', $Config{CA_CERT_TARBALL};
+}
+else {
+    push @manual_steps,
+         "Copy CA certificates and signing-policy files to\n" .
+         "/etc/grid-security/certificates\n";
+}
+
 if ($Sys{NET_DAEMON} eq 'xinetd') {
     my $xinetd_dir = '/etc/xinetd.d';
     if (not -d $xinetd_dir) {
@@ -342,42 +372,22 @@ if ($Sys{NET_DAEMON} eq 'xinetd') {
              "You're on your own.\n";
     }
     else {
-        my $file1 = "$xinetd_dir/gsigatekeeper";
-        Backup $file1;
-        open FILE, "> $file1" or die "${file1}: $!\n";
-        print FILE <<"EOF";
-service gsigatekeeper
-{
-    socket_type  = stream
-    protocol     = tcp
-    wait         = no
-    user         = root
-    server       = $Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper
-    server_args  = -conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf
-    disable      = no
-}
-EOF
+        if ($Startup) {
+            my $file1 = "$xinetd_dir/gsigatekeeper";
+            Backup $file1;
+            open FILE, "> $file1" or die "${file1}: $!\n";
+            print FILE Inet_Config_Text 'xinetd', 'gsigatekeeper';
 
-        my $file2 = "$xinetd_dir/gsiftp";
-        Backup $file2;
-        open FILE, "> $file2" or die "${file2}: $!\n";
-        print FILE <<"EOF";
-service gsiftp
-{
-    instances               = 1000
-    socket_type             = stream
-    wait                    = no
-    user                    = root
-    server                  = $Config{GLOBUS_LOCATION}/sbin/in.ftpd
-    server_args             = -l -a -G /usr/nmi
-    log_on_success         += DURATION USERID
-    log_on_failure         += USERID
-    nice                    = 10
-    disable                 = no
-}
-EOF
-
-        Execute @As_Root, qw(/etc/init.d/xinetd reload);
+            my $file2 = "$xinetd_dir/gsiftp";
+            Backup $file2;
+            open FILE, "> $file2" or die "${file2}: $!\n";
+            print FILE Inet_Config_Text 'xinetd', 'gsiftp';
+            Execute @As_Root, qw(/etc/init.d/xinetd reload);
+        }
+        else {
+            push @manual_steps,
+                 "Set up xinetd scripts for gsigatekeeper and gsiftp\n";
+        }
     }
 }
 else {
@@ -405,29 +415,25 @@ else {
     push @manual_steps, $update;
 }
 
-########################################
-# Configure batch jobmanager
-########################################
-
-if ($Config{BATCH_SYSTEM} ne 'none') {
-    Execute @As_Installer,
-        "$Config{GLOBUS_LOCATION}/setup/globus/setup-globus-gram-job-manager",
-        "-type=$Config{BATCH_SYSTEM}";
-    my $libexec = "$Config{GLOBUS_LOCATION}/libexec";
-    push @manual_steps,
-         "Fix $Config{GLOBUS_LOCATION}/libexec/" .
-         "globus-script-$Config{BATCH_SYSTEM}-* if necessary\n";
-}
-
 push @manual_steps,
      "Make sure that certain parts of the Globus installation, particularly\n" .
      "the var directory, are on a local file system\n";
 
-Execute @As_Installer,
-        "$Config{GLOBUS_LOCATION}/sbin/SXXgris", 'start';
+if ($Startup) {
+    Execute @As_Installer,
+            "$Config{GLOBUS_LOCATION}/sbin/SXXgris", 'start';
+}
+else {
+    push @manual_steps,
+         "As $Config{INSTALLER_USER} run " .
+         "$Config{GLOBUS_LOCATION}/sbin/SXXgris start\n";
+}
 push @manual_steps,
      "Arrange for \"$Config{GLOBUS_LOCATION}/sbin/SXXgris start\"\n" .
      "to be executed by user \"$Config{INSTALLER_USER}\" on system boot\n";
+
+push @manual_steps,
+     "Start any other desired services\n";
 
 push @manual_steps,
      "Configure to report to a GIIS server if desired\n";
@@ -448,6 +454,7 @@ print '*' x 72, "\n";
 print ">>> To be done manually:\n";
 print join "\n", @manual_steps;
 print '*' x 72, "\n";
+
 print Time_Image time, "\n";
 
 ########################################################################
@@ -797,6 +804,7 @@ sub Get_Result($$) {
 #
 # -verbose      Print command to stdout before executing.
 # -time         Like csh "time" command
+# -time=N       Show time only if command took at least N wall seconds
 # -background   Run command in background; don't wait for completion.
 # -check        Die if command fails.
 # -user=name    Execute as specified user (and group).
@@ -808,7 +816,7 @@ sub Get_Result($$) {
 sub Execute(@) {
     my @args = @_;
     my $Verbose = 0;
-    my $Time = 0;
+    my $Min_Time = undef;
     my $Background = 0;
     my $Check = 0;
     my $User = undef;
@@ -832,7 +840,10 @@ sub Execute(@) {
             $Verbose = 1;
         }
         elsif ($arg eq '-time') {
-            $Time = 1;
+            $Min_Time = 0;
+        }
+        elsif ($arg =~ /^-time=(\d+)$/) {
+            $Min_Time = $1;
         }
         elsif ($arg eq '-background') {
             $Background = 1;
@@ -922,7 +933,6 @@ sub Execute(@) {
         Debug "Building command_string, args = @args\n";
         my $command_string = '% ';
         $command_string .= "[$User] " if defined $User;
-        $command_string .= 'time ' if $Time;
         $command_string .= "@args";
         $command_string .= " < $Stdin" if defined $Stdin;
         $command_string .= " &" if $Background;
@@ -950,12 +960,12 @@ sub Execute(@) {
         close STDIN;
         open STDIN, "<$Stdin" or die "${Stdin}: $!\n";
     }
-    if ($Time) {
+    if (defined $Min_Time) {
         @before = POSIX::times;
     }
     $system_result = system @args;
     Debug "system_result = $system_result\n";
-    if ($Time) {
+    if (defined $Min_Time) {
         @after = POSIX::times();
     }
     if (defined $Stdin) {
@@ -966,16 +976,13 @@ sub Execute(@) {
     #
     # Emulate csh "time" command
     #
-    if ($Time) {
+    if (defined $Min_Time) {
         my $elapsed_ticks    =  $after[0] - $before[0];
         my $user_CPU_ticks   = ($after[1] - $before[1]) +   # this process
                                ($after[3] - $before[3]);    # child processes
         my $system_CPU_ticks = ($after[2] - $before[2]) +   # this process
                                ($after[4] - $before[4]);    # child processes
 
-        # print "\$elapsed_ticks    = $elapsed_ticks\n";
-        # print "\$user_CPU_ticks   = $user_CPU_ticks\n";
-        # print "\$system_CPU_ticks = $system_CPU_ticks\n";
         my $percent_usage;
         if ($elapsed_ticks == 0) {
             $percent_usage = 0.0;
@@ -989,11 +996,13 @@ sub Execute(@) {
         my $user_CPU_seconds   = $user_CPU_ticks   / $CLK_TCK;
         my $system_CPU_seconds = $system_CPU_ticks / $CLK_TCK;
 
-        printf "%.2fu %.2fs %s %.1f%%\n",
-               $user_CPU_seconds,
-               $system_CPU_seconds,
-               Elapsed_Time_Image $elapsed_seconds,
-               $percent_usage;
+        if ($elapsed_seconds >= $Min_Time) {
+            printf "%.2fu %.2fs %s %.1f%%\n",
+                   $user_CPU_seconds,
+                   $system_CPU_seconds,
+                   Elapsed_Time_Image $elapsed_seconds,
+                   $percent_usage;
+        }
     }
     if ($Background) {
         exit;
@@ -1184,6 +1193,58 @@ sub Test_File_Creation() {
 
 # ----------------------------------------------------------------------
 
+sub Inet_Config_Text($$) {
+    my($daemon, $service) = @_;
+
+    if ("$daemon/$service" eq 'xinetd/gsigatekeeper') {
+        return <<"EOF";
+service gsigatekeeper
+{
+    socket_type  = stream
+    protocol     = tcp
+    wait         = no
+    user         = root
+    server       = $Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper
+    server_args  = -conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf
+    disable      = no
+}
+EOF
+    }
+    elsif ("$daemon/$service" eq 'xinetd/gsiftp') {
+        return <<"EOF";
+service gsiftp
+{
+    instances               = 1000
+    socket_type             = stream
+    wait                    = no
+    user                    = root
+    server                  = $Config{GLOBUS_LOCATION}/sbin/in.ftpd
+    server_args             = -l -a -G /usr/nmi
+    log_on_success         += DURATION USERID
+    log_on_failure         += USERID
+    nice                    = 10
+    disable                 = no
+}
+EOF
+    }
+    elsif ("$daemon/$service" eq 'inetd/gsigatekeeper') {
+        return "gsigatekeeper   stream tcp nowait root " .
+               "$Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper " .
+               "globus-gatekeeper " .
+               "-conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf\n";
+    }
+    elsif ("$daemon/$service" eq 'inetd/gsiftp') {
+        return "gsiftp  stream  tcp     nowait  root    " .
+               "$Config{GLOBUS_LOCATION}/sbin/in.ftpd in.ftpd -l -a\n";
+    }
+    else {
+        die "Internal error, bad arguments to Inet_Config_Text()\n" .
+            "    daemon=\"$daemon\", service=\"$service\"\n";
+    }
+} # Inet_Config_Text
+
+# ----------------------------------------------------------------------
+
 sub Image($) {
     my($arg) = @_;
     if (defined $arg) {
@@ -1210,8 +1271,9 @@ Usage: $Prog_Name [options] config_file
     -help      : Display this message and exit
     -cleanup   : Delete temporary directory on completion (default)
     -nocleanup : Do not delete temporary directory
+    -startup   : Update system files and start services (default)
+    -nostartup : Do not update system files or start services
     -debugging : Enable debugging
-
 EOF
     exit 1;
 } # Usage
