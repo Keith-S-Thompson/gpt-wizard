@@ -1,7 +1,7 @@
-# $Id: lutefisk-nmi-7-test-bin.gptw,v 1.1 2005-02-04 19:08:57-08 kst Exp $
+# $Id: lutefisk-nmi-7-test-bin.gptw,v 1.2 2005-02-05 11:09:48-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-nmi-7-test-bin.gptw,v $
 
-CONFIG_FILE_REVISION	$Revision: 1.1 $
+CONFIG_FILE_REVISION	$Revision: 1.2 $
 
 PATH		/usr/bin:/bin:/usr/local/apps/apache-ant-1.6.2/bin
 ENV		JAVA_HOME=/usr/local/apps/j2sdk1.4.2_05
