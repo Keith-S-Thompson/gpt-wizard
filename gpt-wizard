@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.289 2004-07-02 03:03:59-07 kst Exp $
+# $Id: gpt-wizard,v 1.290 2004-07-02 16:53:57-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -205,7 +205,7 @@ my $Release_Revision = '1.285'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.289 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.290 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1561,9 +1561,11 @@ sub Get_Config($) {
     my $default_prefix = undef;
 
     #
-    # What we really want to do is create a nested subroutine ERROR that
-    # takes a single argument (the error message), but can refer to the
-    # $config_file and @errors variables in the surrounding scope.
+    # What we really want to do is create a nested subroutine ERROR
+    # that takes a single argument (the error message), but can refer to
+    # the $config_file and @errors variables in the surrounding scope.
+    # (There are enough calls that we don't want to explicitly pass
+    # $config_file and @errors as arguments each time.)
     #
     # The way to do this is to create a reference to an anonymous
     # subroutine.  Declaring the subroutine directly would cause the
@@ -1630,7 +1632,7 @@ sub Get_Config($) {
         GLOBUS_HOSTNAME =>
             { type => 'string', required => 0 },
         CREATE_BINARY_BUNDLE =>
-            { type => 'new_file', reuquired => 0 },
+            { type => 'new_binary_bundle', required => 0 },
         GRID_MAPFILE =>
             { type => 'file', required => 0 },
         HOST_CERT =>
@@ -1875,6 +1877,59 @@ sub Get_Config($) {
                         $value->{is_update} = 1 if $name eq 'UPDATE';
                     }
                 }
+                elsif ($Var->{type} eq 'new_binary_bundle') {
+                    #
+                    # Parse the arguments, but don't check them for
+                    # validity yet.
+                    #
+                    my $name    = undef;
+                    my $version = undef;
+                    my $label   = undef;
+                    my $dir     = undef;
+                    foreach my $field (split /\s+/, $value) {
+                        if (lc $field =~ /^name=(.*)$/) {
+                            if (defined $name) {
+                                &$ERROR("Duplicate name, line $.");
+                            }
+                            else {
+                                $name = $1;
+                            }
+                        }
+                        elsif (lc $field =~ /^version=(.*)$/) {
+                            if (defined $version) {
+                                &$ERROR("Duplicate version, line $.");
+                            }
+                            else {
+                                $version = $1;
+                            }
+                        }
+                        elsif (lc $field =~ /^label=(.*)$/) {
+                            if (defined $label) {
+                                &$ERROR("Duplicate label, line $.");
+                            }
+                            else {
+                                $label = $1;
+                            }
+                        }
+                        elsif (lc $field =~ /^dir=(.*)$/) {
+                            if (defined $dir) {
+                                &$ERROR("Duplicate dir, line $.");
+                            }
+                            else {
+                                $dir = $1;
+                            }
+                        }
+                        else {
+                            &$ERROR("Unrecognized argument \"$field\", " .
+                                    "line $.\n");
+                        }
+                    }
+                    $value = {};
+                    $value->{name}    = $name    if defined $name;
+                    $value->{version} = $version if defined $version;
+                    $value->{label}   = $label   if defined $label;
+                    $value->{dir}     = $dir     if defined $dir;
+                }
 
                 if ($Var->{type} =~ /^array_of/) {
                     push @{$Var->{value}}, $value;
@@ -2106,11 +2161,6 @@ sub Get_Config($) {
             &$ERROR($error) if defined $error;
         }
 
-        elsif ($var->{type} eq 'new_file') {
-            my $error = File_Error "-varname=$varname", "-new", $var->{value};
-            &$ERROR($error) if defined $error;
-        }
-
         elsif ($var->{type} eq 'executable_file') {
             my $error = File_Error
                             "-varname=$varname", "-executable", $var->{value};
@@ -2129,6 +2179,25 @@ sub Get_Config($) {
                         "    @batch_systems\n");
             }
 
+        }
+
+        elsif ($var->{type} eq 'new_binary_bundle') {
+            #
+            # Allowed attributes are name, version, label, and dir,
+            # all mandatory.
+            #
+            foreach my $attr (qw(name version label dir)) {
+                if (not defined $var->{$attr}) {
+                    &$ERROR("$varname missing attribute $attr\n");
+                }
+            }
+            if (not -d $var->{dir}) {
+                &$ERROR("${varname}: no directory $var->{value}->{dir}\n");
+            }
+            elsif (not -w $var->{dir}) {
+                &$ERROR("${varname}: directory $var->{value}->{dir} " .
+                        "is not writable\n");
+            }
         }
 
         elsif ($var->{type} eq 'job_manager') {
