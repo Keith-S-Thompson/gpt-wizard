@@ -1,7 +1,7 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-04-27-r2.gptw,v 1.2 2004-04-27 15:31:53-07 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-04-27-r2.gptw,v 1.3 2004-04-27 18:11:31-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-04-27-r2.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.2 $
+CONFIG_FILE_REVISION    $Revision: 1.3 $
 
 PATH /usr/bin:/bin:/users/kst/intel8-r2/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/intel8-r1/bin
 ENV INTEL_LICENSE_FILE=/users/kst/intel8-r2/licenses
@@ -72,17 +72,17 @@ BUNDLE condor_submit-0.6-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=b
 .PREFIX /work/kst/repo.teragrid.org/open/myproxy/1.13
 BUNDLE myproxy-1.13.tar.gz                                         kind=source flavor=vendorcc64dbg
 
-#
-# Build the globus_ftp_control package (an updated version) with flavor
-# vendorcc64dbgpthr.  This is not normally built, but it's needed by uberftp.
-#
-# Then build uberftp, but use the package, not the entire bundle (the
-# bundle includes later, incompatible versions of some packages).
-#
-.PREFIX /work/kst/repo.teragrid.org/open/globus/2.4.3/updates
-BUNDLE globus_ftp_control-1.10.tar.gz                              kind=source flavor=vendorcc64dbgpthr
-.PREFIX /work/kst/repo.teragrid.org/open/uberftp/1.5/__kst__
-BUNDLE uberftp-client-1.5.tar.gz           			   kind=source flavor=vendorcc64dbgpthr
+# #
+# # Build the globus_ftp_control package (an updated version) with flavor
+# # vendorcc64dbgpthr.  This is not normally built, but it's needed by uberftp.
+# #
+# # Then build uberftp, but use the package, not the entire bundle (the
+# # bundle includes later, incompatible versions of some packages).
+# #
+# .PREFIX /work/kst/repo.teragrid.org/open/globus/2.4.3/updates
+# BUNDLE globus_ftp_control-1.10.tar.gz                              kind=source flavor=vendorcc64dbgpthr
+# .PREFIX /work/kst/repo.teragrid.org/open/uberftp/1.5/__kst__
+# BUNDLE uberftp-client-1.5.tar.gz           			   kind=source flavor=vendorcc64dbgpthr
 
 #
 # Configure PBS jobmanager
