@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.195 2003-03-31 00:25:16-08 kst Exp $
+# $Id: gpt-wizard,v 1.196 2003-04-01 10:12:36-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -103,27 +103,19 @@
 #     too much dependence on the existing environment.
 #
 #     Optionally generate a Bourne shell script to do the installation
-#     rather than actually doing the installation.
+#     rather than actually doing the installation.  Low priority.
 #
-#     Replace GLOBUS_VAR_DIRECTORY with a more general GLOBUS_LOCAL_DIRECTORY.
-#     Everything that needs to be localized would be replaced by
-#     symlinks into GLOBUS_LOCAL_DIRECTORY; for example:
-#         GLOBUS_LOCATION/var --> GLOBUS_LOCAL_DIRECTORY/var
-#         GLOBUS_LOCATION/etc/globus-job-manager.conf
-#             --> GLOBUS_LOCAL_DIRECTORY/etc/globus-job-manager.conf 
-#     See Globus Bugzilla #660,
-#     <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=660>.
-#     
 #     Specify CVS files somehow -- perhaps via a fake "cvs://" URL (ick)
 #     and/or add an optional config var or two to specify how to get
-#     files from CVS.
+#     files from CVS.  (Low priority; it's usually better just to build
+#     from a local working copy.)
 #
 #     chown -R condor.condor $GLOBUS_LOCATION/var/condor
 #     (or something like that)
 #     *if* it exists, and there's a "condor" user (and group?
 #     -- or just use user condor's default group).
 #     I've seen problems with the condor daemons not being able to
-#     write their log files.
+#     write their log files.  (For now, we mention it in @manual_steps.)
 #
 #     Currently, if INSTALLER_USER is not root, the GSI-OpenSSH
 #     postinstall script can't read the ssh private host keys,
@@ -131,6 +123,8 @@
 #     $GLOBUS_LOCATION/etc/ssh.  Do this only if there are newly generated
 #     keys in $G_L/etc/ssh *and* we can read the keys in /etc/ssh;
 #     also allow (maybe) for the keys being somewhere other than /etc/ssh.
+#     On the other hand, it probably makes more sense to use symlinks
+#     (which avoids the need to localize the etc/ssh subdirectory.)
 #
 #     The NCSA CA bundle has an interactive postinstall.  Consider
 #     editing it to make it non-interactive.  In the documentation, warn
@@ -141,7 +135,8 @@
 #     doesn't; mention that this may not apply to newer GPT releases.
 #
 #     In man page, clarify that "BUNDLE" can be either a bundle or a
-#     package.  Consider a new config var PACKAGE.  Add a section with
+#     package.  Consider a new config var PACKAGE, and enforce the
+#     distinction between bundles and packages.  Add a section with
 #     an overview of gpt, particularly the distinction between bundles
 #     and packages (and mention rpms).
 #
@@ -196,7 +191,7 @@ my $Release_Revision = '1.174'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.195 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.196 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -683,29 +678,56 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
 }
 
 ########################################
-# If GLOBUS_VAR_DIRECTORY is defined in the config file, make
-# $GLOBUS_LOCATION/var a symlink to it (after copying it if it exists,
-# or creating it if it doesn't).
-# (The $GLOBUS_LOCATION/var directory must be on a local filesystem,
-# so root can write to logs.)
+# If GLOBUS_LOCAL_DIRECTORY is defined in the config file, make
+# $GLOBUS_LOCATION/var and $GLOBUS_LOCATION/tmp symlinks into it (after
+# copying them if they exists, or creating them if they doesn't).
+# Likewise for certain files under $GLOBUS_LOCATION/etc.
+#
+# Certain subdirectories and files must be on local filesystems,
+# so root can write to logs and so forth.  See Globus Bugzilla #660,
+# <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=660>.
 ########################################
-if (defined $Config{GLOBUS_VAR_DIRECTORY}) {
-    if (-d "$ENV{GLOBUS_LOCATION}/var") {
-        Execute @As_Root, 'cp', '-pr', "$ENV{GLOBUS_LOCATION}/var",
-                                       $Config{GLOBUS_VAR_DIRECTORY};
-        Execute @As_Root, 'rm', '-rf', "$ENV{GLOBUS_LOCATION}/var";
+if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
+    if (not -d $Config{GLOBUS_LOCAL_DIRECTORY}) {
+        print "% mkdir $Config{GLOBUS_LOCAL_DIRECTORY}\n";
+        mkdir $Config{GLOBUS_LOCAL_DIRECTORY}, 0777
+            or die "$Config{GLOBUS_LOCAL_DIRECTORY}: $!\n";
+        chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCAL_DIRECTORY}
+            or die "$Config{GLOBUS_LOCAL_DIRECTORY}: $!\n";
     }
-    else {
-        print "% mkdir $Config{GLOBUS_VAR_DIRECTORY}\n";
-        mkdir $Config{GLOBUS_VAR_DIRECTORY}, 0700
-            or die "$Config{GLOBUS_VAR_DIRECTORY}: $!\n";
-        chown $installer_uid, $installer_gid, $Config{GLOBUS_VAR_DIRECTORY}
-            or die "$Config{GLOBUS_VAR_DIRECTORY}: $!\n";
-    }
-    symlink $Config{GLOBUS_VAR_DIRECTORY}, "$ENV{GLOBUS_LOCATION}/var"
-        or die "$ENV{GLOBUS_LOCATION}/var: $!\n";
-}
 
+    foreach my $subdir ('var', 'tmp') {
+        my $global_dir = "$Config{GLOBUS_LOCATION}/$subdir";
+        my $local_dir  = "$Config{GLOBUS_LOCAL_DIRECTORY}/$subdir";
+
+        if (-d $global_dir) {
+            Execute @As_Root, 'cp', '-pr', $global_dir, $local_dir;
+            Execute @As_Root, 'rm', '-rf', $global_dir;
+        }
+        else {
+            print "% mkdir $local_dir";
+            mkdir $local_dir, 0777 or die "$local_dir: $!\n";
+            chown $installer_uid, $installer_gid, $local_dir
+                or die "$local_dir: $!\n";
+        }
+        symlink $local_dir, $global_dir or die "$global_dir: $!\n";
+    }
+
+    my $global_etc = "$Config{GLOBUS_LOCATION}/etc";
+    my $local_etc  = "$Config{GLOBUS_LOCAL_DIRECTORY}/etc";
+
+    mkdir $local_etc, 0777 or die "$local_etc: $!\n";
+    foreach my $file ( qw( globus-job-manager.conf
+                           grid-info-resource-ldif.conf
+                           grid-info-resource-register.conf
+                           grid-info.conf ) )
+    {
+        Execute @As_Root, 'cp', '-p', "$global_etc/$file", "$local_etc/$file";
+        unlink "$global_etc/$file" or die "$global_etc/${file}: $!\n";
+        symlink "$local_etc/$file", "$global_etc/$file"
+            or die "global_etc/${file}: $!\n";
+    }
+}
 
 ########################################################################
 # Post-installation
@@ -1022,6 +1044,25 @@ push @manual_steps,
 push @manual_steps,
      "Configure to report to a GIIS server if desired\n";
 
+if (-d "$Config{GLOBUS_LOCATION}/etc/ssh") {
+    #
+    # We installed GSI-OpenSSH
+    #
+    push @manual_steps,
+         "Consider replacing the ssh keys in\n" .
+         "    $Config{GLOBUS_LOCATION}/etc/ssh\n" .
+         "with symbolic links to the system ssh keys in /etc or /etc/ssh\n";
+}
+
+if (-d "$Config{GLOBUS_LOCATION}/var/condor") {
+    #
+    # We installed Condor-G.
+    #
+    push @manual_steps,
+         "Check the ownership of $Config{GLOBUS_LOCATION}/var/condor\n" .
+         "It should probably be owned by user \"condor\"\n";
+}
+
 chdir '/tmp';
 if ($Cleanup) {
     Execute @As_Root, 'rm', '-rf', $working_dir;
@@ -1229,7 +1270,7 @@ sub Get_Config($) {
             { type => 'new_directory', required => 0 },
         GLOBUS_LOCATION =>
             { type => 'new_directory', required => 1 },
-        GLOBUS_VAR_DIRECTORY =>
+        GLOBUS_LOCAL_DIRECTORY =>
             { type => 'new_directory', required => 0 },
         GLOBUS_HOSTNAME =>
             { type => 'string', required => 0 },
@@ -1645,17 +1686,17 @@ sub Get_Config($) {
     }
 
     #
-    # Special check: GLOBUS_VAR_DIRECTORY may not be a subdirectory
+    # Special check: GLOBUS_LOCAL_DIRECTORY may not be a subdirectory
     # of GLOBUS_LOCATION.
     #
-    if (defined $Var_Info{GLOBUS_VAR_DIRECTORY}->{value}) {
+    if (defined $Var_Info{GLOBUS_LOCAL_DIRECTORY}->{value}) {
         my $globus_dir = $Var_Info{GLOBUS_LOCATION}->{value};
-        my $var_dir = $Var_Info{GLOBUS_VAR_DIRECTORY}->{value};
+        my $var_dir = $Var_Info{GLOBUS_LOCAL_DIRECTORY}->{value};
         if ($var_dir =~ /^\Q$globus_dir\E\//) {
-            push @errors, "GLOBUS_VAR_DIRECTORY may not be a subdirectory of " .
-                          "GLOBUS_LOCATION\n" .
-                          "To use \$GLOBUS_LOCATION/var, don't specify " .
-                          "GLOBUS_VAR_DIRECTORY.\n";
+            push @errors, "GLOBUS_LOCAL_DIRECTORY may not be a " .
+                          "subdirectory of GLOBUS_LOCATION\n" .
+                          "If you don't need a separate local directory, " .
+                          "don't specify GLOBUS_LOCAL_DIRECTORY.\n";
         }
     }
 
