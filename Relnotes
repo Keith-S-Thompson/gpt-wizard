@@ -1,7 +1,20 @@
-$Id: Relnotes,v 1.4 2003-05-16 12:27:19-07 kst Exp $
+$Id: Relnotes,v 1.5 2003-07-01 11:51:43-07 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.3.1 to release 0.3.2:
+
+    Bug fix: Use WGET configuration variable for file downloading if
+    it's set.
+
+    Added configuration variables TAR and GZIP.
+
+    Clearer messages when gpt-wizard terminates abnormally.
+
+    Updated list of files under $GLOBUS_LOCATION/etc that
+    need to be lozalized if GLOBUS_LOCAL_DIRECTORY is set; see
+    <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=660#c8>
 
 Changes from release 0.3 to release 0.3.1:
 
