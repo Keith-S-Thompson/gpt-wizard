@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.179 2003-03-16 00:27:18-08 kst Exp $
+# $Id: gpt-wizard,v 1.180 2003-03-16 00:52:09-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -125,6 +125,18 @@
 #     I've seen problems with the condor daemons not being able to
 #     write their log files.
 #
+#     Currently, if INSTALLER_USER is not root, the GSI-OpenSSH
+#     postinstall script can't read the ssh private host keys,
+#     so it generates new keys.  Copy the keys from /etc/ssh to
+#     $GLOBUS_LOCATION/etc/ssh.  Do this only if there are newly generated
+#     keys in $G_L/etc/ssh *and* we can read the keys in /etc/ssh;
+#     also allow (maybe) for the keys being somewhere other than /etc/ssh.
+#
+#     The NCSA CA bundle has an interactive postinstall.  Consider
+#     editing it to make it non-interactive.  In the documentation, warn
+#     about the possibility of other interactive postinstall scripts --
+#     and discourage writing them.
+#
 
 require 5.004;
 
@@ -179,7 +191,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.179 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.180 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
