@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.61 2004-09-03 17:16:33-07 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.62 2004-09-03 17:30:38-07 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -168,12 +168,12 @@ created under the specified directory.  This overrides the TEMP_DIR
 configuration option.  If neither is specified, the default is /tmp.
 
 .IP \-cleanup
-Delete the temporary working directory on completion.
-This is the default behavior.  Use "\-nocleanup" to keep the
-temporary working directory.  Its name will be something like
+Delete the temporary working directory on completion.  Its name will
+be something like
 .IR /tmp/gpt\-wizard\-1079632649\-17640 .
-To use a directory other than /tmp, specify the "\-temp-dir"
-command-line option or the TEMP_DIR configuration option.
+To use a directory other than /tmp, specify the "\-temp\-dir"
+command-line option or the TEMP_DIR configuration option.  (Prior to
+release 0.7.6, "\-cleanup" was the default.)
 
 .IP \-postinstall
 Run the
@@ -197,7 +197,9 @@ Pass the "\-verbose" option to
 and/or
 .IR gpt\-build .
 This will produce voluminous output, especially when building source
-bundles and packages.
+bundles and packages.  This is the default; use "\-nogpt\-verbose"
+to disable it.  (Prior to release 0.7.6, the "\-gpt\-verbose" option
+was disabled by default.)
 
 .IP \-gpt\-ignore\-errors
 Ignore errors from
