@@ -1,7 +1,7 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-test4-bin.gptw,v 1.1 2004-07-02 11:39:25-07 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-test4-bin.gptw,v 1.2 2004-07-02 13:33:15-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-test4-bin.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
 
@@ -20,7 +20,7 @@ GPT_TARBALL /work/kst/repo.teragrid.org/open/gpt/3.1.1b5/gpt-3.1.1b5-src.tar.gz
 #
 # Install Globus 2.4.3 from custom-built binary bundle.
 #
-BUNDLE /work/globus/globus-2.4.3-gcc-r4-test4-bundle.tar.gz
+BUNDLE /work/globus/tg-globus-2.4.3-gcc-r4-test4-ia64-unknown-linux-gnu-bin.tar.gz
 
 #
 # Configure PBS jobmanager
