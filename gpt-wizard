@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.216 2003-12-08 18:04:34-08 kst Exp $
+# $Id: gpt-wizard,v 1.217 2003-12-09 20:13:35-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -150,16 +150,6 @@
 #     For updates, figure out how to apply options (particularly
 #     "-static") depending on how the package was initially built.
 #
-#     BUG: When automatically installing files the gsigatekeeper and
-#     gsiftp scripts in /etc/xinetd.d, if there are already files of
-#     the same name, gpt-wizard creates backup copies, appending a
-#     timestamp to generate the name.  The problem: any file in that
-#     directory will be read by xinetd ("man xinetd.conf" for details).
-#     Possible solution: appending a '~' to the name will prevent xinetd
-#     from reading it (might as well append '~' to all backup file names).
-#     I don't think any other backup files gpt-wizard creates present
-#     similar problems.
-#     
 
 require 5.004;
 
@@ -210,7 +200,7 @@ my $Release_Revision = '1.211'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.216 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.217 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -2673,6 +2663,10 @@ sub Timestamp_Of($) {
 # it's not needed).  If file doesn't exist, return undef.  May be used
 # on directories as well as ordinary files.
 #
+# Note that we append a '~' character to the name of the backup file;
+# this prevents xinetd from processing backup files in the /etc/inetd.d
+# directory.
+#
 sub Backup($) {
     my($filename) = @_;
     my @stat;
@@ -2680,7 +2674,7 @@ sub Backup($) {
     return undef if not -e $filename;
     @stat = stat $filename or die "${filename}: $!\n";
     my $timestamp = Timestamp_Of $stat[9]; # mtime
-    my $backup_name = "$filename-$timestamp";
+    my $backup_name = "$filename-$timestamp~";
     rename $filename, $backup_name or die "$backup_name: $!\n";
     return $backup_name;
 } # Backup
