@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: get-files,v 1.7 2003-01-09 18:45:32-08 kst Exp $
+# $Id: get-files,v 1.8 2003-01-09 18:49:45-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/get-files,v $
 
 use strict;
@@ -44,7 +44,7 @@ while (<LIST>) {
     chomp;
     if ($Use_Config_File) {
         if (/^(GPT_TARBALL|BUNDLE|UPDATE)\s+(\/\S+)/) {
-            push @files, $1;
+            push @files, $2;
         }
         else {
             next;
