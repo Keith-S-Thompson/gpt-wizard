@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.5 2003-01-24 15:14:30-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.6 2003-01-24 17:31:09-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -43,10 +43,10 @@
 .\" 
 .\" @Copyright@
 .\" 
-.TH GPT-WIZARD 1 2003-01-23 SDSC
+.TH GPT-WIZARD 1 2003-01-24 SDSC
 .SH NAME
 gpt-wizard \- Build and install GPT bundles
-.SH SYNOPSYS
+.SH SYNOPSIS
 .B "gpt-wizard -help"
 .br
 .B "gpt-wizard [options] config-file"
@@ -89,7 +89,7 @@ run in a log file for later perusal.
 The
 .I gpt-wizard
 command should be available at
-.IR <ftp://ftp.sdsc.edu/~kst/software/gpt-wizard/> ;
+.IR <ftp://ftp.sdsc.edu/pub/sdsc/globus/software/gpt-wizard/> ;
 each version is in the file
 .I gpt-wizard-VERSION.tar.gz
 in that directory.
@@ -192,24 +192,40 @@ character to the end of the line is treated as a comment and ignored.
 (This means that a variable value cannot include a
 .B '#'
 character; there is no mechanism for specifing a literal
-.BI '#' .)
+.BR '#' .)
 Leading whitespace, trailing whitespace, and empty lines are also
 ignored.
 
 Each line consists of a variable name, followed by whitespace, followed
 by the value of the variable.  All variable names must be specified
-in upper case.  The value is generally an arbitrary string, which may
-include embedded blanks.  There may be restrictions depending on the
-type of the variable (see below).  String values are not enclosed
-in quotation marks; any quotation marks are simply taken as part
-of the value.  Some variables are optional, some are mandatory,
+in upper case.  The value is generally an arbitrary string, which
+may include embedded blanks.  There may be restrictions depending on
+the type of the variable (see below).  String values are not enclosed
+in quotation marks; any quotation marks are simply taken as part of
+the value.  For Boolean variables a false value  may be specified
+as "0", "no", or "false", and a true value may be specified as "1",
+"yes", or "true" (without the quotation marks, of course); the value
+is case-insensitive.  Some variables are optional, some are mandatory,
 and some may appear multiple times.  Certain variables may also
 have attributes associated with them; these are given in the form
 "name=value" on the same line.
 
 Some variables specifying file names may also be given as URLs starting
-with "ftp://" or "http://".  For security reasons, certificate and
-key files may not be specified this way.
+with "ftp://" or "http://".
+.I gpt-wizard
+uses the
+.I ncftpget
+command for ftp URLs, and the
+.I wget
+command for http URLs; these commands must be available in
+.BR $PATH .
+Downloaded files are automatically cached under the directory specified
+by the
+.B DOWNLOAD_DIR
+configuration variable.
+
+For security reasons, certificate and key files may not be specified
+as URLS; they must be available as local files.
 
 .SH CONFIGURATION OPTIONS
 
@@ -257,10 +273,14 @@ Optional.  May occur multiple times.
 .IP INSTALLER_USER
 The name of the Unix account to use for the installation.
 .br
+Type: string (must be a valid user name)
+.br
 Optional.  Default is "globus".
 
 .IP INSTALLER_GROUP
 The name of the Unix group to use for the installation.
+.br
+Type: string (must be a valid group name)
 .br
 Optional.  Default is "globus".
 
@@ -328,10 +348,11 @@ Type: file name or URL
 Optional.  Multiple update packages may be specified.
 
 .IP PRE_POSTINSTALL
-Specify a command to be executed before running gpt-postinstall.  So far,
-I have only used this on AIX to run mds-aix-relink.sh, which works
-around some AIX-specific libtool problems.  Any occurrence of the string
-"BUILD_DIR" is replaced with the name of the temporary build directory.
+An ugly kludge to specify a command to be executed before running
+gpt-postinstall.  So far, I have only used this on AIX to run
+mds-aix-relink.sh, which works around some AIX-specific libtool
+problems.  Any occurrence of the string "BUILD_DIR" is replaced with
+the name of the temporary build directory.
 .br
 Not recommended unless you know what you're doing.
 .br
