@@ -1,11 +1,11 @@
-# $Id: cycle.cc.purdue.edu-globus-2.4.3-gcc-r4.gptw,v 1.1 2004-07-13 19:30:51-07 kst Exp $
+# $Id: cycle.cc.purdue.edu-globus-2.4.3-gcc-r4.gptw,v 1.2 2004-07-13 19:39:18-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/cycle.cc.purdue.edu/cycle.cc.purdue.edu-globus-2.4.3-gcc-r4.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 TEMP_DIR ~ibmsupt/scratch/tmpdir
 
-PATH /usr/bin
+PATH /home/cloud/u28/ibmsupt/mybin:/usr/bin
 
 GLOBUS_LOCATION              ~ibmsupt/scratch/apps/globus-2.4.3-gcc-r4
 GLOBUS_LOCAL_DIRECTORY ~ibmsupt/scratch/var/globus/globus-2.4.3-gcc-r4
@@ -23,17 +23,17 @@ GPT_TARBALL ~ibmsupt/scratch/repo.teragrid.org/open/gpt/3.1.1b5/gpt-3.1.1b5-src.
 # Build Globus 2.4.3-r4 from source.
 # Use customized bundles with all updates pre-applied.
 #
-BUNDLE globus-information-services-client-2.4.3-r4-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
-BUNDLE globus-information-services-sdk-2.4.3-r4-src_bundle.tar.gz    kind=source flavor=vendorcc64dbgpthr
-BUNDLE globus-information-services-server-2.4.3-r4-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
+BUNDLE globus-information-services-client-2.4.3-r4-src_bundle.tar.gz kind=source flavor=vendorcc32dbgpthr
+BUNDLE globus-information-services-sdk-2.4.3-r4-src_bundle.tar.gz    kind=source flavor=vendorcc32dbgpthr
+BUNDLE globus-information-services-server-2.4.3-r4-src_bundle.tar.gz kind=source flavor=vendorcc32dbgpthr
 
-BUNDLE globus-data-management-client-2.4.3-r4-src_bundle.tar.gz      kind=source flavor=vendorcc64dbg
-BUNDLE globus-data-management-sdk-2.4.3-r4-src_bundle.tar.gz         kind=source flavor=vendorcc64dbg
-BUNDLE globus-data-management-server-2.4.3-r4-src_bundle.tar.gz      kind=source flavor=vendorcc64dbg
+BUNDLE globus-data-management-client-2.4.3-r4-src_bundle.tar.gz      kind=source flavor=vendorcc32dbg
+BUNDLE globus-data-management-sdk-2.4.3-r4-src_bundle.tar.gz         kind=source flavor=vendorcc32dbg
+BUNDLE globus-data-management-server-2.4.3-r4-src_bundle.tar.gz      kind=source flavor=vendorcc32dbg
 
-BUNDLE globus-resource-management-client-2.4.3-r4-src_bundle.tar.gz  kind=source flavor=vendorcc64dbg
-BUNDLE globus-resource-management-sdk-2.4.3-r4-src_bundle.tar.gz     kind=source flavor=vendorcc64dbg
-BUNDLE globus-resource-management-server-2.4.3-r4-src_bundle.tar.gz  kind=source flavor=vendorcc64dbg
+BUNDLE globus-resource-management-client-2.4.3-r4-src_bundle.tar.gz  kind=source flavor=vendorcc32dbg
+BUNDLE globus-resource-management-sdk-2.4.3-r4-src_bundle.tar.gz     kind=source flavor=vendorcc32dbg
+BUNDLE globus-resource-management-server-2.4.3-r4-src_bundle.tar.gz  kind=source flavor=vendorcc32dbg
 
 ## #
 ## # Updates have been pre-applied.
