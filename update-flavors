@@ -1,0 +1,64 @@
+#!/usr/bin/perl -w
+
+# $Id: update-flavors,v 1.1 2004-03-11 15:23:43-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/update-flavors,v $
+
+use strict;
+
+use File::Basename ();
+
+sub Get_Update_Flavors($);
+
+die "Usage: package ...\n" if not @ARGV;
+foreach my $arg (@ARGV) {
+    my @flavors = Get_Update_Flavors $arg;
+    print "@flavors\n";
+}
+
+########################################################################
+
+sub Get_Update_Flavors($) {
+    my($filename) = @_;
+
+    my $module_name = File::Basename::basename $filename;
+    #
+    # File name format is name-version.tar.gz
+    #
+    $module_name =~ s/-[^-]*\.tar\.gz$//;
+
+    my %flavor = ();
+
+    print "% gpt-query $module_name\n";
+    open PIPE, "$ENV{GLOBUS_LOCATION}/sbin/gpt-query $module_name |";
+    while (<PIPE>) {
+        chomp;
+        #
+        # The gpt-query output format changed around gpt release 3.0.
+        #
+
+        next if not /ver:/ and not /pkg version:/;
+        #
+        # Strip leading whitespace and grab first word.
+        #
+        s/^\s*//;
+        s/\s.*$//;
+        #
+        # e.g., "globus_openssl_module-gcc32dbg-dev".
+        # Split on /-/ and grab next-to-last field.
+        #
+        my @fields = split /-/, $_;
+        if (scalar @fields >= 2) {
+            my $new_flavor = $fields[$#fields - 1];
+            $flavor{$new_flavor} = 1;
+        }
+    }
+    close PIPE;
+
+    my @flavors = sort keys %flavor;
+    if (@flavors) {
+        return grep { $_ ne 'noflavor' } @flavors;
+    }
+    else {
+        die "Unable to determine flavors for $filename\n";
+    }
+} # Get_Update_Flavors
