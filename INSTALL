@@ -1,13 +1,46 @@
-# $Id: INSTALL,v 1.2 2003-03-11 15:08:43-08 kst Exp $
+# $Id: INSTALL,v 1.3 2004-01-09 20:30:56-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/INSTALL,v $
 
-Installation is simple; there's no configure script and no Makefile.
-Just unpack the tar file, copy the file "gpt-wizard" to an appropriate
-directory in your $PATH, and copy the file "gpt-wizard.1" to the
-"man1" subdirectory of an appropriate directory in your $MANPATH.
+To install gpt-wizard, run the "install-gpt-wizard" script from the
+source directory (the directory you created by unpacking the tarball).
+It has several options; run with "-help" to display this usage message:
 
-If your Perl executable is somewhere other than /usr/bin/perl, you'll
-need to edit the "#!" line (line 1 of gpt-wizard).
+========================================================================
+Usage: install-gpt-wizard [options]
+Installs gpt-wizard.
+This must be executed in the source directory so it can find
+the files to be installed.
+    -help          Show this message and exit.
+    -perl   PERL   Full path to Perl interpreter; default is /usr/bin/perl
+    -apps   APPS   Install in APPS/gpt-wizard-VERSION
+    -prefix DIR    Install in DIR
+    -symlink       Make DIR/gpt-wizard a symlink to gpt-wizard-VERSION
+                   Valid only with "-apps"
+    -force         Allow installation directory to be an existing
+                   non-empty directory; by default, it must be nonexistent
+                   or empty
+    -dryrun        Don't do the installation, just show the steps
+Exactly one of "-apps" and "-prefix" must be specified.
+========================================================================
+
+The "-apps" prefix can be used if your system has a an applications
+directory (at SDSC, we user "/usr/local/apps").  This will create a
+"gpt-wizard-VERSION" (e.g., "gpt-wizard-0.4) directory under the
+apps directory, with sbin, man, and etc subdirectories under that.
+You can also specify the "-symlink" option to create "gpt-wizard"
+as a symbolic link to the "gpt-wizard-VERSION" directory.
+
+If you want to specify the exact installation directory, use the
+"-prefix" option.
+
+The installation directory will be created if it doesn't exist.
+By default, it needs to be either nonexistent or empty; use the
+"-force" option to install in an existing non-empty directory.
+
+If you prefer, you can just copy the gpt-wizard command to any
+directory you choose, or execute it from the source directory.
+You may need to customize the "#!" line if your Perl interpreter
+isn't in /usr/bin.
 
 Requirements:
 
