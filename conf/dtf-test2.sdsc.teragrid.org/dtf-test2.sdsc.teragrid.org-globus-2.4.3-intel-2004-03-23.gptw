@@ -1,7 +1,7 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-03-23.gptw,v 1.7 2004-03-23 18:19:29-08 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-03-23.gptw,v 1.8 2004-03-24 10:21:13-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-03-23.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.7 $
+CONFIG_FILE_REVISION    $Revision: 1.8 $
 
 PATH /usr/bin:/bin:/usr/local/apps/intel/compiler8/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/intel8-r1/bin
 ENV INTEL_LICENSE_FILE=/usr/local/apps/intel/compiler8/licenses
@@ -22,9 +22,9 @@ GPT_TARBALL /work/kst/repo.teragrid.org/open/gpt/3.1.1b5/gpt-3.1.1b5-src.tar.gz
 #
 # Build Globus 2.4.3 from source
 #
-BUNDLE globus-information-services-client-2.4.3-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
-BUNDLE globus-information-services-sdk-2.4.3-src_bundle.tar.gz    kind=source flavor=vendorcc64dbgpthr
-BUNDLE globus-information-services-server-2.4.3-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
+# BUNDLE globus-information-services-client-2.4.3-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
+# BUNDLE globus-information-services-sdk-2.4.3-src_bundle.tar.gz    kind=source flavor=vendorcc64dbgpthr
+# BUNDLE globus-information-services-server-2.4.3-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
 
 BUNDLE globus-data-management-client-2.4.3-src_bundle.tar.gz      kind=source flavor=vendorcc64dbg
 BUNDLE globus-data-management-sdk-2.4.3-src_bundle.tar.gz         kind=source flavor=vendorcc64dbg
