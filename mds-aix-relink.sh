@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $Id: mds-aix-relink.sh,v 1.6 2002-12-07 02:26:33-08 kst Exp $
+# $Id: mds-aix-relink.sh,v 1.7 2002-12-07 14:00:04-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/mds-aix-relink.sh,v $
 
 #
@@ -102,7 +102,7 @@ if [ -z "$compiler" ] ; then
     Usage "-compiler not specified"
 fi
 
-globus_mds_back_giis_dir=`ls -d ${BUILD_DIR}/globus_mds_back_giis* | grep -v '\.tar\.gz'`
+globus_mds_back_giis_dir=`ls -d $build_dir/globus_mds_back_giis* | grep -v '\.tar\.gz'`
 echo "... cd $globus_mds_back_giis_dir"
 cd $globus_mds_back_giis_dir || Die "cd failed"
 ld -o libback_giis.so.0 \
@@ -125,7 +125,7 @@ ld -o libback_giis.so.0 \
 echo "... cp libback_giis.so.0 $GLOBUS_LOCATION/libexec/openldap/$flavor/."
 cp libback_giis.so.0 $GLOBUS_LOCATION/libexec/openldap/$flavor/. || Die "cp failed"
 
-globus_ldapmodules_dir=`ls -d ${BUILD_DIR}/globus_ldapmodules* | grep -v '\.tar\.gz'`
+globus_ldapmodules_dir=`ls -d $build_dir/globus_ldapmodules* | grep -v '\.tar\.gz'`
 echo "... cd $globus_ldapmodules_dir"
 cd $globus_ldapmodules_dir || Die "cd failed for globus_ldapmodules_dir"
 ld -o libback_ldif.so.0 \
@@ -223,8 +223,8 @@ installed=yes
 libdir='$GLOBUS_LOCATION/libexec/openldap/$flavor'
 EOF
 
-echo "... cd ${BUILD_DIR}/globus_openldap-*/openldap-*/servers/slapd"
-cd ${BUILD_DIR}/globus_openldap-*/openldap-*/servers/slapd || Die "cd failed"
+echo "... cd $build_dir/globus_openldap-*/openldap-*/servers/slapd"
+cd $build_dir/globus_openldap-*/openldap-*/servers/slapd || Die "cd failed"
 
 echo "Creating slapd"
 $compiler *.o \
