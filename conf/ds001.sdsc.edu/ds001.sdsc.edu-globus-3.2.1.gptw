@@ -1,0 +1,37 @@
+# $Id: ds001.sdsc.edu-globus-3.2.1.gptw,v 1.1 2004-07-21 16:49:34-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds001.sdsc.edu/ds001.sdsc.edu-globus-3.2.1.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+TEMP_DIR /gpfs/globus
+
+PATH /usr/bin
+
+GLOBUS_LOCATION       /gpfs/globus/apps/globus-3.2.1
+GLOBUS_LOCAL_DIRECTORY /gpfs/globus/var/globus-3.2.1
+
+# ENV OBJECT_MODE=64
+
+## MPI_FLAVORS_ARE_STATIC 1
+
+#
+# Use the latest GPT release
+#
+GPT_TARBALL ~kst/src/gpt/gpt-3.2-src.tar.gz
+
+.PREFIX ~kst/Globus/3.2.1/bundles/src
+
+#
+# Build Globus 3.2.1 from source.
+#
+BUNDLE globus-information-services-client-3.2.1-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
+BUNDLE globus-information-services-sdk-3.2.1-src_bundle.tar.gz    kind=source flavor=vendorcc64dbgpthr
+BUNDLE globus-information-services-server-3.2.1-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
+
+BUNDLE globus-data-management-client-3.2.1-src_bundle.tar.gz      kind=source flavor=vendorcc64dbg
+BUNDLE globus-data-management-sdk-3.2.1-src_bundle.tar.gz         kind=source flavor=vendorcc64dbg
+BUNDLE globus-data-management-server-3.2.1-src_bundle.tar.gz      kind=source flavor=vendorcc64dbg
+
+BUNDLE globus-resource-management-client-3.2.1-src_bundle.tar.gz  kind=source flavor=vendorcc64dbg
+BUNDLE globus-resource-management-sdk-3.2.1-src_bundle.tar.gz     kind=source flavor=vendorcc64dbg
+BUNDLE globus-resource-management-server-3.2.1-src_bundle.tar.gz  kind=source flavor=vendorcc64dbg
