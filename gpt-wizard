@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.78 2002-10-04 21:34:55-07 kst Exp $
+# $Id: gpt-wizard,v 1.79 2002-10-04 23:56:59-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -70,7 +70,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.78 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.79 $';
 my $Help              = undef;
 my $Debugging         = undef;
 my $Cleanup           = 1;
@@ -1283,15 +1283,25 @@ sub Check_Config_Vars() {
 
     foreach my $key (qw(GPT_TARBALL
                         GRID_MAPFILE
-                        HOST_CERT HOST_KEY
-                        LDAP_CERT LDAP_KEY
                         CA_CERT_TARBALL))
     {
+        next if $Config{$key} =~ m<^(ftp|http)://>;
+        if (not (-f $Config{$key} and -r _)) {
+            push @errors, "Can't read $key file \"$Config{$key}\"\n";
+        }
+    }
+    foreach my $key (qw(HOST_CERT HOST_KEY
+                        LDAP_CERT LDAP_KEY))
+    {
+        if ($Config{$key} =~ m<^(ftp|http)://>) {
+            push @errors, "$key may not be downloaded\n";
+        }
         if (not (-f $Config{$key} and -r _)) {
             push @errors, "Can't read $key file \"$Config{$key}\"\n";
         }
     }
     foreach my $bundle (@{$Config{BUNDLES}}) {
+        next if ($bundle =~ m<^(ftp|http)://>;
         if (not (-f $bundle and -r _)) {
             push @errors, "Can't read bundle file $bundle\n";
         }
