@@ -1,68 +1,120 @@
 #!/usr/bin/perl -w
 
-# $Id: get-files,v 1.3 2002-12-17 13:58:51-08 kst Exp $
+# $Id: get-files,v 1.4 2002-12-20 16:18:37-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/get-files,v $
 
 use strict;
 
 use File::Basename ();
+use Getopt::Long ();
 
 sub Usage(@);
+sub Debug(@);
+sub Execute(@);
 
 $| = 1;
 
 Usage if scalar @ARGV != 3;
 
-my ($list_file, $elmak_base_dir, $local_base_dir) = @ARGV;
+my $Program_Name    = File::Basename::basename $0;
+my $Source_Host     = 'elmak.sdsc.edu';
+my $Remote_Base_Dir = '/projects/globus/kst';
+my $Local_Base_Dir  = '/home/kst';
+my $Force           = undef;
+my $Dryrun          = undef;
+my $Help            = undef;
+my $Debugging       = undef;
+my $List_File       = undef;
+my @Opts = ( 'source-host=s'     => \$Source_Host,
+             'remote-base-dir=s' => \$Remote_Base_Dir,
+             'local-base-dir=s'  => \$Local_Base_Dir,
+             'force!'            => \$Force,
+             'dryrun!'           => \$Dryrun,
+             'help!'             => \$Help,
+             'debugging!'        => \$Debugging );
+Getopt::Long::GetOptions @Opts or Usage;
+Usage if $Help;
+Usage if scalar @ARGV != 1;
+$List_File = $ARGV[0];
 
-my $dryrun = 0;
-
-open LIST, $list_file or die "$list_file: $!\n";
+open LIST, $List_File or die "$List_File: $!\n";
 my @files = <LIST>;
 close LIST;
 chomp @files;
 
 foreach my $file (@files) {
-    if (substr($file, 0, length $local_base_dir) ne $local_base_dir) {
-        die "${file} doesn't start with \"${local_base_dir}\"\n";
+    if (substr($file, 0, length $Local_Base_Dir) ne $Local_Base_Dir) {
+        die "${file} doesn't start with \"${Local_Base_Dir}\"\n";
     }
 }
 
-my %created = ();
+my %dir_exists = ();
+#
+# For a dry run, we don't actually create the directories;
+# $dir_exists{$dir} is true if the directory exists *or* if
+# it would have been created.
+# Otherwise, $dir_exists{$dir} is true only if the directory
+# actually exists.
+#
 
+FILE:
 foreach my $file (@files) {
+    if (-e $file and not $Force) {
+        print "$file already exists\n";
+        next FILE;
+    }
+
     my $dir = File::Basename::dirname $file;
-    if (not -d $dir) {
-        if ($dryrun) {
-            if (not $created{$dir}) {
-                print "% mkdir -p $dir\n";
-                $created{$dir} = 1;
-            }
-        }
-        else {
-            print "% mkdir -p $dir\n";
-            system 'mkdir', '-p', $dir;
-            if ($? ne 0) {
-                die "\"mkdir -p $dir\" failed, \$? = $?\n";
-            }
-        }
+    if (not $dir_exists{$dir} and -d $dir) {
+        $dir_exists{$dir} = 1;
     }
-    my $elmak_file = $elmak_base_dir .
-                     substr($file, length $local_base_dir);
-    my @scp_command = ( 'scp', '-p', "elmak.sdsc.edu:$elmak_file", $file );
-    print "% @scp_command\n";
-    if (not $dryrun) {
-        system @scp_command;
-        if ($? ne 0) {
-            die "scp failed, \$? = $?\n";
-        }
+    if (not $dir_exists{$dir}) {
+        Execute 'mkdir', '-p', $dir;
+        $dir_exists{$dir} = 1 if $Dryrun;
     }
+    if (-e $file and $Force) {
+        Execute 'rm', '-f', $file;
+    }
+    my $remote_file = $Remote_Base_Dir .
+                      substr($file, length $Local_Base_Dir);
+    Execute 'scp', '-p', "${Source_Host}:$remote_file", $file;
 }
 
 ########################################################################
 
 sub Usage(@) {
     print @_ if @_;
-    print "Usage: $0 list-file elmak-base-directory local-base-directory\n";
+    print <<"EOF";
+Usage: $Program_Name [options] list-file
+    -source-host hostname   : Host to copy files from.
+                              Default is elmak.sdsc.edu
+    -remote-base-dir dir    : Base directory on remote host.
+                              Default is /projects/globus/kst
+    -local-base-dir dir     : Base directory on local host.
+                              Default is /home/kst
+    -force                  : Copy files even if they already exist.
+    -dryrun                 : Show commands that would be executed.
+    -help                   : Display this message and exit.
+    -debugging              : Enable debugging output.
+EOF
     exit 1;
 } # Usage
+
+# ----------------------------------------------------------------------
+
+sub Debug(@) {
+    print @_ if $Debugging;
+} # Debug
+
+# ----------------------------------------------------------------------
+
+sub Execute(@) {
+    my @command = @_;
+    print "% @command\n";
+    if (not $Dryrun) {
+        system @command;
+        if ($? != 0) {
+            die "$command[0] failed, \$? = $?\n";
+        }
+    }
+} # Execute
