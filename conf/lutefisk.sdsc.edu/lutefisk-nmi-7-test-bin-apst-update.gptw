@@ -1,7 +1,7 @@
-# $Id: lutefisk-nmi-7-test-bin-apst-update.gptw,v 1.2 2005-02-04 23:49:14-08 kst Exp $
+# $Id: lutefisk-nmi-7-test-bin-apst-update.gptw,v 1.3 2005-02-05 11:09:48-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-nmi-7-test-bin-apst-update.gptw,v $
 
-CONFIG_FILE_REVISION	$Revision: 1.2 $
+CONFIG_FILE_REVISION	$Revision: 1.3 $
 
 IS_UPDATE	1
 
