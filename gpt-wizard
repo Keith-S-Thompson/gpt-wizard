@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.172 2003-03-06 02:31:44-08 kst Exp $
+# $Id: gpt-wizard,v 1.173 2003-03-10 22:15:23-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -170,8 +170,8 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
                      { release => '0.1.1', revision => '1.146' } ];
 
 my @Saved_ARGV        = @ARGV;
-my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.172 $';
+my $Program_Name      = File::Basename::basename $0;
+my $Revision          = Strip_Revision_String '$Revision: 1.173 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -277,7 +277,7 @@ if ($GPT_Ignore_Errors) {
 my $CLK_TCK = POSIX::sysconf(&POSIX::_SC_CLK_TCK);
 
 if ($< != 0) {
-    die ">>> $Prog_Name must be run as root\n";
+    die ">>> $Program_Name must be run as root\n";
 }
 
 if (exists $Config{urls}) {
@@ -292,7 +292,7 @@ exit 0 if $Validate_Only;
 ########################################################################
 
 my $build_info = Time_Image(time) . "\n";
-$build_info .= "$Prog_Name revision $Revision processing $Config_File";
+$build_info .= "$Program_Name revision $Revision processing $Config_File";
 if (defined $Config{CONFIG_FILE_REVISION}) {
     $build_info .= " $Config{CONFIG_FILE_REVISION}\n";
 }
@@ -862,29 +862,43 @@ else {
 
 if (defined $Sys{NET_DAEMON} and $Sys{NET_DAEMON} eq 'xinetd') {
     my $xinetd_dir = '/etc/xinetd.d';
+    my $gatekeeper_file = "$xinetd_dir/gsigatekeeper";
+    my $gsiftp_file     = "$xinetd_dir/gsiftp";
+    my $gatekeeper_text = Inet_Config_Text 'xinetd', 'gsigatekeeper';
+    my $gsiftp_text     = Inet_Config_Text 'xinetd', 'gsiftp';
     if (not -d $xinetd_dir) {
         push @manual_steps,
              "You seem to be running xinetd, but there is " .
              "no $xinetd_dir directory.\n" .
-             "Your humble installation script is confused.\n" .
-             "You're on your own.\n";
+             "$Program_Name is confused.\n";
     }
     else {
-        if ($Startup) {
-            my $file1 = "$xinetd_dir/gsigatekeeper";
-            Backup $file1;
-            open FILE, "> $file1" or die "${file1}: $!\n";
-            print FILE Inet_Config_Text 'xinetd', 'gsigatekeeper';
+        if ($Startup and -d $xinetd_dir) {
+            Backup $gatekeeper_file;
+            open FILE, "> $gatekeeper_file" or die "${gatekeeper_file}: $!\n";
+            print FILE $gatekeeper_text;
+            close FILE;
 
-            my $file2 = "$xinetd_dir/gsiftp";
-            Backup $file2;
-            open FILE, "> $file2" or die "${file2}: $!\n";
-            print FILE Inet_Config_Text 'xinetd', 'gsiftp';
+            Backup $gsiftp_file;
+            open FILE, "> $gsiftp_file" or die "${gsiftp_file}: $!\n";
+            print FILE $gsiftp_text;
+            close FILE;
+
             Execute @As_Root, qw(/etc/init.d/xinetd reload);
         }
         else {
             push @manual_steps,
-                 "Set up xinetd scripts for gsigatekeeper and gsiftp\n";
+                 "Set up xinetd scripts for gsigatekeeper and gsiftp:\n";
+            push @manual_steps,
+                 "Create the file\n" .
+                 "    $gatekeeper_file\n" .
+                 "with the following contents:\n" .
+                 $gatekeeper_text;
+            push @manual_steps,
+                 "Create the file\n" .
+                 "    $gsiftp_file\n" .
+                 "with the following contents:\n" .
+                 $gsiftp_text;
         }
     }
 }
@@ -898,14 +912,10 @@ elsif (defined $Sys{NET_DAEMON} and $Sys{NET_DAEMON} eq 'inetd') {
     my $update = "Update /etc/inetd.conf:\n";
 
     $update .= "gsigatekeeper:\n";
-    $update .= "gsigatekeeper   stream tcp nowait root " .
-               "$Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper " .
-               "globus-gatekeeper " .
-               "-conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf\n";
+    $update .= Inet_Config_Text 'inetd', 'gsigatekeeper';
 
     $update .= "gsiftp:\n";
-    $update .= "gsiftp  stream  tcp     nowait  root    " .
-               "$Config{GLOBUS_LOCATION}/sbin/in.ftpd in.ftpd -l -a\n";
+    $update .= Inet_Config_Text 'inetd', 'gsiftp';
 
     $update .= "Allow for any site-specific conventions for /etc/inetd.conf\n";
 
@@ -919,6 +929,20 @@ else {
     push @manual_steps,
          "Unable to determine net daemon (inetd or xinetd)\n" .
          "Arrange for gsigatekeeper, gsiftp, and other daemons to execute\n";
+
+    push @manual_steps,
+         "For inetd, add the following lines to /etc/inetd.conf\n" .
+         "(allowing for any site-specific conventions):\n" .
+         Inet_Config_Text 'inetd', 'gsigatekeeper' .
+         Inet_Config_Text 'inetd', 'gsiftp';
+
+    push @manual_steps,
+         "For xinetd, create the file /etc/xinetd.d/gsigatekeeper" .
+         "with the following contents:\n" .
+         Inet_Config_Text 'xinetd', 'gsigatekeeper' .
+         "and the file /etc/xinetd.d/gsiftp\n" .
+         "with the following contents:\n" .
+         Inet_Config_Text 'xinetd', 'gsiftp';
 }
 
 if ($Startup) {
@@ -1682,13 +1706,17 @@ sub Get_System_Information() {
     if (scalar @inetd_processes == 1 and scalar @xinetd_processes == 0) {
         $Result{NET_DAEMON} = 'inetd';
         $Result{NET_DAEMON_PID} = $inetd_processes[0];
-        if (-x '/etc/init.d/inet') {
-            $Result{NET_DAEMON_RELOAD} = '/etc/init.d/inet reload';
+        foreach my $command ( '/etc/init.d/inet',
+                              '/etc/init.d/inetd',
+                              '/etc/rc.d/init.d/inet',
+                              '/etc/rc.d/init.d/inetd' )
+        {
+            if (-x $command) {
+                $Result{NET_DAEMON_RELOAD} = "$command reload";
+                last;
+            }
         }
-        elsif (-x '/etc/rc.d/init.d/inet') {
-            $Result{NET_DAEMON_RELOAD} = '/etc/rc.d/init.d/inet reload';
-        }
-        else {
+        if (not defined $Result{NET_DAEMON_RELOAD}) {
             $Result{NET_DAEMON_RELOAD} = "kill -HUP $Result{NET_DAEMON_PID}";
         }
     }
@@ -2603,7 +2631,7 @@ sub Release_String() {
 # ----------------------------------------------------------------------
 
 sub Show_Version() {
-    print "$Prog_Name ", Release_String(), " (revision $Revision)\n";
+    print "$Program_Name ", Release_String(), " (revision $Revision)\n";
     exit 1;
 } # Show_Version
 
@@ -2612,8 +2640,8 @@ sub Show_Version() {
 sub Usage(@) {
     print @_ if @_;
     print <<"EOF";
-Usage: $Prog_Name [options] config_file
-$Prog_Name uses Perl's Getopt::Long module to parse options.
+Usage: $Program_Name [options] config_file
+$Program_Name uses Perl's Getopt::Long module to parse options.
 Options may be prefixed with either "-" or "--".
 Option names may be abbreviated uniquely.
     -help               Display this message and exit.
