@@ -1,7 +1,21 @@
-$Id: Relnotes,v 1.17 2004-08-29 22:35:10-07 kst Exp $
+$Id: Relnotes,v 1.18 2004-09-04 02:02:10-07 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.7.5 to release 0.7.6:
+
+    Environment variables other than $HOME, $LOGNAME, $SHELL, and
+    $USER are deleted by gpt-wizard, preventing implicit dependencies
+    on the current environment.
+
+    The new INHERIT_ENV configuration option can be used to cause other
+    environment variable to be inherited and passed to gpt-build,
+    gpt-install, etc.  Whenever possible, the ENV option should be
+    used instead to specify the actual value.
+
+    Changed command-line option defaults.
+    The defaults are now "-nocleanup -gpt-verbose".
 
 Changes from release 0.7.4 to release 0.7.5:
 
