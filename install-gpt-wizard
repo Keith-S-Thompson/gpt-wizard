@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: install-gpt-wizard,v 1.2 2004-01-13 20:18:42-08 kst Exp $
+# $Id: install-gpt-wizard,v 1.3 2004-05-07 23:11:32-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/install-gpt-wizard,v $
 
 use strict;
@@ -98,7 +98,7 @@ my %file_dir = ( 'gpt-wizard'   => 'sbin',
                  'INSTALL'      => 'etc',
                  'README'       => 'etc',
                  'Relnotes'     => 'etc',
-                 'sample.conf'  => 'etc' );
+                 'sample.gptw'  => 'etc' );
 
 my @missing = ();
 foreach my $file (sort keys %file_dir) {
