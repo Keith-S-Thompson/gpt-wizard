@@ -1,7 +1,27 @@
-$Id: Relnotes,v 1.2 2003-03-11 15:04:53-08 kst Exp $
+$Id: Relnotes,v 1.3 2003-04-01 17:26:47-08 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.2 to release 0.3:
+
+    Removed configuration variable GLOBUS_VAR_DIRECTORY, replaced
+    with the more general GLOBUS_LOCAL_DIRECTORY.  If this is set,
+    the tmp and var subdirectories, and certain files under etc, are
+    automatically replaced with symlinks into GLOBUS_LOCAL_DIRECTORY.
+
+    Print any manual steps even if gpt-wizard terminates abnormally.
+
+    Provide better instructions for inetd/xinetd.
+
+    Corrected bug in inetd.conf entry for gsigatekeeper.
+
+    Bug fix: Pay attention to GLOBUS_HOSTNAME if it's set.
+
+    Allow root INSTALLER_USER and INSTALLER_GROUP.  (To do: allow
+    gpt-wizard to be run by a non-root user.)
+
+    Miscellanous bells, whistles, and bug fixes.
 
 Changes from release 0.1.1 to release 0.2:
 
