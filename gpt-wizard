@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.97 2002-10-27 20:16:19-08 kst Exp $
+# $Id: gpt-wizard,v 1.98 2002-10-28 17:36:11-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -32,7 +32,9 @@
 #     for a client-only installation.
 #
 #     Possibly make "setup-gsi" optional, configure /etc/grid-security
-#     by brute force.
+#     by brute force.  Find out more about the implications of doing this.
+#
+#     Allow GPT to be installed from an RPM or binary package.
 #
 
 use strict;
@@ -68,7 +70,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.97 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.98 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -108,6 +110,8 @@ $SIG{__DIE__} = \&Die_Handler;
 
 my $temp_file_serial_number = 0;
 my @manual_steps = ();
+my %Is_Binary = ();
+my %Is_Source = ();
 
 Usage if scalar @ARGV != 1;
 my $Config_File = $ARGV[0];
@@ -338,14 +342,17 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
     my $bundle_name = File::Basename::basename $bundle;
 
     #
-    # If the file name contains the string "src", assume it's a source
-    # bundle; "src" must be preceded and followed by either an underscore
-    # or a word boundary.
+    # If the file name was specified in the config file with a ": binary"
+    # suffix, treat it as a binary bundle (use gpt-install).
     #
-    # If this assumption breaks, consider specifying source vs. binary
-    # in the config file (or detecting it somehow?).
+    # If it was specified with a ": source" suffix, treat it as a source
+    # bundle (use gpt-build).
     #
-    if ($bundle_name =~ /(\b|_)src(\b|_)/) {
+    # If neither was specified, assume that if the file name contains
+    # the string "src", preceded and followed by either an underscore
+    # or a word boundary, it's a source bundle, otherwise a binary bundle.
+    #
+    if ($Is_Source{$bundle} or $bundle_name =~ /(\b|_)src(\b|_)/) {
         #
         # Using gpt-build to build and install a source bundle.
         #
@@ -739,7 +746,6 @@ sub File_Or_URL_Error($$$) {
 # return the results as a hash (to be assigned to the global %Config).
 #
 sub Get_Config($) {
-    my %Result = ();
     my($config_file) = @_;
     my @errors = ();
 
@@ -792,6 +798,10 @@ sub Get_Config($) {
             { type => 'file_or_url', required => 0 }
     );
 
+    foreach my $name (keys %Var_Info) {
+        $Var_Info{$name}->{name} = $name;
+    }
+
     print "Getting configuration from $config_file\n";
 
     #
@@ -812,6 +822,22 @@ sub Get_Config($) {
         next if /^$/;
         if (/^(\w+)\s+(.*)$/) {
             my ($name, $value) = ($1, $2);
+            if ($name eq 'BUNDLE') {
+                if ($value =~ /^(.*)\s*:\s*(binary|source)$/) {
+                    $value = $1;
+                    my $kind = lc $2;
+                    if ($kind eq 'binary') {
+                        $Is_Binary{$1} = 1;
+                    }
+                    elsif ($kind eq 'source') {
+                        $Is_Source {$1} = 1;
+                    }
+                    else {
+                        die "Internal error, " .
+                            "\"$kind\" should be \"binary\" or \"source\"";
+                    }
+                }
+            }
             if (defined $Var_Info{$name}) {
                 my $Var = $Var_Info{$name};
 
@@ -1050,10 +1076,11 @@ sub Get_Config($) {
         die ">>> $Error_s in config file ${config_file}:\n",
             @errors;
     }
-    else {
-        foreach my $varname (keys %Var_Info) {
-            $Result{$varname} = $Var_Info{$varname}->{value};
-        }
+
+    my %Result = ();
+
+    foreach my $varname (keys %Var_Info) {
+        $Result{$varname} = $Var_Info{$varname}->{value};
     }
 
     foreach my $key (sort keys %Result) {
@@ -1061,14 +1088,30 @@ sub Get_Config($) {
         if (ref $value eq 'ARRAY') {
             printf "    %-20s => {\n", $key;
             foreach my $elem (@$value) {
-                print "        \"$elem\"\n";
+                print "        \"$elem\"";
+                if ($Is_Binary{$elem}) {
+                    print " : Binary";
+                }
+                elsif ($Is_Source{$elem}) {
+                    print " : Source";
+                }
+                print "\n";
             }
             print "    }\n";
         }
         else {
-            printf "    %-20s => %s\n",
+            printf "    %-20s => %s",
                    $key,
                    defined $value ? "\"$value\"" : 'undef';
+            if (defined $value) {
+                if ($Is_Binary{$value}) {
+                    print " : Binary";
+                }
+                elsif ($Is_Source{$value}) {
+                    print " : Source";
+                }
+            }
+            print "\n";
         }
     }
 
@@ -1212,6 +1255,12 @@ sub Download_Files(@) {
             }
             elsif (-s $target_file == 0) {
                 die "Download failed for $target_file (empty file)\n";
+            }
+            if ($Is_Binary{$$ref}) {
+                $Is_Binary{$target_file} = 1;
+            }
+            elsif ($Is_Source{$$ref}) {
+                $Is_Source{$target_file} = 1;
             }
 
             $$ref = $target_file;
@@ -1787,7 +1836,7 @@ EOF
     }
     else {
         die "Internal error, bad arguments to Inet_Config_Text()\n" .
-            "    daemon=\"$daemon\", service=\"$service\"\n";
+            "    daemon=\"$daemon\", service=\"$service\"";
     }
 } # Inet_Config_Text
 
