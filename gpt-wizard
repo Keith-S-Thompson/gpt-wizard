@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.112 2002-11-03 14:58:57-08 kst Exp $
+# $Id: gpt-wizard,v 1.113 2002-11-03 22:58:24-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -71,7 +71,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.112 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.113 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -1534,11 +1534,8 @@ sub Get_Update_Flavors($) {
     close PIPE;
 
     my @flavors = sort keys %flavor;
-    if (scalar @flavors == 1 and $flavors[0] eq 'noflavor') {
-        return ();
-    }
-    elsif (@flavors) {
-        return @flavors;
+    if (@flavors) {
+        return grep { $_ ne 'noflavor' } @flavors;
     }
     else {
         die "Unable to determine flavors for $filename\n";
