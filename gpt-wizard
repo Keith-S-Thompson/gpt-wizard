@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.249 2004-03-07 20:40:13-08 kst Exp $
+# $Id: gpt-wizard,v 1.250 2004-03-08 14:15:33-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -129,10 +129,6 @@
 #     Take another look for the scripts on which Fix_Setup_Script
 #     is invoked.  Drop any that are no longer relevant.
 #
-#     In Get_Config(), bail out after, say, 100 errors (so it doesn't
-#     go insane when I feed it a multi-megabyte log file rather than a
-#     config file).
-#
 #     gpt-build has an option:
 #         -installdir=path_to_installation  Override $GLOBUS_LOCATION
 #     gpt-install has the same thing.
@@ -144,6 +140,7 @@
 require 5.004;
 
 use strict;
+# use diagnostics;
 
 use File::Basename ();
 use Getopt::Long ();
@@ -187,7 +184,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.249 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.250 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1361,6 +1358,26 @@ sub Get_Config($) {
     my $default_prefix = undef;
 
     #
+    # What we really want to do is create a nested subroutine ERROR that
+    # takes a single argument (the error message), but can refer to the
+    # $config_file and @errors variables in the surrounding scope.
+    #
+    # The way to do this is to create a reference to an anonymous
+    # subroutine.  Declaring the subroutine directly would cause the
+    # local variables in the enclosing scope to be evaluated only on
+    # the first call, causing great confusion.
+    #
+
+    my $ERROR = sub ($) {
+        my ($message) = @_;
+        push @errors, $_[0];
+        if (scalar @errors >= 100) {
+            die ">>> Too many errors in config file ${config_file}:\n",
+                @errors;
+        }
+    };
+
+    #
     # %Var_Info is a hash of hash references.
     # Each element is basically a declaration for a configuration variable.
     # This information is used for validity checking, and is local
@@ -1472,7 +1489,7 @@ sub Get_Config($) {
                     # URLs are no longer supported
                     #
                     if ($value =~ m<^(ftp|http)://>) {
-                        push @errors, "URLs are no longer supported, line $.\n";
+                        &$ERROR("URLs are no longer supported, line $.\n");
                     }
                     #
                     # Prepend the default prefix (if any) only if the
@@ -1512,7 +1529,7 @@ sub Get_Config($) {
                         foreach my $field (split /\s+/, $value) {
                             if (lc $field =~ /^kind=(.*)$/) {
                                 if (defined $kind) {
-                                    push @errors, "Duplicate kind, line $.\n";
+                                    &$ERROR("Duplicate kind, line $.\n");
                                 }
                                 else {
                                     if ($1 eq 'binary' or
@@ -1522,18 +1539,16 @@ sub Get_Config($) {
                                         $kind = $1;
                                     }
                                     else {
-                                        push @errors,
-                                             "Unrecognized kind, line $., " .
-                                             "should be \"binary\", " .
-                                             "\"source\", or \"rpm\"\n";
+                                        &$ERROR("Unrecognized kind, line $., " .
+                                                "should be \"binary\", " .
+                                                "\"source\", or \"rpm\"\n");
                                     }
                                 }
                             }
                             elsif (lc $field =~ /^flavor=(.*)$/) {
                                 if (defined $flavor) {
-                                    push @errors,
-                                         "Duplicate flavor, line $." .
-                                         " (use \"flavor=$flavor,$1\")\n";
+                                    &$ERROR("Duplicate flavor, line $." .
+                                            " (use \"flavor=$flavor,$1\")\n");
                                 }
                                 else {
                                     $flavor = $1;
@@ -1541,9 +1556,8 @@ sub Get_Config($) {
                             }
                             elsif (lc $field =~ /^option=(.*)$/) {
                                 if (defined $option) {
-                                    push @errors,
-                                         "Duplicate option, line $." .
-                                         " (use \"option=$option,$1\")\n";
+                                    &$ERROR("Duplicate option, line $." .
+                                            " (use \"option=$option,$1\")\n");
                                 }
                                 else {
                                     $option = $1;
@@ -1551,8 +1565,8 @@ sub Get_Config($) {
                             }
                             elsif (lc $field =~ /^install=(.*)$/) {
                                 if (defined $install) {
-                                    push @errors,
-                                         "Duplicate install attr, line $.\n";
+                                    &$ERROR("Duplicate install attr, " .
+                                            "line $.\n");
                                 }
                                 else {
                                     $install = $1;
@@ -1560,22 +1574,20 @@ sub Get_Config($) {
                             }
                             elsif (lc $field =~ /^arch=(.*)$/) {
                                 if (defined $arch) {
-                                    push @errors,
-                                         "Duplicate arch, line $.\n";
+                                    &$ERROR("Duplicate arch, line $.\n");
                                 }
                                 else {
                                     $option = $1;
                                 }
                             }
                             elsif ($field =~ /^(\w+)=/) {
-                                push @errors,
-                                     "Unrecognized attribute \"$1\", line $.\n";
+                                &$ERROR("Unrecognized attribute \"$1\", " .
+                                        "line $.\n");
                             }
                             else {
                                 if (defined $filename) {
-                                    push @errors,
-                                         "Duplicate name, line $." .
-                                         " (possible space in filename?)\n";
+                                    &$ERROR("Duplicate name, line $." .
+                                            " (possible space in filename?)\n");
                                 }
                                 else {
                                     $filename = $field;
@@ -1587,35 +1599,34 @@ sub Get_Config($) {
                         #
                         if ($Var->{type} eq 'array_of_bundle') {
                             if (defined $install) {
-                                push @errors, "install attribute may not be " .
-                                              "defined for bundles\n";
+                                &$ERROR("install attribute may not be " .
+                                        "defined for bundles\n");
                             }
                             if (defined $arch) {
-                                push @errors, "arch attribute may not be " .
-                                              "defined for bundles\n";
+                                &$ERROR("arch attribute may not be " .
+                                        "defined for bundles\n");
                             }
                         }
                         elsif ($Var->{type} eq 'mpich-g2') {
                             if (defined $kind) {
-                                push @errors, "kind attribute may not be " .
-                                              "defined for MPICH-G2\n";
+                                &$ERROR("kind attribute may not be " .
+                                        "defined for MPICH-G2\n");
                             }
                             if (defined $option) {
-                                push @errors, "option attribute may not be " .
-                                              "defined for MPICH-G2\n";
+                                &$ERROR("option attribute may not be " .
+                                        "defined for MPICH-G2\n");
                             }
                             if (not defined $filename) {
-                                push @errors, "Missing filename for MPICH-G2\n";
+                                &$ERROR("Missing filename for MPICH-G2\n");
                             }
                             if (defined $flavor) {
                                 if ($flavor =~ /,/) {
-                                    push @errors,
-                                         "Only one flavor may be specified " .
-                                         "for MPICH-G2\n";
+                                    &$ERROR("Only one flavor may be " .
+                                            "specified for MPICH-G2\n");
                                 }
                             }
                             else {
-                                push @errors, "Missing flavor for MPICH-G2\n";
+                                &$ERROR("Missing flavor for MPICH-G2\n");
                             }
                             if (defined $install) {
                                 if ($install =~ /^\//) {
@@ -1625,14 +1636,13 @@ sub Get_Config($) {
                                     # A relative path is ok, but
                                     # the depth cannot exceed 1 (no
                                     # recursive mkdir).
-                                    push @errors,
-                                         "Relative path for MPICH-G2 " .
-                                         "can be at most one level deep\n";
+                                    &$ERROR("Relative path for MPICH-G2 " .
+                                            "can be at most one level deep\n");
                                 }
                             }
                             else {
-                                push @errors,
-                                     "Missing install attr for MPICH-G2\n";
+                                &$ERROR("Missing install attribute " .
+                                        "for MPICH-G2\n");
                             }
                         }
                         else {
@@ -1654,8 +1664,7 @@ sub Get_Config($) {
                 }
                 else {
                     if (defined $Var->{value}) {
-                        push @errors,
-                             "Duplicate entry for \"$name\" at line $.\n";
+                        &$ERROR("Duplicate entry for \"$name\" at line $.\n");
                     }
                     else {
                         $Var->{value} = $value;
@@ -1664,11 +1673,11 @@ sub Get_Config($) {
             }
 
             else {
-                push @errors, "Unrecognized option \"$name\" at line $.\n"
+                &$ERROR("Unrecognized option \"$name\" at line $.\n");
             }
         }
         else {
-            push @errors, "Syntax error at line $.\n";
+            &$ERROR("Syntax error at line $.\n");
         }
     }
     close CONFIG;
@@ -1681,7 +1690,7 @@ sub Get_Config($) {
         my $var = $Var_Info{$varname};
         if (not defined $var->{value}) {
             if ($var->{required}) {
-                push @errors, "Missing option $varname\n";
+                &$ERROR("Missing option $varname\n");
                 next VAR;
             }
             elsif (defined $var->{default}) {
@@ -1718,11 +1727,11 @@ sub Get_Config($) {
         elsif ($var->{type} eq 'existing_directory') {
             my $dir = $var->{value};
             if ($dir !~ /^\//) {
-                push @errors, "$varname directory \"$dir\", " .
-                              "relative path not allowed\n";
+                &$ERROR("$varname directory \"$dir\", " .
+                        "relative path not allowed\n");
             }
             if (not (-d $dir and -r _ and -w _ and -x _)) {
-                push @errors, "Bad $varname directory \"$dir\"\n";
+                &$ERROR("Bad $varname directory \"$dir\"\n");
             }
         }
 
@@ -1748,16 +1757,15 @@ sub Get_Config($) {
                 elsif (-d $dir) {
                     if (Is_Empty_Dir $dir) {
                         if (not (-r $dir and -w _ and -x _)) {
-                            push @errors,
-                                 "Bad $varname directory \"$dir\"\n";
+                            &$ERROR("Bad $varname directory \"$dir\"\n");
                         }
                     }
                     else {
-                        push @errors, "$varname \"$dir\" is not empty\n";
+                        &$ERROR("$varname \"$dir\" is not empty\n");
                     }
                 }
                 else {
-                    push @errors, "$varname \"$dir\" is not a directory\n";
+                    &$ERROR("$varname \"$dir\" is not a directory\n");
                 }
             }
         }
@@ -1769,17 +1777,14 @@ sub Get_Config($) {
         elsif ($var->{type} eq 'path') {
             foreach my $dir (split /:/, $var->{value}) {
                 if ($dir !~ /^\//) {
-                    push @errors,
-                         "Bad directory in ${varname}: \"$dir\"\n";
+                    &$ERROR("Bad directory in ${varname}: \"$dir\"\n");
                 }
                 elsif (not -d $dir) {
-                    push @errors,
-                         "Nonexistent directory in ${varname}: \"$dir\"\n";
+                    &$ERROR("Nonexistent directory in ${varname}: \"$dir\"\n");
                 }
                 elsif (not -r $dir or not -x $dir) {
-                    push @errors,
-                         "Bad permissions on directory in " .
-                         "${varname}: \"$dir\"\n";
+                    &$ERROR("Bad permissions on directory in " .
+                            "${varname}: \"$dir\"\n");
                 }
             }
         }
@@ -1790,13 +1795,13 @@ sub Get_Config($) {
         elsif ($var->{type} eq 'user_name') {
             my @pw = getpwnam $var->{value};
             if (not defined $pw[2]) {
-                push @errors, "Bad $varname \"$var->{value}\", no such user\n";
+                &$ERROR("Bad $varname \"$var->{value}\", no such user\n");
             }
             if (not $Running_As_Root and $var->{value} ne $This_User) {
-                push @errors, "Bad $varname \"$var->{value}\", " .
-                              "permission denied\n" .
-                              "Run $Program_Name as root or " .
-                              "don't specify $varname\n";
+                &$ERROR("Bad $varname \"$var->{value}\", " .
+                        "permission denied\n" .
+                        "Run $Program_Name as root or " .
+                        "don't specify $varname\n");
             }
         }
 
@@ -1806,13 +1811,13 @@ sub Get_Config($) {
         elsif ($var->{type} eq 'group_name') {
             my @gr = getgrnam $var->{value};
             if (not defined $gr[2]) {
-                push @errors, "Bad $varname \"$var->{value}\", no such group\n";
+                &$ERROR("Bad $varname \"$var->{value}\", no such group\n");
             }
             if (not $Running_As_Root and $var->{value} ne $This_Group) {
-                push @errors, "Bad $varname \"$var->{value}\", " .
-                              "permission denied\n" .
-                              "Run $Program_Name as root or " .
-                              "don't specify $varname\n";
+                &$ERROR("Bad $varname \"$var->{value}\", " .
+                        "permission denied\n" .
+                        "Run $Program_Name as root or " .
+                        "don't specify $varname\n");
             }
         }
 
@@ -1821,7 +1826,7 @@ sub Get_Config($) {
         #
         elsif ($var->{type} eq 'umask') {
             if ($var->{value} !~ /^[0-7]+$/) {
-                push @errors, "Bad $varname \"$var->{value}\"\n";
+                &$ERROR("Bad $varname \"$var->{value}\"\n");
             }
         }
 
@@ -1845,32 +1850,31 @@ sub Get_Config($) {
                 $var->{value} = 1;
             }
             else {
-                push @errors, "$varname must be one of the following:\n" .
-                              "    0, no, false, 1, yes, true\n";
+                &$ERROR("$varname must be one of the following:\n" .
+                        "    0, no, false, 1, yes, true\n");
             }
         }
 
         elsif ($var->{type} eq 'array_of_bundle') {
             foreach my $item (@{$var->{value}}) {
                 my $error = File_Error "-varname=$varname", $item->{filename};
-                push @errors, $error if defined $error;
+                &$ERROR($error) if defined $error;
                 if (defined $item->{kind} and $item->{kind} eq 'rpm') {
-                    push @errors,
-                         "RPM bundles cannot be installed " .
-                         "by a non-root user\n";
+                    &$ERROR("RPM bundles cannot be installed " .
+                            "by a non-root user\n");
                 }
             }
         }
 
         elsif ($var->{type} eq 'file') {
             my $error = File_Error "-varname=$varname", $var->{value};
-            push @errors, $error if defined $error;
+            &$ERROR($error) if defined $error;
         }
 
         elsif ($var->{type} eq 'executable_file') {
             my $error = File_Error
                             "-varname=$varname", "-executable", $var->{value};
-            push @errors, $error if defined $error;
+            &$ERROR($error) if defined $error;
         }
 
         elsif ($var->{type} eq 'batch_system') {
@@ -1881,8 +1885,8 @@ sub Get_Config($) {
                                     prun );
             my %is_batch_system = map { ( $_ => 1 ) } @batch_systems;
             if (not $is_batch_system{$var->{value}}) {
-                push @errors, "$varname must be one of:\n" .
-                              "    @batch_systems\n";
+                &$ERROR("$varname must be one of:\n" .
+                        "    @batch_systems\n");
             }
 
         }
@@ -1941,10 +1945,10 @@ sub Get_Config($) {
         my $globus_dir = $Var_Info{GLOBUS_LOCATION}->{value};
         my $var_dir = $Var_Info{GLOBUS_LOCAL_DIRECTORY}->{value};
         if ($var_dir =~ /^\Q$globus_dir\E\//) {
-            push @errors, "GLOBUS_LOCAL_DIRECTORY may not be a " .
-                          "subdirectory of GLOBUS_LOCATION\n" .
-                          "If you don't need a separate local directory, " .
-                          "don't specify GLOBUS_LOCAL_DIRECTORY.\n";
+            &$ERROR("GLOBUS_LOCAL_DIRECTORY may not be a " .
+                    "subdirectory of GLOBUS_LOCATION\n" .
+                    "If you don't need a separate local directory, " .
+                    "don't specify GLOBUS_LOCAL_DIRECTORY.\n");
         }
     }
 
