@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.147 2003-01-27 19:31:39-08 kst Exp $
+# $Id: gpt-wizard,v 1.148 2003-02-04 01:07:32-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -74,6 +74,11 @@
 #     Globus security stuff in $GLOBUS_LOCATION/etc.  This is useful
 #     for a client-only installation.
 #
+#     More generally, allow gpt-wizard to be executed, with some
+#     restrictions, by a non-root account (preferably "globus").
+#     Anything that needs to be done by root would be added to
+#     @manual_steps.
+#
 #     Possibly make "setup-gsi" optional, configure /etc/grid-security
 #     by brute force.  Find out more about the implications of doing this.
 #
@@ -101,6 +106,17 @@
 #     Optionally generate a Bourne shell script to do the installation
 #     rather than actually doing the installation.
 #
+#     Consider reversing the default for -startup.
+#
+#     Replace GLOBUS_VAR_DIRECTORY with a more general GLOBUS_LOCAL_DIRECTORY.
+#     Everything that needs to be localized would be replaced by
+#     symlinks into GLOBUS_LOCAL_DIRECTORY; for example:
+#         GLOBUS_LOCATION/var --> GLOBUS_LOCAL_DIRECTORY/var
+#         GLOBUS_LOCATION/etc/globus-job-manager.conf
+#             --> GLOBUS_LOCAL_DIRECTORY/etc/globus-job-manager.conf 
+#     See Globus Bugzilla #660,
+#     <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=660>.
+#     
 
 require 5.004;
 
@@ -140,7 +156,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.147 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.148 $';
 my $Release           = '0.1.1+';
 my $Help              = undef;
 my $Show_Version      = undef;
