@@ -1,0 +1,21 @@
+# $Id: lutefisk-globus-3.2.0-mpicc-test.gptw,v 1.1 2004-06-23 20:46:54-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-globus-3.2.0-mpicc-test.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin:/usr/local/apps/mpich-1.2.5.3/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-3.2.0-mpicc-test
+
+.PREFIX ~kst/Globus/3.2.0/gpt
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+#
+# Build Globus 3.2.0 from source.
+# For this test build, one bundle only.
+#
+
+MPI_FLAVORS_ARE_STATIC 1
+
+.PREFIX ~kst/Globus/3.2.0/bundles/src
+BUNDLE globus-resource-management-sdk-3.2-src_bundle.tar.gz kind=source flavor=mpicc32dbg,gcc32dbg
