@@ -1,0 +1,18 @@
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-mpich-g-1.2.6-update.gptw,v 1.1 2004-08-12 18:26:46-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-mpich-g-1.2.6-update.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+IS_UPDATE 1
+
+PATH /usr/bin:/bin:/opt/torque/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
+
+GLOBUS_LOCATION  /work/globus/apps/globus-2.4.3-gcc-r4
+
+MPI_FLAVORS_ARE_STATIC 1
+
+#
+# Build and install MPICH-G2
+#
+.PREFIX /work/kst/repo.teragrid.org/open/mpich/1.2.6
+MPICH-G2 mpich-1.2.6.tar.gz flavor=mpicc64dbg install=mpich-g2-1.2.6
