@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.290 2004-07-02 16:53:57-07 kst Exp $
+# $Id: gpt-wizard,v 1.291 2004-07-02 17:06:04-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -205,7 +205,7 @@ my $Release_Revision = '1.285'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.290 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.291 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -898,10 +898,17 @@ if ($Opt{postinstall} and defined $Config{PRE_POSTINSTALL}) {
 # Invoke gpt-bundle to create a binary bundle if requested.
 ########################################
 if (defined $Config{CREATE_BINARY_BUNDLE}) {
+    my $tmpdir = "$working_dir/bundle_pkgs";
+    chdir $Config{CREATE_BINARY_BUNDLE}->{dir} or
+        die "$Config{CREATE_BINARY_BUNDLE}->{dir}: $!\n";
+    mkdir $tmpdir, 0777 or die "${tmpdir}: $!\n";
     Execute @As_Installer,
             "$Config{GPT_LOCATION}/sbin/gpt-bundle",
             '-all',
-            "-output=$Config{CREATE_BINARY_BUNDLE}";
+            "-tmpdir=$tmpdir",
+            "-bundlename=$Config{CREATE_BINARY_BUNDLE}->{name}",
+            "-bundleversion=$Config{CREATE_BINARY_BUNDLE}->{version}",
+            "-bundlelabel=$Config{CREATE_BINARY_BUNDLE}->{label}";
 }
 
 ########################################
@@ -2184,14 +2191,30 @@ sub Get_Config($) {
         elsif ($var->{type} eq 'new_binary_bundle') {
             #
             # Allowed attributes are name, version, label, and dir,
-            # all mandatory.
+            # all mandatory.  dir must refer to an existing directory,
+            # 
             #
             foreach my $attr (qw(name version label dir)) {
                 if (not defined $var->{$attr}) {
                     &$ERROR("$varname missing attribute $attr\n");
                 }
             }
-            if (not -d $var->{dir}) {
+            #
+            # dir can use ~ notation; after any expansion, it must be
+            # an absolute pathname.
+            #
+            $var->{dir} =~ s/^~[\w-]+/Expand_Tilde $&/e;
+            if ($var->{dir} =~ /^~([\w-]+)/) {
+                &$ERROR("Error expanding \"~$1\", line $.\n");
+            }
+            elsif ($var->{dir} =~ /^~/) {
+                &$ERROR("Standalone \"~\" not expanded, line $.\n");
+            }
+            if ($var->{dir} !~ /^\//) {
+                &$ERROR("${varname}: $var->{value}->{dir} is not an " .
+                        "absolute pathname\n");
+            }
+            elsif (not -d $var->{dir}) {
                 &$ERROR("${varname}: no directory $var->{value}->{dir}\n");
             }
             elsif (not -w $var->{dir}) {
