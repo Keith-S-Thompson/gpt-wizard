@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.178 2003-03-15 15:45:05-08 kst Exp $
+# $Id: gpt-wizard,v 1.179 2003-03-16 00:27:18-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -179,7 +179,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.178 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.179 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -948,16 +948,16 @@ else {
     push @manual_steps,
          "For inetd, add the following lines to /etc/inetd.conf\n" .
          "(allowing for any site-specific conventions):\n" .
-         Inet_Config_Text 'inetd', 'gsigatekeeper' .
-         Inet_Config_Text 'inetd', 'gsiftp';
+         Inet_Config_Text('inetd', 'gsigatekeeper') .
+         Inet_Config_Text('inetd', 'gsiftp');
 
     push @manual_steps,
          "For xinetd, create the file /etc/xinetd.d/gsigatekeeper" .
          "with the following contents:\n" .
-         Inet_Config_Text 'xinetd', 'gsigatekeeper' .
+         Inet_Config_Text('xinetd', 'gsigatekeeper') .
          "and the file /etc/xinetd.d/gsiftp\n" .
          "with the following contents:\n" .
-         Inet_Config_Text 'xinetd', 'gsiftp';
+         Inet_Config_Text('xinetd', 'gsiftp');
 }
 
 if ($Startup) {
