@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $Id: mds-aix-relink.sh,v 1.4 2002-12-06 22:32:31-08 kst Exp $
+# $Id: mds-aix-relink.sh,v 1.5 2002-12-07 02:24:35-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/mds-aix-relink.sh,v $
 
 #
@@ -14,13 +14,12 @@ Usage() {
     echo "$*" 1>&2
     cat <<EOF 1>&2
 Usage: $0 option
-    -builddir DIR       Build directory
-                        Mandatory
-    -flavor FLAVOR      Specify flavor(s)
-                        Multiple flavors may be specified either separated
-                        by commas, or as multiple "-flavor" arguments
-                        Mandatory
-    -help               Show this message and exit
+    -builddir DIR       Build directory.
+                        Mandatory.
+    -compiler COMPILER  C compiler, generally "cc" or "gcc"
+    -flavor FLAVOR      Specify flavor.
+			If not specified, we attempt to infer it.
+    -help               Show this message and exit.
 EOF
     exit 1
 } # Usage
@@ -34,16 +33,17 @@ Die() {
 
 # ----------------------------------------------------------------------
 
-builddir=""
-flavors=""
+build_dir=""
+compiler=""
+flavor=""
 
 while [ "$#" -ne 0 ]; do
     case "$1" in
 
         -builddir)
             if [ -n "$2" ] ; then
-                if [ -n "$builddir" ] ; then
-                    Usage "Error: -builddir argument given twice"
+                if [ -n "$build_dir" ] ; then
+                    Usage "Error: -builddir specified twice"
                 else
                     builddir="$2"
                 fi
@@ -53,17 +53,29 @@ while [ "$#" -ne 0 ]; do
             fi
             ;;
 
-        -flavor)
+        -compiler)
             if [ -n "$2" ] ; then
-                if [ -n "$flavors" ] ; then
-                    flavors="$flavors,$2"
+                if [ -n "$compiler" ] ; then
+                    Usage "Error: -compiler specified twice"
                 else
-                    flavors="$2"
+                    compiler="$2"
                 fi
                 shift
             else
-                Usage "Error: -flavor option requires an argument"
-                exit 1
+                Usage "Error: -compiler requires an argument"
+            fi
+            ;;
+
+        -flavor)
+            if [ -n "$2" ] ; then
+                if [ -n "$flavor" ] ; then
+                    Usage "Error: -flavor specified twice"
+                else
+                    flavor="$2"
+                fi
+                shift
+            else
+                Usage "Error: -flavor requires an argument"
             fi
             ;;
 
@@ -75,26 +87,24 @@ while [ "$#" -ne 0 ]; do
     shift
 done
 
-if [ -z "$builddir" ] ; then
-    Usage "-builddir is mandatory"
+if [ -z "$build_dir" ] ; then
+    Usage "-builddir not specified"
 fi
 
-# BUILD_DIR=${HOME}/build/side_tools/BUILD
-BUILD_DIR=$builddir
-
-if [ -n "$flavors" ] ; then
-    FLAVOR="`ls $GLOBUS_LOCATION/libexec/openldap`"
-    FLAVOR="`echo $FLAVOR | sed 's/ /,/g'`"
+if [ -z "$flavor" ] ; then
+    flavor="`ls $GLOBUS_LOCATION/libexec/openldap`"
+    if [ `echo $flavor | wc -l` -ne 1 ] ; then
+	Die "Can't determine flavor from $GLOBUS_LOCATION/libexec/openldap"
+    fi
 fi
-FLAVOR=$flavors
-case $FLAVOR in
-    *,*)
-	Usage "Sorry, multiple flavors aren't (yet?) supported"
-	;;
-esac
+
+if [ -z "$compiler" ] ; then
+    Usage "-compiler not specified"
+fi
 
 globus_mds_back_giis_dir=`ls -d ${BUILD_DIR}/globus_mds_back_giis* | grep -v '\.tar\.gz'`
-cd $globus_mds_back_giis || Die "cd failed for globus_mds_back_giis"
+echo "... cd $globus_mds_back_giis_dir"
+cd $globus_mds_back_giis_dir || Die "cd failed"
 ld -o libback_giis.so.0 \
     ../globus_openssl_module-*/library/*.o \
     ../globus_gsi_openssl_error-*/library/*.o \
@@ -111,11 +121,13 @@ ld -o libback_giis.so.0 \
     -bexpall \
     -bM:SRE \
     -lc \
-    -ldl
-cp libback_giis.so.0 $GLOBUS_LOCATION/libexec/openldap/$FLAVOR
+    -ldl || Die "ld failed"
+echo "... cp libback_giis.so.0 $GLOBUS_LOCATION/libexec/openldap/$flavor/."
+cp libback_giis.so.0 $GLOBUS_LOCATION/libexec/openldap/$flavor/. || Die "cp failed"
 
 globus_ldapmodules_dir=`ls -d ${BUILD_DIR}/globus_ldapmodules* | grep -v '\.tar\.gz'`
-cd $globus_ldapmodules_dir || Die "cd failed for globus_ldapmodules"
+echo "... cd $globus_ldapmodules_dir"
+cd $globus_ldapmodules_dir || Die "cd failed for globus_ldapmodules_dir"
 ld -o libback_ldif.so.0 \
     ../globus_gss_assist-*/*.o \
     *.o \
@@ -129,14 +141,19 @@ ld -o libback_ldif.so.0 \
     -bexpall \
     -bM:SRE \
     -lc \
-    -ldl
-cp libback_ldif.so.0 $GLOBUS_LOCATION/libexec/openldap/$FLAVOR
+    -ldl || Die "ld failed"
+echo "... cp libback_ldif.so.0 $GLOBUS_LOCATION/libexec/openldap/$flavor/."
+cp libback_ldif.so.0 $GLOBUS_LOCATION/libexec/openldap/$flavor/. || Die "cp failed"
 
-cd $GLOBUS_LOCATION/libexec/openldap/$FLAVOR
-ln -sf libback_giis.so.0 libback_giis.so
-ln -sf libback_ldif.so.0 libback_ldif.so
+echo "... cd $GLOBUS_LOCATION/libexec/openldap/$flavor"
+cd $GLOBUS_LOCATION/libexec/openldap/$flavor || Die "cd failed"
+echo "... ln -sf libback_giis.so.0 libback_giis.so"
+ln -sf libback_giis.so.0 libback_giis.so || Die "ln failed"
+echo "... ln -sf libback_ldif.so.0 libback_ldif.so"
+ln -sf libback_ldif.so.0 libback_ldif.so || Die "ln failed"
 
-cat > $GLOBUS_LOCATION/libexec/openldap/$FLAVOR/libback_giis.la << EOF
+echo "Creating $GLOBUS_LOCATION/libexec/openldap/$flavor/libback_giis.la"
+cat > $GLOBUS_LOCATION/libexec/openldap/$flavor/libback_giis.la << EOF
 
 
 # libback_giis.la - a libtool library file
@@ -155,7 +172,7 @@ library_names=''
 old_library=''
 
 # Libraries that this one depends upon.
-dependency_libs=' -L$GLOBUS_LOCATION/lib -lglobus_common_$FLAVOR -lglobus_gss_assist_$FLAVOR -lldap_$FLAVOR -llber_$FLAVOR -lglobus_gssapi_gsi_$FLAVOR -lsasl_$FLAVOR -lglobus_ssl_utils_$FLAVOR -lltdl_$FLAVOR -lssl_$FLAVOR -lcrypto_$FLAVOR'
+dependency_libs=' -L$GLOBUS_LOCATION/lib -lglobus_common_$flavor -lglobus_gss_assist_$flavor -lldap_$flavor -llber_$flavor -lglobus_gssapi_gsi_$flavor -lsasl_$flavor -lglobus_ssl_utils_$flavor -lltdl_$flavor -lssl_$flavor -lcrypto_$flavor'
 
 # Version information for libback_giis.
 current=0
@@ -166,12 +183,13 @@ revision=0
 installed=yes
 
 # Directory that this library needs to be installed in:
-libdir='$GLOBUS_LOCATION/libexec/openldap/$FLAVOR'
+libdir='$GLOBUS_LOCATION/libexec/openldap/$flavor'
 
 EOF
 
 
-cat > $GLOBUS_LOCATION/libexec/openldap/$FLAVOR/libback_ldif.la << EOF
+echo "Creating $GLOBUS_LOCATION/libexec/openldap/$flavor/libback_ldif.la"
+cat > $GLOBUS_LOCATION/libexec/openldap/$flavor/libback_ldif.la << EOF
 
 
 # libback_ldif.la - a libtool library file
@@ -191,7 +209,7 @@ library_names=''
 old_library=''
 
 # Libraries that this one depends upon.
-dependency_libs=' -L$GLOBUS_LOCATION/lib -lglobus_gss_assist_$FLAVOR -lldap_$FLAVOR -llber_$FLAVOR -lglobus_gssapi_gsi_$FLAVOR -lsasl_$FLAVOR -lglobus_ssl_utils_$FLAVOR -lltdl_$FLAVOR -lssl_$FLAVOR -lcrypto_$FLAVOR'
+dependency_libs=' -L$GLOBUS_LOCATION/lib -lglobus_gss_assist_$flavor -lldap_$flavor -llber_$flavor -lglobus_gssapi_gsi_$flavor -lsasl_$flavor -lglobus_ssl_utils_$flavor -lltdl_$flavor -lssl_$flavor -lcrypto_$flavor'
 
 # Version information for libback_ldif.
 current=0
@@ -202,12 +220,14 @@ revision=0
 installed=yes
 
 # Directory that this library needs to be installed in:
-libdir='$GLOBUS_LOCATION/libexec/openldap/$FLAVOR'
+libdir='$GLOBUS_LOCATION/libexec/openldap/$flavor'
 EOF
 
-cd ${BUILD_DIR}/globus_openldap-2.0.22/openldap-2.0.22/servers/slapd
+echo "... cd ${BUILD_DIR}/globus_openldap-*/openldap-*/servers/slapd"
+cd ${BUILD_DIR}/globus_openldap-*/openldap-*/servers/slapd || Die "cd failed"
 
-cc *.o \
+echo "Creating slapd"
+$compiler *.o \
     -brtl \
     -bexpall \
     libbackends.a \
@@ -216,18 +236,18 @@ cc *.o \
     -lavl \
     -lldif \
     -lldbm \
-    -llutil_$FLAVOR \
-    -lldap_r_$FLAVOR \
-    -llber_$FLAVOR \
-    -lsasl_$FLAVOR \
-    -lssl_$FLAVOR \
-    -lcrypto_$FLAVOR \
+    -llutil_$flavor \
+    -lldap_r_$flavor \
+    -llber_$flavor \
+    -lsasl_$flavor \
+    -lssl_$flavor \
+    -lcrypto_$flavor \
     -ls \
-    -lltdl_$FLAVOR \
+    -lltdl_$flavor \
     -lpthread \
     -o slapd \
-    $GLOBUS_LOCATION/libexec/openldap/$FLAVOR/libback_ldif.so \
-    $GLOBUS_LOCATION/libexec/openldap/$FLAVOR/libback_giis.so
+    $GLOBUS_LOCATION/libexec/openldap/$flavor/libback_ldif.so \
+    $GLOBUS_LOCATION/libexec/openldap/$flavor/libback_giis.so || Die "$compiler failed"
 
-cp slapd $GLOBUS_LOCATION/libexec
-
+echo "... cp slapd $GLOBUS_LOCATION/libexec/."
+cp slapd $GLOBUS_LOCATION/libexec/. || Die "cp failed"
