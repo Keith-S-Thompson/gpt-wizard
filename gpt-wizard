@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.256 2004-03-09 01:45:28-08 kst Exp $
+# $Id: gpt-wizard,v 1.257 2004-03-09 15:45:16-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -193,7 +193,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.256 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.257 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -203,7 +203,6 @@ my @Opts = ( \%Opt, qw( help!
                         cleanup!
                         postinstall!
                         startup!
-                        update!
                         gpt-verbose!
                         gpt-ignore-errors!
                         aix-kludge! ) );
@@ -214,11 +213,6 @@ Show_Version if $Opt{version};
 if ($Opt{startup} and not $Opt{postinstall}) {
     Usage "Option conflict: \"-startup\" and \"-nopostinstall\"\n",
           "    (Can't do startup without doing gpt-postinstall)\n";
-}
-
-if ($Opt{update} and $Opt{startup}) {
-    Usage "Option conflict: \"-startup\" and \"-update\"\n",
-          "    (This may be implemented in a future release)\n";
 }
 
 $SIG{__DIE__} = \&Die_Handler;
@@ -311,11 +305,12 @@ my $CLK_TCK = POSIX::sysconf(&POSIX::_SC_CLK_TCK);
 
 exit 0 if $Opt{'validate-only'};
 
-if ($Opt{update}) {
-    push @manual_steps,
-         "The \"-update\" option is still under development\n" .
-         "Read the following instructions with caution.\n" .
-         "Some of them may refer to things that have already been done.\n";
+if ($Config{IS_UPDATE}) {
+    push @manual_steps, <<EOF;
+The "IS_UPDATE" configuration variable is still under development
+Read the following instructions with caution.
+Some of them may refer to things that have already been done.
+EOF
 }
 
 ########################################################################
@@ -403,7 +398,7 @@ if (defined $Config{GLOBUS_HOSTNAME}) {
 # If there's exactly one new thing in the current directory, assume it's
 # the extracted source directory.
 ########################################
-if (not $Opt{update} and not $Opt{'aix-kludge'}) {
+if (not $Config{IS_UPDATE} and not $Opt{'aix-kludge'}) {
     opendir DIR, '.' or die ".: $!\n";
     my @files_before = readdir DIR;
     closedir DIR;
@@ -452,7 +447,7 @@ if (not $Opt{update} and not $Opt{'aix-kludge'}) {
 print "% Setting GPT_LOCATION=$Config{GPT_LOCATION}\n";
 $ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
 
-if ($Opt{update} or $Opt{'aix-kludge'}) {
+if ($Config{IS_UPDATE} or $Opt{'aix-kludge'}) {
     die "No directory $Config{GPT_LOCATION}\n"
         if not -d $Config{GPT_LOCATION};
     die "No executable $Config{GPT_LOCATION}/sbin/gpt-install\n"
@@ -472,7 +467,7 @@ else {
 ########################################
 # Run build_gpt to install GPT
 ########################################
-if (not $Opt{update} and not $Opt{'aix-kludge'}) {
+if (not $Config{IS_UPDATE} and not $Opt{'aix-kludge'}) {
     #
     # The default setting for the $LANG environment variable
     # on Red Hat 9 causes problems building some Perl modules.
@@ -524,7 +519,7 @@ Execute @As_Installer, $gpt_install_command, '-version';
 ########################################
 print "% Setting GLOBUS_LOCATION=$Config{GLOBUS_LOCATION}\n";
 $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
-if ($Opt{update}) {
+if ($Config{IS_UPDATE}) {
     if (not -d $Config{GLOBUS_LOCATION}) {
         die "No directory $Config{GLOBUS_LOCATION}\n";
     }
@@ -550,7 +545,7 @@ else {
 my $info_dir = "$Config{GLOBUS_LOCATION}/.gpt-wizard";
 my $info_file;
 
-if ($Opt{update}) {
+if ($Config{IS_UPDATE}) {
     $info_file = "$info_dir/update-" . Timestamp_Of $Start_Time;
 }
 else {
@@ -697,7 +692,7 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
 #
 # We don't need to do this for an update.
 ########################################
-if (not $Opt{update}) {
+if (not $Config{IS_UPDATE}) {
     my @nosrc_flavors = ();
     my $include_dir = "$ENV{GLOBUS_LOCATION}/include";
     if (-d $include_dir) {
@@ -733,7 +728,7 @@ if (not $Opt{update}) {
 #
 # We don't need to do this for an update.
 ########################################
-if (defined $Config{GLOBUS_LOCAL_DIRECTORY} and not $Opt{update}) {
+if (defined $Config{GLOBUS_LOCAL_DIRECTORY} and not $Config{IS_UPDATE}) {
     if (not -d $Config{GLOBUS_LOCAL_DIRECTORY}) {
         print "% mkdir $Config{GLOBUS_LOCAL_DIRECTORY}\n";
         mkdir $Config{GLOBUS_LOCAL_DIRECTORY}, 0777
@@ -831,7 +826,7 @@ my @localized_etc_files = qw( globus-job-manager.conf
                               grid-info-resource-register.conf
                               grid-info-site-policy.conf
                               grid-info-slapd.conf );
-if (defined $Config{GLOBUS_LOCAL_DIRECTORY} and not $Opt{update}) {
+if (defined $Config{GLOBUS_LOCAL_DIRECTORY} and not $Config{IS_UPDATE}) {
     my $global_etc = "$Config{GLOBUS_LOCATION}/etc";
     my $local_etc  = "$Config{GLOBUS_LOCAL_DIRECTORY}/etc";  
     if ($Opt{postinstall}) {
@@ -871,7 +866,7 @@ if (defined $Config{GLOBUS_LOCAL_DIRECTORY} and not $Opt{update}) {
 #
 # This is obsolete as of Globus 2.2
 #
-if (defined $Config{BATCH_SYSTEM} and not $Opt{update}) {
+if (defined $Config{BATCH_SYSTEM} and not $Config{IS_UPDATE}) {
     Execute $Using_RPM ? @As_Root : @As_Installer,
         "$Config{GLOBUS_LOCATION}/setup/globus/setup-globus-gram-job-manager",
         "-type=$Config{BATCH_SYSTEM}";
@@ -884,7 +879,7 @@ if (defined $Config{BATCH_SYSTEM} and not $Opt{update}) {
 ########################################
 # Configure batch jobmanager (new style)
 ########################################
-if (defined $Config{JOB_MANAGER} and not $Opt{update}) {
+if (defined $Config{JOB_MANAGER} and not $Config{IS_UPDATE}) {
     my @args = split /\s+/, $Config{JOB_MANAGER};
     my $jobmanager = shift @args;
     my $setup_dir = "$Config{GLOBUS_LOCATION}/setup/globus";
@@ -1437,6 +1432,8 @@ sub Get_Config($) {
     my %Var_Info = (
         CONFIG_FILE_REVISION =>
             { type => 'string', required => 0 },
+        IS_UPDATE =>
+            { type => 'boolean', required => 0, default => 0 },
         TEMP_DIR =>
             { type => 'existing_directory', required => 0, default => '/tmp' },
         TAR =>
@@ -1456,9 +1453,9 @@ sub Get_Config($) {
         UMASK =>
             { type => 'umask', required => 0, default => '022' },
         GPT_TARBALL =>
-            { type => 'file', required => not $Opt{update} },
+            { type => 'file', required => 0 },
         BUNDLE =>
-            { type => 'array_of_bundle', required => not $Opt{update} },
+            { type => 'array_of_bundle', required => 0 },
         UPDATE =>
             { type => 'array_of_bundle', required => 0 },
         PRE_POSTINSTALL =>
@@ -1793,7 +1790,7 @@ sub Get_Config($) {
         #
         elsif ($var->{type} eq 'new_directory') {
             my $dir = $var->{value};
-            if ( $Opt{update}) {
+            if ($Config{IS_UPDATE}) {
                 #
                 # Directory must exist and have stuff in it.
                 #
@@ -1988,6 +1985,25 @@ sub Get_Config($) {
             die "Internal error, bad variable type \"$var->{type}\"";
         }
 
+    }
+
+    #
+    # If this is a new installation, require at least one bundle
+    # and require a GPT_TARBALL.
+    #
+    # If this is an update to an existing installation (IS_UPDATE), do
+    # not require any bundles (could be just updates or just MPICH-G2),
+    # but disallow GPT_TARBALL.
+    #
+    if ($Config{IS_UPDATE}) {
+        if (defined $Config{GPT_TARBALL}) {
+            &$ERROR("GPT_TARBALL may not be defined with IS_UPDATE\n");
+        }
+    }
+    else {
+        if (not defined $Config{BUNDLE}) {
+            &$ERROR("No BUNDLEs were specified\n");
+        }
     }
 
     #
