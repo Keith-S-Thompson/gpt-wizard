@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.82 2002-10-09 17:49:38-07 kst Exp $
+# $Id: gpt-wizard,v 1.83 2002-10-09 18:47:36-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -64,7 +64,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.82 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.83 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -161,24 +161,27 @@ $ENV{PATH} = $Config{PATH};
 umask oct $Config{UMASK} or die "umask $Config{UMASK}: $!\n";
 
 my $working_dir = "$Config{TEMP_DIR}/install-nmi-" . time . "-$$";
+print "% mkdir $working_dir\n";
 mkdir $working_dir, 0700 or die "$working_dir: $!\n";
 chown $installer_uid, $installer_gid, $working_dir
     or die "$working_dir: $!\n";
+print "% cd $working_dir\n";
 chdir $working_dir or die "$working_dir: $!\n";
 
 ########################################################################
 # Download any files specified by ftp:// or http:// URLs
+# For security reasons, certificates and keys may not be downloaded.
 ########################################################################
 my @file_refs = ();
-push @file_refs, \$Config{GPT_TARBALL};
+
+foreach my $var (qw(GPT_TARBALL GRID_MAPFILE CA_CERT_TARBALL)) {
+    push @file_refs, \$Config{$var} if defined $Config{$var};
+}
+
 for (my $i = 0; $i <= $#{$Config{BUNDLE}}; $i ++) {
     push @file_refs, \$Config{BUNDLE}->[$i];
 }
-push @file_refs, \$Config{GRID_MAPFILE};
-#
-# For security reasons, certificates and keys may not be downloaded.
-#
-push @file_refs, \$Config{CA_CERT_TARBALL};
+
 Download_Files @file_refs;
 
 ########################################################################
@@ -212,7 +215,8 @@ if (scalar @new_files == 0) {
 }
 elsif (scalar @new_files == 1) {
     my $src_dir = $new_files[0];
-    chdir $src_dir or die "$working_dir/$src_dir: $!\n";
+    print "% cd $working_dir/$src_dir\n";
+    chdir "$working_dir/$src_dir" or die "$working_dir/$src_dir: $!\n";
 }
 else {
     die "Can't determine GPT source directory, tar created (@new_files)\n";
@@ -225,6 +229,7 @@ else {
 
 $ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
 if (not -d $Config{GPT_LOCATION}) {
+    print "% mkdir $Config{GPT_LOCATION}\n";
     mkdir $Config{GPT_LOCATION}, 0777 or die "$Config{GPT_LOCATION}: $!\n";
     chown $installer_uid, $installer_gid, $Config{GPT_LOCATION}
         or die "$Config{GPT_LOCATION}: $!\n";
@@ -235,6 +240,7 @@ if (not -d $Config{GPT_LOCATION}) {
 ########################################
 Execute @As_Installer, './build_gpt';
 
+print "% cd $working_dir\n";
 chdir $working_dir or die "$working_dir: $!\n";
 
 ########################################
@@ -295,23 +301,12 @@ if (not $using_old_gpt) {
 $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
 if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
     if (not -d $Config{GLOBUS_LOCATION}) {
+        print "% mkdir $Config{GLOBUS_LOCATION}\n";
         mkdir $Config{GLOBUS_LOCATION}, 0777
             or die "$Config{GLOBUS_LOCATION}: $!\n";
         chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCATION}
             or die "$Config{GLOBUS_LOCATION}: $!\n";
     }
-}
-
-########################################
-# If GLOBUS_VAR_DIRECTORY is defined in the config file, create it and
-# make $GLOBUS_LOCATION/var a symlink to it.  (The $GLOBUS_LOCATION/var
-# directory must be on a local filesystem, so root can write to logs.)
-########################################
-if ($Config{GLOBUS_VAR_DIRECTORY} ne "") {
-    mkdir $Config{GLOBUS_VAR_DIRECTORY}, 0777
-        or die "$Config{GLOBUS_VAR_DIRECTORY}: $!\n";
-    symlink $Config{GLOBUS_VAR_DIRECTORY}, "$ENV{GLOBUS_LOCATION}/var"
-        or die "$ENV{GLOBUS_LOCATION}/var: $!\n";
 }
 
 ########################################
@@ -389,6 +384,23 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
     }
 }
 
+########################################
+# If GLOBUS_VAR_DIRECTORY is defined in the config file:
+#     Copy $GLOBUS_LOCATION/var to GLOBUS_VAR_DIRECTORY
+#     Delete $GLOBUS_LOCATION/var 
+#     Recreate $GLOBUS_LOCATION/var as a symlink to GLOBUS_VAR_DIRECTORY
+# (The $GLOBUS_LOCATION/var directory must be on a local filesystem,
+# so root can write to logs.)
+########################################
+if (defined $Config{GLOBUS_VAR_DIRECTORY}) {
+    Execute @As_Root, 'cp', '-pr', "$ENV{GLOBUS_LOCATION}/var",
+                                   $Config{GLOBUS_VAR_DIRECTORY};
+    Execute @As_Root, 'rm', '-rf', "$ENV{GLOBUS_LOCATION}/var";
+    symlink $Config{GLOBUS_VAR_DIRECTORY}, "$ENV{GLOBUS_LOCATION}/var"
+        or die "$ENV{GLOBUS_LOCATION}/var: $!\n";
+}
+
+
 ########################################################################
 # Post-installation
 ########################################################################
@@ -412,19 +424,39 @@ Execute @As_Installer, "-input=$input_string",
 # The LDAP certificate and key need to be in $GLOBUS_LOCATION/etc,
 # not in /etc/grid-security.  I'm not sure why.
 ####################################
-Backup "$Config{GLOBUS_LOCATION}/etc/server.cert";
-Execute @As_Installer,
-        'cp', $Config{LDAP_CERT}, "$Config{GLOBUS_LOCATION}/etc/server.cert";
-Backup "$Config{GLOBUS_LOCATION}/etc/server.key";
-Execute @As_Installer,
-        'cp', $Config{LDAP_KEY}, "$Config{GLOBUS_LOCATION}/etc/server.key";
-chmod 0400, "$Config{GLOBUS_LOCATION}/etc/server.key";
+if (defined $Config{LDAP_CERT}) {
+    Backup "$Config{GLOBUS_LOCATION}/etc/server.cert";
+    Execute @As_Installer,
+            'cp', $Config{LDAP_CERT},
+                  "$Config{GLOBUS_LOCATION}/etc/server.cert";
+    chmod 0444, "$Config{GLOBUS_LOCATION}/etc/server.cert";
+}
+else {
+    push @manual_steps, 
+        push @manual_steps,
+             "Create \$GLOBUS_LOCATION/etc/server.cert, " .
+             "mode 444, owned by $Config{INSTALLER_USER}\n";
+}
+
+if (defined $Config{LDAP_KEY}) {
+    Backup "$Config{GLOBUS_LOCATION}/etc/server.key";
+    Execute @As_Installer,
+            'cp', $Config{LDAP_KEY},
+                  "$Config{GLOBUS_LOCATION}/etc/server.key";
+    chmod 0400, "$Config{GLOBUS_LOCATION}/etc/server.key";
+}
+else {
+    push @manual_steps, 
+        push @manual_steps,
+             "Create \$GLOBUS_LOCATION/etc/server.key, " .
+             "mode 444, owned by $Config{INSTALLER_USER}\n";
+}
 
 ########################################
 # Configure batch jobmanager
 ########################################
 
-if ($Config{BATCH_SYSTEM} ne 'none') {
+if (defined $Config{BATCH_SYSTEM}) {
     Execute @As_Installer,
         "$Config{GLOBUS_LOCATION}/setup/globus/setup-globus-gram-job-manager",
         "-type=$Config{BATCH_SYSTEM}";
@@ -451,35 +483,58 @@ else {
 # Now copy files to /etc/grid-security.
 ########################################
 if ($Startup) {
-    Backup '/etc/grid-security/grid-mapfile';
-    Execute @As_Root,
-            'cp', $Config{GRID_MAPFILE}, '/etc/grid-security/grid-mapfile';
-    chmod 0444, '/etc/grid-security/grid-mapfile';
+    if (defined $Config{GRID_MAPFILE}) {
+        Backup '/etc/grid-security/grid-mapfile';
+        Execute @As_Root,
+                'cp', $Config{GRID_MAPFILE}, '/etc/grid-security/grid-mapfile';
+        chmod 0444, '/etc/grid-security/grid-mapfile';
+    }
+    else {
+        push @manual_steps,
+             "Create /etc/grid-security/grid-mapfile, " .
+             "mode 444, owned by root\n";
+    }
 
-    Backup '/etc/grid-security/hostcert.pem';
-    Execute @As_Root,
-            'cp', $Config{HOST_CERT}, '/etc/grid-security/hostcert.pem';
-    chmod 0444, '/etc/grid-security/hostcert.pem';
+    if (defined $Config{HOST_CERT}) {
+        Backup '/etc/grid-security/hostcert.pem';
+        Execute @As_Root,
+                'cp', $Config{HOST_CERT}, '/etc/grid-security/hostcert.pem';
+        chmod 0444, '/etc/grid-security/hostcert.pem';
+    }
+    else {
+        push @manual_steps,
+             "Create /etc/grid-security/hostcert.pem, " .
+             "mode 444, owned by root\n";
+    }
 
-    Backup '/etc/grid-security/hostkey.pem';
-    Execute @As_Root,
-            'cp', $Config{HOST_KEY}, '/etc/grid-security/hostkey.pem';
-    chmod 0400, '/etc/grid-security/hostkey.pem';
+    if (defined $Config{HOST_KEY}) {
+        Backup '/etc/grid-security/hostkey.pem';
+        Execute @As_Root,
+                'cp', $Config{HOST_KEY}, '/etc/grid-security/hostkey.pem';
+        chmod 0400, '/etc/grid-security/hostkey.pem';
+    }
+    else {
+        push @manual_steps,
+             "Create /etc/grid-security/hostkey.pem, " .
+             "mode 400, owned by root\n";
+    }
 }
 else {
     push @manual_steps,
          "Set up /etc/grid-security directory.\n" .
-         "Create grid-mapfile (444), hostcert.pem (444), hostkey.pem (400),\n" .
-         "all owned by root.\n";
+         "Create /etc/grid-security/grid-mapfile, mode 444, owned by root\n" .
+         "Create /etc/grid-security/hostcert.pem, mode 444, owned by root\n" .
+         "Create /etc/grid-security/hostkey.pem,  mode 400, owned by root\n";
 }
 
-if ($Startup) {
+if ($Startup and defined $Config{CA_CERT_TARBALL}) {
     my $ca_cert_dir = '/etc/grid-security/certificates';
     Backup $ca_cert_dir;
+    print "% mkdir $ca_cert_dir\n";
     mkdir $ca_cert_dir, 0777 or die "$ca_cert_dir: $!\n";
+    print "% cd $ca_cert_dir\n";
     chdir $ca_cert_dir or die "$ca_cert_dir: $!\n";
-    Execute @As_Root,
-            'tar', 'zxf', $Config{CA_CERT_TARBALL};
+    Execute @As_Root, 'tar', 'zxf', $Config{CA_CERT_TARBALL};
 }
 else {
     push @manual_steps,
@@ -794,26 +849,13 @@ sub Get_Config($) {
         }
 
         #
-        # A directory.
-        # If it exists, it must be empty.
-        # If it doesn't exist, it will be created later.
+        # A directory to be created.
+        # It must not exist.
         #
         elsif ($var->{type} eq 'new_directory') {
             my $dir = $var->{value};
             if (-e $dir) {
-                if (-d $dir) {
-                    opendir DIR, $dir or die "${dir}: $!\n";
-                    my @files = grep { $_ ne '.' and $_ ne '..' } readdir DIR;
-                    closedir DIR;
-                    if (@files) {
-                        push @errors, "$varname \"$dir\" already exists " .
-                                      "and is not empty\n";
-                    }
-                }
-                else {
-                    push @errors, "$varname \"$dir\" already exists " .
-                                  "and is not a directory\n";
-                }
+                push @errors, "$varname \"$dir\" already exists\n";
             }
         }
 
@@ -931,6 +973,8 @@ sub Get_Config($) {
         }
 
         elsif ($var->{type} eq 'batch_system') {
+            $var->{value} = lc $var->{value};
+
             my @batch_systems = qw( condor easymcs fork glunix grd
                                     loadleveler lsf nqe nswc pbs pexec
                                     prun );
@@ -944,7 +988,7 @@ sub Get_Config($) {
 
         else {
             #
-            # Note: the missing "\n" in the error message is deliberate.
+            # The missing "\n" in the error message is deliberate.
             # It causes Perl to print more information about the location
             # of the error.
             #
@@ -953,8 +997,13 @@ sub Get_Config($) {
 
     }
 
+    if (defined $Var_Info{CONFIG_FILE_REVISION}->{value}) {
+        $Var_Info{CONFIG_FILE_REVISION}->{value} =
+            Strip_Revision_String $Var_Info{CONFIG_FILE_REVISION}->{value};
+    }
+
     #
-    # Special check: GLOBUS_VAR_DIRECTORY must not be a subdirectory
+    # Special check: GLOBUS_VAR_DIRECTORY may not be a subdirectory
     # of GLOBUS_LOCATION.
     #
     if (defined $Var_Info{GLOBUS_VAR_DIRECTORY}->{value}) {
@@ -1096,10 +1145,12 @@ sub Download_Files(@) {
             my $target_file = "$target_dir/" .
                               File::Basename::basename $$ref;
 
+            print "% mkdir $target_dir\n";
             mkdir $target_dir, 0777 or die "$target_dir: $!\n";
             chown $installer_uid, $installer_gid, $target_dir
                 or die "$target_dir: $!\n";
 
+            print "% cd $target_dir\n";
             chdir $target_dir or die "$target_dir: $!\n";
             $changed_dir = 1;
 
@@ -1123,6 +1174,7 @@ sub Download_Files(@) {
     }
 
     if ($changed_dir) {
+        print "% cd $working_dir\n";
         chdir $working_dir or die "$working_dir: $!\n";
     }
 } # Download_Files
