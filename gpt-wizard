@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.21 2002-08-12 20:33:26-07 kst Exp $
+# $Id: gpt-wizard,v 1.22 2002-08-12 20:49:30-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -27,8 +27,8 @@ sub Debug(@);
 sub Usage(@);
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = '$Revision: 1.21 $';
-if ($Revision =~ /^\$Revision: 1.21 $$/) {
+my $Revision = '$Revision: 1.22 $';
+if ($Revision =~ /^\$Revision: 1.22 $$/) {
     $Revision = $1;
 }
 my $Help = undef;
@@ -160,25 +160,46 @@ Execute @As_Installer,
         'cp', $Config{LDAP_KEY}, "$ENV{GLOBUS_LOCATION}/etc/server.key";
 chmod 0400, "$ENV{GLOBUS_LOCATION}/etc/server.key";
 
-opendir DIR, $Config{XINETD_DIR} or die "$Config{XINETD_DIR}: $!\n";
+opendir DIR, $Config{INET_DIR} or die "$Config{INET_DIR}: $!\n";
 my @files = grep { $_ ne '.' and $_ ne '..' } sort readdir DIR;
 closedir DIR;
 
-foreach my $file (@files) {
-    print "Copying $file to /etc/xinetd.d\n";
-    open IN, "< $Config{XINETD_DIR}/$file"
-        or die "$Config{XINETD_DIR}/${file}: $!\n";
-    open OUT, "> /etc/xinetd.d/$file"
-        or die "/etc/xinetd.d/${file}: $!\n";
-    while (<IN>) {
-        s/\@(\w+)\@/Substitute $1/eg;
-        print OUT;
+if ($Config{INET_DAEMON} eq 'xinetd') {
+    foreach my $file (@files) {
+        print "Copying $file to /etc/xinetd.d\n";
+        open IN, "< $Config{INET_DIR}/$file"
+            or die "$Config{INET_DIR}/${file}: $!\n";
+        open OUT, "> /etc/xinetd.d/$file"
+            or die "/etc/xinetd.d/${file}: $!\n";
+        while (<IN>) {
+            s/\@(\w+)\@/Substitute $1/eg;
+            print OUT;
+        }
+        close IN;
+        close OUT;
     }
-    close IN;
-    close OUT;
+    Execute @As_Root, qw(/etc/init.d/xinetd reload);
+}
+else {
+    print ">>> To do: Manually update /etc/inetd.conf\n";
+    foreach my $file (@files) {
+        print "${file}:\n";
+        open IN, "< $Config{INET_DIR}/$file"
+            or die "$Config{INET_DIR}/${file}: $!\n";
+        while (<IN>) {
+            s/\@(\w+)\@/Substitute $1/eg;
+            print;
+        }
+        close IN;
+    }
+    if (-x '/etc/init.d/inet') {
+        print ">>> To do: Execute as root \"/etc/init.d/inet reload\"\n";
+    }
+    else {
+        print ">>> To do: Reload or restart inetd\n";
+    }
 }
 
-Execute @As_Root, qw(/etc/init.d/xinetd reload);
 
 Execute @As_Installer,
         "$ENV{GLOBUS_LOCATION}/sbin/SXXgris", 'start';
@@ -272,7 +293,7 @@ sub Get_Config($) {
         die @errors;
     }
 
-    if ($Result{FILE_REVISION} =~ /^\$Revision: 1.21 $$/) {
+    if ($Result{FILE_REVISION} =~ /^\$Revision: 1.22 $$/) {
         $Result{FILE_REVISION} = $1;
     }
 
