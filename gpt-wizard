@@ -1,0 +1,358 @@
+#!/usr/bin/perl -w
+
+# $Id: gpt-wizard,v 1.1 2002-08-08 02:02:25-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
+
+#
+# To do:
+# Add a config file.
+# Things to configure:
+#     Where to get bundles.
+#     Where to install GPT ($GPT_LOCATION).
+#     Where to install Globus et al ($GLOBUS_LOCATION).
+#     Where to get grid-mapfile, hostcert.pem, hostkey.pem.
+#     Where to get CA signing certs.
+#     Whether to use inetd or xinetd.
+#
+
+use strict;
+
+use File::Basename ();
+use Getopt::Long ();
+use POSIX ();
+
+sub Usage(@);
+sub Make_Temp_File($);
+sub Execute(@);
+sub Time_Image();
+sub Elapsed_Time_Image($);
+
+my $Prog_Name = File::Basename::basename $0;
+my $temp_file_serial_number = 0;
+
+my $CLK_TCK;
+eval { $CLK_TCK = &POSIX::CLK_TCK };
+if ($@) {
+    $CLK_TCK = 100;
+    # warn ">>> CLK_TCK not available, assuming 100\n";
+}
+
+if ($< != 0) {
+    die ">>> $Prog_Name must be run as root\n";
+}
+
+$| = 1;
+
+my @globus_pw = getpwnam 'globus';
+die ">>> No user globus\n" if not @globus_pw;
+my @globus_gr = getgrnam 'globus';
+die ">>> No group globus\n" if not @globus_gr;
+my $globus_uid = $globus_pw[2];
+my $globus_gid = $globus_gr[2];
+die ">>> globus_uid = $globus_uid\n" unless $globus_uid > 0;
+die ">>> globus_gid = $globus_gid\n" unless $globus_gid > 0;
+
+my $gpt_rpm           = '/home/kst/src/NMI/tools/gpt-2.1-1.i386.rpm';
+my $bundle_dir        = '/home/kst/src/NMI/linux/gpt-bundles';
+my $nmi_client_bundle = "$bundle_dir/nmi-client-NMI-1.0.0-i686.gpt.tar.gz";
+my $nmi_server_bundle = "$bundle_dir/nmi-server-NMI-1.0.0-i686.gpt.tar.gz";
+
+#
+# Install GPT in /usr/grid
+#
+print Time_Image, "\n";
+Execute '-time', '-verbose', '-check', 'rpm', '-ivh', $gpt_rpm;
+unlink '/etc/profile.d/gpt.sh', '/etc/profile.d/gpt.csh';
+
+#
+# Confirm GPT installation
+#
+$ENV{GPT_LOCATION} = '/usr/grid';
+Execute '-user=globus', '-time', '-verbose', '-check',
+        "$ENV{GPT_LOCATION}/sbin/gpt-install", "-version";
+
+$ENV{GLOBUS_LOCATION} = '/usr/nmi';
+mkdir $ENV{GLOBUS_LOCATION} or die "$ENV{GLOBUS_LOCATION}: $!\n";
+chown $globus_uid, $globus_gid, $ENV{GLOBUS_LOCATION}
+    or die "$ENV{GLOBUS_LOCATION}: $!\n";
+
+Execute '-user=globus', '-time', '-verbose', '-check',
+        "$ENV{GPT_LOCATION}/sbin/gpt-install", $nmi_client_bundle;
+Execute '-user=globus', '-time', '-verbose', '-check',
+        "$ENV{GPT_LOCATION}/sbin/gpt-install", $nmi_server_bundle;
+
+my $input_file;
+
+$input_file = Make_Temp_File "0\n0\nn\n\n";
+Execute '-user=globus', '-time', '-verbose', '-check', "-stdin=$input_file",
+        "$ENV{GPT_LOCATION}/sbin/gpt-postinstall";
+unlink $input_file;
+
+$input_file = Make_Temp_File "y\nq\n";
+Execute '-time', '-verbose', '-check', "-stdin=$input_file",
+        "$ENV{GLOBUS_LOCATION}/setup/globus/setup-gsi";
+unlink $input_file;
+
+print <<"EOF";
+To do:
+    Create files in /etc/grid-security:
+        grid-mapfile
+        hostcert.pem
+        hostkey.pem
+    Copy additional CA signing certs to /etc/grid-security/certificates
+    Create files in /etc/xinetd.d:
+        gsigatekeeper
+        gsiftp
+    /etc/init.d/xinetd reload
+EOF
+
+########################################################################
+
+sub Elapsed_Time_Image($) {
+    my($seconds) = @_;
+
+    my $h = int($seconds / 3600);
+    $seconds -= 3600 * $h;      # Can't use "%"; it truncates.
+
+    my $m = int($seconds / 60);
+    $seconds -= 60 * $m;
+
+    if ($h > 0) {
+        return sprintf '%d:%02d:%05.2f', $h, $m, $seconds;
+    }
+    else {
+        return sprintf '%d:%05.2f', $m, $seconds;
+    }
+} # Elapsed_Time_Image
+
+# ----------------------------------------------------------------------
+
+sub Time_Image() {
+    #
+    # Kludge: There's no good way (as far as I know) to get the name
+    # of the time zone, so we invoke "date +%Z" and grab the output.
+    # Barring a lot of extra work, this works only for the current time,
+    # which is why this version of Time_Image has no time parameter.
+    #
+    # There's a tiny chance of a glitch around DST transitions, since the
+    # calls to the time function and the date program aren't simultaneous.
+    # Oh well.
+    #
+    my($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst)
+        = localtime time;
+    my $tz = `date +%Z`;
+    chomp $tz;
+    my $result;
+
+    return sprintf "%s %04d-%02d-%02d %02d:%02d:%02d %s",
+                   (qw(Sun Mon Tue Wed Thu Fri Sat))[$wday],
+                   1900+$year, 1+$mon, $mday, $hour, $min, $sec, $tz;
+} # Time_Image
+
+# ----------------------------------------------------------------------
+
+sub Make_Temp_File($) {
+    my($content) = @_;
+    my $filename = sprintf "/tmp/tmp-%d-%d-%02d",
+                           time, $$, $temp_file_serial_number ++;
+    open TMP, ">$filename" or die "$filename: $!\n";
+    print TMP $content;
+    close TMP;
+    return $filename;
+} # Make_Temp_File
+
+# ----------------------------------------------------------------------
+
+sub Get_Result($$) {
+    my ($status, $check) = @_;
+    my $Result = {};
+    my $hi_8 = ($status & 0xff00) >> 8;
+    my $lo_8 =  $status & 0x00ff;
+
+    my $WSTOPFLG = 0x007f;
+    my $WCOREFLG = 0x0080;
+
+    if ($lo_8 == $WSTOPFLG) {
+        $Result->{signal} = $hi_8;
+        $Result->{stopped} = 1;
+        $Result->{desc} = "stopped, signal $hi_8";
+        die $Result->{desc} if $check;
+    }
+    elsif ($lo_8 == 0) {
+        $Result->{status} = $hi_8;
+        $Result->{desc} = "exit $hi_8";
+        die $Result->{desc} if $check and $Result->{status} != 0;
+    }
+    elsif ($hi_8 == 0) {
+        my $signal = $lo_8;
+        if ($signal & $WCOREFLG) {
+            $signal &= ~$WCOREFLG;
+            $Result->{core} = 1;
+        }
+        $Result->{signal} = $signal;
+        $Result->{desc} = "signal $signal";
+        if ($Result->{core}) {
+            $Result->{desc} .= " (core dumped)";
+        }
+        die $Result->{desc} if $check;
+    }
+    return $Result;
+} # Get_Result
+
+# ----------------------------------------------------------------------
+
+sub Execute(@) {
+    my @args = @_;
+    my $Verbose = 0;
+    my $Time = 0;
+    my $Background = 0;
+    my $Check = 0;
+    my $User = undef;
+    my $Stdin = undef;
+    my @before;
+    my @after;
+    my $system_result;
+
+    #
+    # Process arguments
+    #
+    while ( scalar @args > 0 && $args[0] =~ /^-/) {
+        my $arg = shift @args;
+        if ($arg eq '-verbose') {
+            $Verbose = 1;
+        }
+        elsif ($arg eq '-time') {
+            $Time = 1;
+        }
+        elsif ($arg eq '-background') {
+            $Background = 1;
+        }
+        elsif ($arg eq '-check') {
+            $Check = 1;
+        }
+        elsif ($arg =~ /^-user=(.+)$/) {
+            $User = $1;
+        }
+        elsif ($arg =~ /^-stdin=(.+)$/) {
+            $Stdin = $1;
+        }
+        else {
+            die "Execute: Unrecognized argument: $arg\n";
+        }
+    }
+
+    if (defined $User) {
+        my @pw = getpwnam $User;
+        die "${User}: No such user\n" if not @pw;
+        my $uid = $pw[2];
+        my $pid;
+        if (($pid = fork) == 0) {
+            #
+            # This is the child process.
+            # Set the real and effective user id, and contine to handle
+            # the call.
+            #
+            $< = $uid;
+            $> = $uid;
+        }
+        else {
+            #
+            # This is the parent process.
+            # Wait for the child to finish.  
+            #
+            waitpid $pid, 0;
+            return Get_Result $?, $Check;
+        }
+    }
+
+    if ($Verbose) {
+        my $command_string = '% ';
+        $command_string .= "[$User] " if defined $User;
+        $command_string .= 'time ' if $Time;
+        $command_string .= "@args";
+        $command_string .= " < $Stdin" if defined $Stdin;
+        $command_string .= " &" if $Background;
+        print "$command_string\n";
+    }
+
+    if ($Background) {
+        my $pid = fork;
+        if ($pid != 0) {
+            #
+            # I'm the parent
+            #
+            my $Result = {};
+            $Result->{pid} = $pid;
+            return $Result;
+        }
+    }
+
+    if (defined $Stdin) {
+        open SAVE_STDIN, "<&STDIN";
+        print SAVE_STDIN if 0;          # keep "perl -w" happy
+        close STDIN;
+        open STDIN, "<$Stdin" or die "$Stdin: $!\n";
+    }
+    if ($Time) {
+        @before = POSIX::times;
+    }
+    $system_result = system @args;
+    if ($Time) {
+        @after = POSIX::times();
+    }
+    if (defined $Stdin) {
+        open STDIN, "<&SAVE_STDIN";
+    }
+
+    #
+    # Emulate csh "time" command
+    #
+    if ($Time) {
+        my $elapsed_ticks    =  $after[0] - $before[0];
+        my $user_CPU_ticks   = ($after[1] - $before[1]) +   # this process
+                               ($after[3] - $before[3]);    # child processes
+        my $system_CPU_ticks = ($after[2] - $before[2]) +   # this process
+                               ($after[4] - $before[4]);    # child processes
+
+        # print "\$elapsed_ticks    = $elapsed_ticks\n";
+        # print "\$user_CPU_ticks   = $user_CPU_ticks\n";
+        # print "\$system_CPU_ticks = $system_CPU_ticks\n";
+        my $percent_usage;
+        if ($elapsed_ticks == 0) {
+            $percent_usage = 0.0;
+        }
+        else {
+            $percent_usage = ($user_CPU_ticks + $system_CPU_ticks)
+                             / $elapsed_ticks * 100;
+        }
+
+        my $elapsed_seconds    = $elapsed_ticks    / $CLK_TCK;
+        my $user_CPU_seconds   = $user_CPU_ticks   / $CLK_TCK;
+        my $system_CPU_seconds = $system_CPU_ticks / $CLK_TCK;
+
+        printf "%.2fu %.2fs %s %.1f%%\n",
+               $user_CPU_seconds,
+               $system_CPU_seconds,
+               Elapsed_Time_Image $elapsed_seconds,
+               $percent_usage;
+    }
+    if ($Background or defined $User) {
+        #
+        # This is the child process; bail out and let the parent handle
+        # the consequences.
+        #
+        exit(($system_result & 0xff00) >> 8);
+    }
+
+    return Get_Result($system_result, $Check);
+} # Execute
+
+# ----------------------------------------------------------------------
+
+sub Usage(@) {
+    print @_ if @_;
+    print <<"EOF";
+Usage: $Prog_Name ... (TBD)
+EOF
+    exit 1;
+} # Usage
