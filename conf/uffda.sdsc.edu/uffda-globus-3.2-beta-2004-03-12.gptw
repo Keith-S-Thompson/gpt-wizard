@@ -1,7 +1,7 @@
-# $Id: uffda-globus-3.2-beta-2004-03-12.gptw,v 1.1 2004-03-12 19:47:32-08 kst Exp $
+# $Id: uffda-globus-3.2-beta-2004-03-12.gptw,v 1.2 2004-03-13 01:52:57-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-globus-3.2-beta-2004-03-12.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin
 
@@ -28,4 +28,4 @@ BUNDLE globus-resource-management-client-3.2-src_bundle.tar.gz  kind=source flav
 BUNDLE globus-resource-management-sdk-3.2-src_bundle.tar.gz     kind=source flavor=gcc32dbg
 BUNDLE globus-resource-management-server-3.2-src_bundle.tar.gz  kind=source flavor=gcc32dbg
 
-BUNDLE globus-rls-server-3.2-src_bundle.tar.gz                  kind=source flavor=gcc32dbgpthr
+# BUNDLE globus-rls-server-3.2-src_bundle.tar.gz                  kind=source flavor=gcc32dbgpthr
