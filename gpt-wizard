@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.134 2003-01-10 16:32:38-08 kst Exp $
+# $Id: gpt-wizard,v 1.135 2003-01-10 23:54:03-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -128,7 +128,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.134 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.135 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -184,6 +184,12 @@ my $Config_File = $ARGV[0];
 my %Config = Get_Config $ARGV[0];
 
 my %Sys = Get_System_Information;
+
+#
+# If any bundles were installed using RPM, we'll need to run
+# gpt-postinstall as root.
+#
+my $Using_RPM = 0;
 
 exit 0 if $Validate_Only;
 
@@ -530,6 +536,7 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
                     $gpt_install_command, @options, $bundle;
         }
         else {
+            $Using_RPM = 1;
             Execute @As_Root_GPT,
                     $gpt_install_command, @options, $bundle;
         }
@@ -587,7 +594,7 @@ Fix_Setup_Script
 # Allow a specified command to be executed before running gpt-postinstall.
 # This is used on AIX to run mds-aix-relink.sh, which works around some
 # AIX-specific libtool problems.  It's a bit of a kludge, not to be used
-# unless it's necessary.  Just to make it even kludgier, any occurence of
+# unless it's necessary.  Just to make it even kludgier, any occurrence of
 # the string BUILD_DIR is replaced with the name of the build directory.
 ########################################
 if ($Postinstall and defined $Config{PRE_POSTINSTALL}) {
@@ -601,7 +608,7 @@ if ($Postinstall and defined $Config{PRE_POSTINSTALL}) {
 # Run gpt-postinstall.
 ########################################
 if ($Postinstall) {
-    Execute @As_Installer,
+    Execute $Using_RPM ? @As_Root : @As_Installer,
             "$Config{GPT_LOCATION}/sbin/gpt-postinstall";
 }
 else {
@@ -642,9 +649,8 @@ else {
 ########################################
 # Configure batch jobmanager
 ########################################
-
 if (defined $Config{BATCH_SYSTEM}) {
-    Execute @As_Installer,
+    Execute $Using_RPM ? @As_Root : @As_Installer,
         "$Config{GLOBUS_LOCATION}/setup/globus/setup-globus-gram-job-manager",
         "-type=$Config{BATCH_SYSTEM}";
     my $libexec = "$Config{GLOBUS_LOCATION}/libexec";
