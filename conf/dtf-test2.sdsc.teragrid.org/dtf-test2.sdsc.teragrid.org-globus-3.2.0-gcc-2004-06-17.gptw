@@ -1,7 +1,7 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-3.2.0-gcc-2004-06-17.gptw,v 1.1 2004-06-17 19:23:24-07 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-3.2.0-gcc-2004-06-17.gptw,v 1.2 2004-06-18 01:26:56-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-3.2.0-gcc-2004-06-17.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin:/opt/TORQUE/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
 
@@ -28,7 +28,7 @@ BUNDLE globus-data-management-sdk-3.2-src_bundle.tar.gz         kind=source flav
 BUNDLE globus-data-management-server-3.2-src_bundle.tar.gz      kind=source flavor=gcc64dbg
 
 BUNDLE globus-resource-management-client-3.2-src_bundle.tar.gz  kind=source flavor=gcc64dbg
-BUNDLE globus-resource-management-sdk-3.2-src_bundle.tar.gz     kind=source flavor=mpicc64dbg,gcc64dbg
+BUNDLE globus-resource-management-sdk-3.2-src_bundle.tar.gz     kind=source flavor=gcc64dbg # flavor=mpicc64dbg,gcc64dbg
 BUNDLE globus-resource-management-server-3.2-src_bundle.tar.gz  kind=source flavor=gcc64dbg
 
 #
@@ -78,16 +78,16 @@ BUNDLE myproxy-1.13.tar.gz                                         kind=source f
 #
 # Build and install UberFTP
 #
-.PREFIX /work/kst/repo.teragrid.org/open/uberftp/1.5
-BUNDLE uberftp-1.5-src_bundle.tar.gz                               kind=source flavor=gcc64dbgpthr
+.PREFIX /work/kst/repo.teragrid.org/open/uberftp/1.6
+BUNDLE uberftp-1.6-src_bundle.tar.gz                               kind=source flavor=gcc64dbgpthr
 
 #
 # Configure PBS jobmanager
 #
 JOB_MANAGER pbs -cpu-per-node 2 -remote-shell ssh
 
-#
-# Build and install MPICH-G2
-#
-.PREFIX /work/kst/repo.teragrid.org/open/mpich/1.2.5.3
-MPICH-G2 mpich-1.2.5.3.tar.gz flavor=mpicc64dbg install=mpich-g2-1.2.5.2
+# #
+# # Build and install MPICH-G2
+# #
+# .PREFIX /work/kst/repo.teragrid.org/open/mpich/1.2.5.3
+# MPICH-G2 mpich-1.2.5.3.tar.gz flavor=mpicc64dbg install=mpich-g2-1.2.5.2
