@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: update-flavors,v 1.1 2004-03-11 15:23:43-08 kst Exp $
+# $Id: update-flavors,v 1.2 2004-03-11 17:35:35-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/update-flavors,v $
 
 use strict;
@@ -11,12 +11,21 @@ sub Get_Update_Flavors($);
 
 die "Usage: package ...\n" if not @ARGV;
 foreach my $arg (@ARGV) {
-    my @flavors = Get_Update_Flavors $arg;
-    print "@flavors\n";
+    print "${arg}:\n";
+    my ($nonstatic, $static) = Get_Update_Flavors $arg;
+    print "    nonstatic: ( @$nonstatic )\n";
+    print "    static:    ( @$static )\n";
 }
 
 ########################################################################
 
+#
+# Returns a list of two array references.
+# The first is a list of flavors to be built without "-static".
+# The second is a list of flavors to be built with "-static".
+#
+# See <https://bugzilla.ncsa.uiuc.edu/show_bug.cgi?id=46>.
+#
 sub Get_Update_Flavors($) {
     my($filename) = @_;
 
@@ -27,8 +36,8 @@ sub Get_Update_Flavors($) {
     $module_name =~ s/-[^-]*\.tar\.gz$//;
 
     my %flavor = ();
+    my %is_static = ();
 
-    print "% gpt-query $module_name\n";
     open PIPE, "$ENV{GLOBUS_LOCATION}/sbin/gpt-query $module_name |";
     while (<PIPE>) {
         chomp;
@@ -50,15 +59,31 @@ sub Get_Update_Flavors($) {
         if (scalar @fields >= 2) {
             my $new_flavor = $fields[$#fields - 1];
             $flavor{$new_flavor} = 1;
+            if (/_static$/) {
+                $is_static{$new_flavor} = 1;
+            }
         }
     }
     close PIPE;
 
-    my @flavors = sort keys %flavor;
-    if (@flavors) {
-        return grep { $_ ne 'noflavor' } @flavors;
+    my @nonstatic_flavors = ();
+    my @static_flavors = ();
+    foreach my $flavor (sort keys %flavor) {
+    if ($flavor eq 'noflavor') {
+        next;
+    }
+    elsif ($is_static{$flavor}) {
+        push @static_flavors, $flavor;
     }
     else {
+        push @nonstatic_flavors, $flavor;
+    }
+    }
+
+    if (scalar @nonstatic_flavors == 0 and scalar @static_flavors == 0) {
         die "Unable to determine flavors for $filename\n";
+    }
+    else {
+        return ( \@nonstatic_flavors, \@static_flavors );
     }
 } # Get_Update_Flavors
