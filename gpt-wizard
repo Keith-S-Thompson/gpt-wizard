@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.88 2002-10-17 01:09:41-07 kst Exp $
+# $Id: gpt-wizard,v 1.89 2002-10-18 02:53:09-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -25,9 +25,7 @@
 #     Detect 64-bit machines other than ia64.
 #     If it's configurable, configure it.
 #
-#     Avoid interactive gpt-postinstall by patching scripts to
-#     turn off interaction.  See fix-grid-security-config for
-#     an example.
+#     Handle Globus 2.2 jobmanager configuration (ick!)
 #
 
 use strict;
@@ -50,7 +48,7 @@ sub Check_Services();
 sub Die_Handler($);
 sub Timestamp_Of($);
 sub Backup($);
-sub Test_File_Creation();
+sub Fix_Setup_Script($);
 sub Inet_Config_Text($$);
 sub Image($);
 sub Debug(@);
@@ -64,7 +62,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.88 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.89 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -324,18 +322,9 @@ if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
 ########################################
 # Run gpt-install or gpt-build to install the bundles.
 ########################################
-my $Installing_kx509 = 0;
 
 foreach my $bundle ( @{$Config{BUNDLE}} ) {
     my $bundle_name = File::Basename::basename $bundle;
-
-    #
-    # If we're installing kx509, we'll need to supply more
-    # input to gpt-postinstall.  Ick.
-    #
-    if ($bundle_name =~ /^kx509/ or $bundle_name =~ /^nmi/) {
-        $Installing_kx509 = 1;
-    }
 
     #
     # If the file name contains the string "src", assume it's a source
@@ -343,7 +332,7 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
     # or a word boundary.
     #
     # If this assumption breaks, consider specifying source vs. binary
-    # in the config file (or detecting it?).
+    # in the config file (or detecting it somehow?).
     #
     if ($bundle_name =~ /(\b|_)src(\b|_)/) {
         #
@@ -426,19 +415,23 @@ if (defined $Config{GLOBUS_VAR_DIRECTORY}) {
 ########################################################################
 
 ########################################
+# Edit certain setup files so they don't prompt for user input.  Ugly,
+# but it beats guessing what they're going to want (and in what order
+# they'll be run).
+########################################
+
+Fix_Setup_Script
+    "$ENV{GLOBUS_LOCATION}/setup/globus/grid-security-config";
+Fix_Setup_Script
+    "$ENV{GLOBUS_LOCATION}/setup/kca/setup-kca.pl";
+Fix_Setup_Script
+    "$ENV{GLOBUS_LOCATION}/setup/gsi_openssh_setup/setup-openssh.pl";
+
+########################################
 # Run gpt-postinstall.
-# Annoyingly, it waits for user input; what input is required depends
-# on what was installed.
-# Make an educated guess about what input is needed, and force-feed it
-# to keep it happy.
-# <RANT> BUILD SCRIPTS SHOULD NOT WAIT FOR USER INPUT! </RANT>
 ########################################
 if ($Postinstall) {
-    my $input_string = "";
-    $input_string .= "0\n0\nn\n" if $Installing_kx509;
-    $input_string .= "\n"; # Globus
-
-    Execute @As_Installer, "-input=$input_string",
+    Execute @As_Installer,
             "$Config{GPT_LOCATION}/sbin/gpt-postinstall";
 }
 else {
@@ -1655,33 +1648,77 @@ sub Timestamp_Of($) {
 
 #
 # Rename the specified file by appending its last modification time to
-# its name.  Do nothing if file doesn't exist.  May be used on directories
-# as well as ordinary files.
+# its name, returning the name of the backup (which may be ignored if
+# it's not needed).  If file doesn't exist, return undef.  May be used
+# on directories as well as ordinary files.
 #
 sub Backup($) {
     my($filename) = @_;
     my @stat;
 
-    return if not -e $filename;
+    return undef if not -e $filename;
     @stat = stat $filename or die "${filename}: $!\n";
     my $timestamp = Timestamp_Of $stat[9]; # mtime
-    my $new_name = "$filename-$timestamp";
-    rename $filename, $new_name or die "$new_name: $!\n";
+    my $backup_name = "$filename-$timestamp";
+    rename $filename, $backup_name or die "$backup_name: $!\n";
+    return $backup_name;
 } # Backup
 
 # ----------------------------------------------------------------------
 
-sub Test_File_Creation() {
-    print ">>> File creation test\n";
-    print "\$<=$< \$>=$> \$(=\"$(\" \$)=\"$)\"\n";
-    my $file1 = "$working_dir/test-file-1";
-    my $file2 = "$working_dir/test-file-2";
-    open FILE1, ">$file1";
-    close FILE1;
-    system 'touch', $file2;
-    system 'ls', '-lsF', $file1, $file2;
-    unlink $file1, $file2;
-} # Test_File_Creation
+#
+# Create a backup copy of the named file and edit it so it doesn't
+# prompt for user input.  The required edits are determined by the name
+# of the file.  This is *extremely* ad-hoc (but not quite as bad as
+# guessing what input is expected).
+#
+sub Fix_Setup_Script($) {
+    my($file) = @_;
+    if (-e $file) {
+        print "% Editing $file\n";
+    }
+    else {
+        print ">>> Fix_Setup_Script: No file $file\n";
+        return;
+    }
+    my $basename = File::Basename::basename $file;
+    my $backup_file = Backup $file;
+
+    open ORIG, $backup_file or die "$backup_file: $!\n";
+    open NEW, ">$file" or die "${file}: $!\n";
+    if ($basename eq 'grid-security-config') {
+        while (<ORIG>) {
+            s/\bread ans\b/ans="" # $&/;
+            s/\bread selection\b/echo "q" ; selection="q" ; # $&/;
+            print NEW;
+        }
+    }
+    elsif ($basename eq 'setup-kca.pl') {
+        while (<ORIG>) {
+            s/\$myincrement = <STDIN>;/print "0\n"; \$myincrement = 0; # $&/;
+            s/\$myserial = <STDIN>;/print "\n"; \$myserial = ""; # $&/;
+            s/\$resp=<STDIN>;/print "No\n"; \$resp="No"; # $&/;
+            print NEW;
+        }
+    }
+    elsif ($basename eq 'setup-openssh.pl') {
+        while (<ORIG>) {
+            s/\$response = query_boolean/\$response = "y"; # $&/;
+            s/print "Press <return>/# $&/;
+            s/\$trash = <STDIN>/# $&/;
+            print NEW;
+        }
+    }
+    else {
+        #
+        # The lack of a newline in the following die() is intentional;
+        # it causes Perl to print more information about the error.
+        #
+        die "Fix_Setup_Script: Unexpected file name \"$file\"";
+    }
+    close ORIG;
+    close NEW;
+} # Fix_Setup_Script
 
 # ----------------------------------------------------------------------
 
