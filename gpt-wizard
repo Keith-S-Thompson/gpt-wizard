@@ -1,7 +1,13 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.14 2002-08-10 16:49:45-07 kst Exp $
+# $Id: gpt-wizard,v 1.15 2002-08-10 17:31:36-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
+
+#
+# To do:
+# Install LDAP certificates
+# Start other services
+#
 
 use strict;
 
