@@ -1,0 +1,19 @@
+# $Id: lutefisk-globus-2.4.3-dist-bin.gptw,v 1.1 2004-07-09 19:03:54-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-globus-2.4.3-dist-bin.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3-dist-bin
+GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3-dist-bin
+
+.PREFIX ~kst/Globus/2.4.3/gpt
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+#
+# Install Globus 2.4.3 from a single distributed binary bundle.
+#
+.PREFIX ~kst/Globus/2.4.3/bundles/bin
+
+BUNDLE globus-all-2.4.3-i686-pc-linux-gnu-bin.tar.gz
