@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.101 2002-10-30 18:35:54-08 kst Exp $
+# $Id: gpt-wizard,v 1.102 2002-10-30 18:41:47-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -70,7 +70,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.101 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.102 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -357,6 +357,7 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
     if (defined $Bundle_Kind{$bundle}) {
         if ($Bundle_Kind{$bundle} eq 'source') {
             $is_source = 1;
+	}
         elsif ($Bundle_Kind{$bundle} eq 'binary') {
             $is_source = 0;
         }
@@ -372,7 +373,7 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
         $is_source = 0;
     }
 
-    if ($is_source)/) {
+    if ($is_source) {
         #
         # Using gpt-build to build and install a source bundle.
         #
