@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.72 2002-08-22 17:15:06-07 kst Exp $
+# $Id: gpt-wizard,v 1.73 2002-09-30 11:34:46-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -63,7 +63,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.72 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.73 $';
 my $Help              = undef;
 my $Debugging         = undef;
 my $Cleanup           = 1;
@@ -99,7 +99,16 @@ my %Config = Get_Config $ARGV[0];
 Check_Config_Vars();
 
 my %Sys = Get_System_Information;
-if ($Sys{OSNAME} ne 'linux') {
+if ($Sys{LC_OSNAME} eq 'linux') {
+    # ok
+}
+elsif ($Sys{LC_OSNAME} eq 'sunos' or
+       $Sys{LC_OSNAME} eq 'aix') {
+    if ($Startup) {
+        die "Must use \"-nostartup\" on $Sys{OSNAME} (for now)\n";
+    }
+}
+else {
     die "Unsupported OS \"$Sys{OSNAME}\"\n";
 }
 
@@ -266,7 +275,7 @@ $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
 if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
     if (not -d $Config{GLOBUS_LOCATION}) {
         mkdir $Config{GLOBUS_LOCATION}, 0777
-	    or die "$Config{GLOBUS_LOCATION}: $!\n";
+            or die "$Config{GLOBUS_LOCATION}: $!\n";
         chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCATION}
             or die "$Config{GLOBUS_LOCATION}: $!\n";
     }
@@ -693,12 +702,12 @@ sub Get_Config($) {
 sub Get_System_Information() {
     my %Result = ();
 
-    $Result{OSNAME} = lc `uname -s`;
-    chomp $Result{OSNAME};
-    $Result{MACHINE} = lc `uname -m`;
-    chomp $Result{MACHINE};
+    chomp($Result{OSNAME}  = `uname -s`);
+    chomp($Result{MACHINE} = `uname -m`);
+    $Result{LC_OSNAME}  = lc $Result{OSNAME};
+    $Result{LC_MACHINE} = lc $Result{MACHINE};
 
-    if ($Result{MACHINE} eq 'ia64') {
+    if ($Result{LC_MACHINE} eq 'ia64') {
         $Result{BITS} = 64;
     }
     else {
@@ -710,7 +719,7 @@ sub Get_System_Information() {
     #
     my $ps_command;
 
-    if ($Result{OSNAME} eq 'darwin' or $Result{OSNAME} =~ /bsd/) {
+    if ($Result{LC_OSNAME} eq 'darwin' or $Result{LC_OSNAME} =~ /bsd/) {
         $ps_command = 'ps -u -U root';
     }
     else {
