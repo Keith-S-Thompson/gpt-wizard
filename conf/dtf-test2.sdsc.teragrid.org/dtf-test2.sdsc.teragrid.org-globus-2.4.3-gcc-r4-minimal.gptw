@@ -1,0 +1,22 @@
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-minimal.gptw,v 1.1 2004-07-01 17:25:06-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-minimal.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /work/globus/apps/globus-2.4.3-gcc-r4-minimal
+GLOBUS_LOCAL_DIRECTORY   /var/globus/globus-2.4.3-gcc-r4-minimal
+
+#
+# Use the latest beta GPT release
+#
+GPT_TARBALL /work/kst/repo.teragrid.org/open/gpt/3.1.1b5/gpt-3.1.1b5-src.tar.gz
+
+.PREFIX /work/kst/repo.teragrid.org/open/globus/2.4.3-r4
+
+#
+# Build Globus 2.4.3 from source.
+# Just build one bundle (this is for GPT testing).
+#
+BUNDLE globus-resource-management-client-2.4.3-r4-src_bundle.tar.gz       kind=source flavor=gcc64dbg
