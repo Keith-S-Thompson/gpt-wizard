@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.57 2004-05-08 01:07:15-07 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.58 2004-08-28 18:32:03-07 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -288,12 +288,41 @@ configuration options are no longer supported.
 
 .SH CONFIGURATION OPTIONS
 
+.IP .PARAM
+This is a pseudo\-option.  It provides a simple macro facility,
+particularly useful for creating a set of similar configuration files
+for installing the same set of software at different site.
+
+A
+.B .PARAM
+directive has the form
+.br
+.B "	.PARAM NAME value"
+.br
+Any occurrence of
+.B $NAME
+or
+.B ${NAME}
+will be replaced by the specified value.  The
+.B NAME
+can be any sequence of upper or lower case letters, digits, or
+underscores; upper case letters are recommended.  Occurrences of
+.B $NAME
+or 
+.B ${NAME}
+where
+.B NAME
+is not defined as a
+.B PARAM
+are not replaced.
+
 .IP .PREFIX
 This is a pseudo\-option.  It specifies a default prefix to be prepended,
 with a
 .B '/'
-character, to any following file name given as a relative path name.
-It can be used to avoid extremely long lines in configuration files.
+character, to any following file or directory name given as a relative
+path name.  It can be used to avoid extremely long lines in configuration
+files.
 
 .IP CONFIG_FILE_REVISION
 Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
