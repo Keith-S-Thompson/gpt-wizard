@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.69 2002-08-22 13:40:12-07 kst Exp $
+# $Id: gpt-wizard,v 1.70 2002-08-22 14:33:20-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -63,7 +63,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.69 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.70 $';
 my $Help              = undef;
 my $Debugging         = undef;
 my $Cleanup           = 1;
@@ -850,7 +850,11 @@ sub Make_Temp_File($) {
 #
 # Given a numeric value returned by system(), interpret it
 # and return the result as a hash reference.
-# Die if result indicates failure and second argument is true.
+# Die if result indicates failure and second argument (check) is true.
+# Print a message on failure if check is false.
+#
+# Note: die'ing and/or printing a message from this routine is a bit ugly,
+# but it's useful in the context of this program (install-nmi).
 #
 sub Get_Result($$) {
     my ($status, $check) = @_;
@@ -862,17 +866,38 @@ sub Get_Result($$) {
     my $WCOREFLG = 0x0080;
 
     if ($lo_8 == $WSTOPFLG) {
+        #
+        # Stopped by signal
+        #
         $Result->{signal} = $hi_8;
         $Result->{stopped} = 1;
         $Result->{desc} = "stopped, signal $hi_8";
-        die $Result->{desc} if $check;
+        if ($check) {
+            die "$Result->{desc}\n";
+        }
+        else {
+            print "[$Result->{desc}]\n";
+        }
     }
     elsif ($lo_8 == 0) {
+        #
+        # Normal exit() (possibly with non-zero status)
+        #
         $Result->{status} = $hi_8;
         $Result->{desc} = "exit $hi_8";
-        die $Result->{desc} if $check and $Result->{status} != 0;
+        if ($Result->{status} != 0) {
+            if ($check) {
+                die "$Result->{desc}\n";
+            }
+            else {
+                print "[$Result->{desc}]\n";
+            }
+        }
     }
     elsif ($hi_8 == 0) {
+        #
+        # Killed by signal
+        #
         my $signal = $lo_8;
         if ($signal & $WCOREFLG) {
             $signal &= ~$WCOREFLG;
@@ -883,7 +908,12 @@ sub Get_Result($$) {
         if ($Result->{core}) {
             $Result->{desc} .= " (core dumped)";
         }
-        die $Result->{desc} if $check;
+        if ($check) {
+            die "$Result->{desc}\n"
+        }
+        else {
+            print "[$Result->{desc}]\n";
+        }
     }
     return $Result;
 } # Get_Result
