@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.108 2002-11-01 19:45:03-08 kst Exp $
+# $Id: gpt-wizard,v 1.109 2002-11-01 19:56:20-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -71,7 +71,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.108 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.109 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -397,6 +397,9 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
         }
         if ($GPT_Install_Only) {
             push @options, '-install-only';
+        }
+        if ($Is_Update{$bundle}) {
+            push @options, '-update';
         }
         if (defined $Bundle_Option{$bundle}) {
             push @options, split(',', $Bundle_Option{$bundle});
@@ -929,25 +932,6 @@ sub Get_Config($) {
                     $Bundle_Option{$value} = $option if defined $option;
                     $Bundle_Flavor{$value} = $flavor if defined $flavor;
                     $Is_Update{$value}     = 1       if $name eq 'UPDATE';
-
-                    #
-                    # If the kind ("binary" or "source") has not been
-                    # specified in the config file, take a guess based
-                    # on the file name.  If the file name contains the
-                    # string "src", preceded and followed by either an
-                    # underscore or a word boundary, it's a source bundle;
-                    # otherwise it's a binary bundle.
-                    #
-                    if (not defined $Bundle_Kind{$value}) {
-                        my $bundle_basename = File::Basename::basename $value;
-                        if ($bundle_basename =~ /(\b|_)src(\b|_)/) {
-                            $Bundle_Kind{$value} = 'source';
-                        }
-                        else {
-                            $Bundle_Kind{$value} = 'binary';
-                        }
-                    }
-
                 }
             }
             if (defined $Var_Info{$name}) {
