@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.230 2004-02-12 13:32:17-08 kst Exp $
+# $Id: gpt-wizard,v 1.231 2004-02-12 13:41:58-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
 # @Copyright@
 # 
-# Copyright (c) 2003 The Regents of the University of California. All
+# Copyright (c) 2004 The Regents of the University of California. All
 # rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -185,7 +185,7 @@ my $Release_Revision = '1.230'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.230 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.231 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
