@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.246 2004-03-04 16:37:05-08 kst Exp $
+# $Id: gpt-wizard,v 1.247 2004-03-04 16:57:36-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -129,11 +129,6 @@
 #     Take another look for the scripts on which Fix_Setup_Script
 #     is invoked.  Drop any that are no longer relevant.
 #
-#     Killing gpt-wizard can leave subprocesses running.
-#     Modify Execute() to keep track of all subprocesses (there should
-#     only be one, since we don't actually use "-background"); modify
-#     Signal_Handler() to kill them.
-#
 #     In Get_Config(), bail out after, say, 100 errors (so it doesn't
 #     go insane when I feed it a multi-megabyte log file rather than a
 #     config file).
@@ -192,7 +187,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.246 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.247 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -242,6 +237,8 @@ my $This_User  = (getpwuid($<))[0];
 my $This_Group = (getgrgid($())[0]; # ')' to make vi paren-matching happy
 my $Default_User  = ( $Running_As_Root ? 'globus' : $This_User  );
 my $Default_Group = ( $Running_As_Root ? 'globus' : $This_Group );
+
+my %Running = (); # Keys are PIDs of processes spawned by Execute.
 
 if ($Startup and not $Running_As_Root) {
     die "The -startup option can only be used by root\n";
@@ -2460,6 +2457,7 @@ sub Execute(@) {
             # This is the parent process.
             # Wait for the child to finish.  
             #
+            $Running{$pid} = 1;
             Debug "Parent calling waitpid\n";
             if (waitpid $pid, 0 == -1) {
                 Debug ">>> waitpid returned -1, \$? = $?, \$! = $!\n",
@@ -2467,6 +2465,7 @@ sub Execute(@) {
                 # die "waitpid ${pid}: $! (\$? = $?)\n";
             }
             Debug "Parent after waitpid, \$? = $?\n";
+            delete $Running{$pid};
             return Get_Result $?, $Check;
         }
     }
@@ -2636,6 +2635,15 @@ sub Cleanup() {
                   "    has not been cleaned up.\n";
         }
     }
+    #
+    # Kill any subprocesses still running.
+    #
+    my @pids = sort { $a <=> $b } keys %Running;
+    if (@pids) {
+        print "% kill -INT @pids\n";
+        kill 'INT', @pids;
+    }
+
     #
     # Print the manual steps to be performed.
     # Don't do this if there was an error processing the config file,
