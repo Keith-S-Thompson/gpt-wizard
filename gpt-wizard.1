@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.48 2004-03-17 03:57:33-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.49 2004-03-18 14:21:54-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -108,17 +108,17 @@ The web page for the
 .I gpt\-wizard
 command is
 .br
-.IR <http://www.sdsc.edu/~kst/gpt\-wizard/> .
+.IR <http://users.sdsc.edu/~kst/gpt\-wizard/> .
 .br
-The
+The current version of the
 .I gpt\-wizard
 command should be available at
 .br
-.IR <ftp://ftp.sdsc.edu/pub/sdsc/globus/software/gpt\-wizard/> ;
+.IR <ftp://ftp.sdsc.edu/pub/sdsc/globus/software/gpt\-wizard/> .
 .br
-each version is in the file
-.I gpt\-wizard\-VERSION.tar.gz
-in that directory.
+Older versions, which are not recommended, are in the
+.I OLD
+subdirectory.
 
 .SH BACKGROUND
 This command is a Perl script which incorporates much of the
@@ -167,13 +167,10 @@ configuration option.  If neither is specified, the default is /tmp.
 .IP \-cleanup
 Delete the temporary working directory on completion.
 This is the default behavior.  Use "\-nocleanup" to keep the
-temporary working directory.  (Its name will be something like
-.I /tmp/gpt\-wizard\-1043365463\-17640
-or
-.IR TEMP_DIR/gpt\-wizard\-1043365463\-17640 ;
-see
-.BR "CONFIGURATION OPTIONS" ,
-below.
+temporary working directory.  Its name will be something like
+.IR /tmp/gpt\-wizard\-1079632649\-17640 .
+To use a directory other than /tmp, specify the "\-temp-dir"
+command-line option or the TEMP_DIR configuration option.
 
 .IP \-postinstall
 Run the
@@ -271,8 +268,8 @@ has an account on the system,
 .IR ~user
 is replaced with
 .IR user 's
-home directory.  If there is no such user, no substitution is done
-(which will probably cause an error).  (Replacement of
+home directory.  If there is no such user, it's considered an error.
+(Replacement of a standalone
 .I ~
 by the value of $HOME is not supported.)
 
@@ -826,4 +823,4 @@ the reader's fault.
 Please send any bug reports or suggestions to the author by e\-mail.
 
 .SH AUTHOR
-Keith Thompson, San Diego Supercomputer Center, kst@sdsc.edu
+Keith Thompson, San Diego Supercomputer Center, <kst@sdsc.edu>
