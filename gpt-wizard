@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.273 2004-03-17 03:57:30-08 kst Exp $
+# $Id: gpt-wizard,v 1.274 2004-03-18 14:21:14-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -187,7 +187,7 @@ my $Release_Revision = '1.273'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.273 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.274 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1408,8 +1408,8 @@ sub File_Error(@) {
 
 #
 # Given a string of the form "~foo", returns user foo's home directory.
-# If there is no such user, returns the unmodified string (which will
-# probably cause an error later).
+# If there is no such user, returns the unmodified string; the caller
+# can then check for this error.
 #
 sub Expand_Tilde($) {
     my($arg) = @_;
@@ -1579,6 +1579,12 @@ sub Get_Config($) {
             # characters or hyphens.
             #
             $value =~ s/^~[\w-]+/Expand_Tilde $&/e;
+            if ($value =~ /^~([\w-]+)/) {
+                &$ERROR("Error expanding \"~$1\", line $.\n");
+            }
+            elsif ($value =~ /^~/) {
+                &$ERROR("Standalone \"~\" not expanded, line $.\n");
+            }
 
             #
             # .PREFIX is not a true configuration option.  Instead, it
