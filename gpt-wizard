@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.91 2002-10-18 10:09:32-07 kst Exp $
+# $Id: gpt-wizard,v 1.92 2002-10-22 02:26:35-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -62,7 +62,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.91 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.92 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -1458,11 +1458,14 @@ sub Execute(@) {
             # Set the group ids first; once we set the user ids, we're no
             # longer root and don't have permission to set the group ids.
             #
+            # Setting $< and $( (setruid() and setrgid()) is not supported
+            # on AIX; use eval to avoid blowing up on the attempt.
+            #
             if (defined $gid) {
-                $( = $gid;
+                eval { $( = $gid };
                 $) = $gid;
             }
-            $< = $uid;
+            eval { $< = $uid };
             $> = $uid;
             Debug "Child: \$< = $< \$> = $>\n";
             delete $SIG{__DIE__};
