@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.141 2003-01-24 00:50:28-08 kst Exp $
+# $Id: gpt-wizard,v 1.142 2003-01-24 17:30:51-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -102,6 +102,8 @@
 #     rather than actually doing the installation.
 #
 
+require 5.004;
+
 use strict;
 
 use File::Basename ();
@@ -137,7 +139,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.141 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.142 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
