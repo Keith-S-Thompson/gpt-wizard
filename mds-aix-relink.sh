@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $Id: mds-aix-relink.sh,v 1.3 2002-12-06 16:28:30-08 kst Exp $
+# $Id: mds-aix-relink.sh,v 1.4 2002-12-06 22:32:31-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/mds-aix-relink.sh,v $
 
 #
@@ -9,56 +9,134 @@
 # with modifications by Keith Thompson <kst@sdsc.edu>.
 #
 
-# TO DO
-#
-# Set BUILD_DIR more sensibly.
-#
-# Deal with flavors.
-#
+# ----------------------------------------------------------------------
+Usage() {
+    echo "$*" 1>&2
+    cat <<EOF 1>&2
+Usage: $0 option
+    -builddir DIR       Build directory
+                        Mandatory
+    -flavor FLAVOR      Specify flavor(s)
+                        Multiple flavors may be specified either separated
+                        by commas, or as multiple "-flavor" arguments
+                        Mandatory
+    -help               Show this message and exit
+EOF
+    exit 1
+} # Usage
 
-BUILD_DIR=${HOME}/build/side_tools/BUILD
+# ----------------------------------------------------------------------
 
-cd ${BUILD_DIR}/globus_mds_back_giis-0.5
+Die() {
+    echo "$*" 1>&2
+    exit 1
+} # Die
+
+# ----------------------------------------------------------------------
+
+builddir=""
+flavors=""
+
+while [ "$#" -ne 0 ]; do
+    case "$1" in
+
+        -builddir)
+            if [ -n "$2" ] ; then
+                if [ -n "$builddir" ] ; then
+                    Usage "Error: -builddir argument given twice"
+                else
+                    builddir="$2"
+                fi
+                shift
+            else
+                Usage "Error: -builddir requires an argument"
+            fi
+            ;;
+
+        -flavor)
+            if [ -n "$2" ] ; then
+                if [ -n "$flavors" ] ; then
+                    flavors="$flavors,$2"
+                else
+                    flavors="$2"
+                fi
+                shift
+            else
+                Usage "Error: -flavor option requires an argument"
+                exit 1
+            fi
+            ;;
+
+        -help)
+            Usage
+            ;;
+    esac
+
+    shift
+done
+
+if [ -z "$builddir" ] ; then
+    Usage "-builddir is mandatory"
+fi
+
+# BUILD_DIR=${HOME}/build/side_tools/BUILD
+BUILD_DIR=$builddir
+
+if [ -n "$flavors" ] ; then
+    FLAVOR="`ls $GLOBUS_LOCATION/libexec/openldap`"
+    FLAVOR="`echo $FLAVOR | sed 's/ /,/g'`"
+fi
+FLAVOR=$flavors
+case $FLAVOR in
+    *,*)
+	Usage "Sorry, multiple flavors aren't (yet?) supported"
+	;;
+esac
+
+globus_mds_back_giis_dir=`ls -d ${BUILD_DIR}/globus_mds_back_giis* | grep -v '\.tar\.gz'`
+cd $globus_mds_back_giis || Die "cd failed for globus_mds_back_giis"
 ld -o libback_giis.so.0 \
-    ../globus_openssl_module-0.1/library/*.o \
-    ../globus_gsi_openssl_error-0.2/library/*.o \
-    ../globus_gsi_proxy_ssl-0.1/library/*.o \
-    ../globus_gsi_sysconfig-0.1/library/*.o \
-    ../globus_common-3.4/library/*.o \
-    ../globus_gss_assist-3.1/*.o \
+    ../globus_openssl_module-*/library/*.o \
+    ../globus_gsi_openssl_error-*/library/*.o \
+    ../globus_gsi_proxy_ssl-*/library/*.o \
+    ../globus_gsi_sysconfig-*/library/*.o \
+    ../globus_common-*/library/*.o \
+    ../globus_gss_assist-*/*.o \
     *.o \
-    ../globus_gsi_credential-0.3/library/*.o \
-    ../globus_gssapi_gsi-3.2/library/*.o \
-    ../globus_gsi_proxy_core-0.3/library/*.o \
+    ../globus_gsi_credential-*/library/*.o \
+    ../globus_gssapi_gsi-*/library/*.o \
+    ../globus_gsi_proxy_core-*/library/*.o \
     -bnoentry \
     -G \
     -bexpall \
     -bM:SRE \
     -lc \
     -ldl
-cp libback_giis.so.0 $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr
-cd ${BUILD_DIR}/globus_ldapmodules-0.5
+cp libback_giis.so.0 $GLOBUS_LOCATION/libexec/openldap/$FLAVOR
+
+globus_ldapmodules_dir=`ls -d ${BUILD_DIR}/globus_ldapmodules* | grep -v '\.tar\.gz'`
+cd $globus_ldapmodules_dir || Die "cd failed for globus_ldapmodules"
 ld -o libback_ldif.so.0 \
-    ../globus_gss_assist-3.1/*.o \
+    ../globus_gss_assist-*/*.o \
     *.o \
-    ../globus_gsi_callback-0.2/library/oldgaa/*.o \
-    ../globus_gsi_proxy_core-0.3/library/*.o \
-    ../globus_gsi_callback-0.2/library/*.o \
-    ../globus_gsi_cert_utils-0.2/library/*.o \
-    ../globus_gssapi_gsi-3.2/library/*.o \
+    ../globus_gsi_callback-*/library/oldgaa/*.o \
+    ../globus_gsi_proxy_core-*/library/*.o \
+    ../globus_gsi_callback-*/library/*.o \
+    ../globus_gsi_cert_utils-*/library/*.o \
+    ../globus_gssapi_gsi-*/library/*.o \
     -bnoentry \
     -G \
     -bexpall \
     -bM:SRE \
     -lc \
     -ldl
-cp libback_ldif.so.0 $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr
+cp libback_ldif.so.0 $GLOBUS_LOCATION/libexec/openldap/$FLAVOR
 
-cd $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr
-ln -sf  libback_giis.so.0 libback_giis.so
-ln -sf  libback_ldif.so.0 libback_ldif.so
+cd $GLOBUS_LOCATION/libexec/openldap/$FLAVOR
+ln -sf libback_giis.so.0 libback_giis.so
+ln -sf libback_ldif.so.0 libback_ldif.so
 
-cat > $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr/libback_giis.la << EOF
+cat > $GLOBUS_LOCATION/libexec/openldap/$FLAVOR/libback_giis.la << EOF
 
 
 # libback_giis.la - a libtool library file
@@ -77,7 +155,7 @@ library_names=''
 old_library=''
 
 # Libraries that this one depends upon.
-dependency_libs=' -L$GLOBUS_LOCATION/lib -lglobus_common_vendorcc32dbgpthr -lglobus_gss_assist_vendorcc32dbgpthr -lldap_vendorcc32dbgpthr -llber_vendorcc32dbgpthr -lglobus_gssapi_gsi_vendorcc32dbgpthr -lsasl_vendorcc32dbgpthr -lglobus_ssl_utils_vendorcc32dbgpthr -lltdl_vendorcc32dbgpthr -lssl_vendorcc32dbgpthr -lcrypto_vendorcc32dbgpthr'
+dependency_libs=' -L$GLOBUS_LOCATION/lib -lglobus_common_$FLAVOR -lglobus_gss_assist_$FLAVOR -lldap_$FLAVOR -llber_$FLAVOR -lglobus_gssapi_gsi_$FLAVOR -lsasl_$FLAVOR -lglobus_ssl_utils_$FLAVOR -lltdl_$FLAVOR -lssl_$FLAVOR -lcrypto_$FLAVOR'
 
 # Version information for libback_giis.
 current=0
@@ -88,12 +166,12 @@ revision=0
 installed=yes
 
 # Directory that this library needs to be installed in:
-libdir='$GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr'
+libdir='$GLOBUS_LOCATION/libexec/openldap/$FLAVOR'
 
 EOF
 
 
-cat > $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr/libback_ldif.la << EOF
+cat > $GLOBUS_LOCATION/libexec/openldap/$FLAVOR/libback_ldif.la << EOF
 
 
 # libback_ldif.la - a libtool library file
@@ -113,7 +191,7 @@ library_names=''
 old_library=''
 
 # Libraries that this one depends upon.
-dependency_libs=' -L$GLOBUS_LOCATION/lib -lglobus_gss_assist_vendorcc32dbgpthr -lldap_vendorcc32dbgpthr -llber_vendorcc32dbgpthr -lglobus_gssapi_gsi_vendorcc32dbgpthr -lsasl_vendorcc32dbgpthr -lglobus_ssl_utils_vendorcc32dbgpthr -lltdl_vendorcc32dbgpthr -lssl_vendorcc32dbgpthr -lcrypto_vendorcc32dbgpthr'
+dependency_libs=' -L$GLOBUS_LOCATION/lib -lglobus_gss_assist_$FLAVOR -lldap_$FLAVOR -llber_$FLAVOR -lglobus_gssapi_gsi_$FLAVOR -lsasl_$FLAVOR -lglobus_ssl_utils_$FLAVOR -lltdl_$FLAVOR -lssl_$FLAVOR -lcrypto_$FLAVOR'
 
 # Version information for libback_ldif.
 current=0
@@ -124,7 +202,7 @@ revision=0
 installed=yes
 
 # Directory that this library needs to be installed in:
-libdir='$GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr'
+libdir='$GLOBUS_LOCATION/libexec/openldap/$FLAVOR'
 EOF
 
 cd ${BUILD_DIR}/globus_openldap-2.0.22/openldap-2.0.22/servers/slapd
@@ -138,18 +216,18 @@ cc *.o \
     -lavl \
     -lldif \
     -lldbm \
-    -llutil_vendorcc32dbgpthr \
-    -lldap_r_vendorcc32dbgpthr \
-    -llber_vendorcc32dbgpthr \
-    -lsasl_vendorcc32dbgpthr \
-    -lssl_vendorcc32dbgpthr \
-    -lcrypto_vendorcc32dbgpthr \
+    -llutil_$FLAVOR \
+    -lldap_r_$FLAVOR \
+    -llber_$FLAVOR \
+    -lsasl_$FLAVOR \
+    -lssl_$FLAVOR \
+    -lcrypto_$FLAVOR \
     -ls \
-    -lltdl_vendorcc32dbgpthr \
+    -lltdl_$FLAVOR \
     -lpthread \
     -o slapd \
-    $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr/libback_ldif.so \
-    $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr/libback_giis.so
+    $GLOBUS_LOCATION/libexec/openldap/$FLAVOR/libback_ldif.so \
+    $GLOBUS_LOCATION/libexec/openldap/$FLAVOR/libback_giis.so
 
 cp slapd $GLOBUS_LOCATION/libexec
 
