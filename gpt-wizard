@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.137 2003-01-16 12:40:41-08 kst Exp $
+# $Id: gpt-wizard,v 1.138 2003-01-23 18:41:52-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
 # @Copyright@
 # 
-# Copyright (c) 2002 The Regents of the University of California. All
+# Copyright (c) 2003 The Regents of the University of California. All
 # rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -83,8 +83,9 @@
 #               globus-user-ssl.conf.42864e48
 #               grid-security.conf.42864e48
 #
-#     If GLOBUS_LOCATION is specified, set $GLOBUS_LOCATION
+#     If GLOBUS_HOSTNAME is specified, set the $GLOBUS_HOSTNAME
 #     environment variable in inetd.conf or xinetd config files.
+#     (Is this necessary?)
 #
 #     Allow references to existing environment variables in ENV options.
 #     For example:
@@ -92,21 +93,13 @@
 #     On second thought, this might not be such a good idea; it allows
 #     too much dependence on the existing environment.
 #
-#     Download caching.  Currently a file specified with a URL (ftp://
-#     or http://) is downloaded to a temporary directory and presumably
-#     nuked later.  That's why I'm manually pre-staging tarballs to
-#     the build host rather than using ftp URLs.  Create a new config
-#     variable, DOWNLOAD_DIR, specifying a (more or less permanent)
-#     base directory for downloads.  Each downloaded file is copied to
-#     a subdirectory of DOWNLOAD_DIR, named by a checksum of the URL,
-#     along with a ".url" file containing the URL.  Before downloading,
-#     check whether the file is already there.  (No suggested mechanism
-#     for maintaining consistency; if you think the file on the ftp or
-#     web site has changed, manually delete the cached copy.)
-#
 #     It would be nice, even as an ugly special case, to automate copying
 #     files from elmak.  Since gpt-wizard runs as root, though, this
-#     may not be feasible.  Think about it some more.
+#     may not be feasible.  Think about it some more.  Maybe set up an
+#     anonymous ftp server on uffda?
+#
+#     Optionally generate a Bourne shell script to do the installation
+#     rather than actually doing the installation.
 #
 
 use strict;
@@ -144,7 +137,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.137 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.138 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -183,6 +176,13 @@ if ($Startup and not $Postinstall) {
 }
 
 $SIG{__DIE__} = \&Die_Handler;
+
+#
+# A hash mapping URLs (ftp or http) to cached local files.
+#
+my $Download_Initialized = undef;
+my %Downloaded_File = ();
+my $download_index = 0;
 
 my $temp_file_serial_number = 0;
 my @manual_steps = ();
@@ -291,6 +291,13 @@ chown $installer_uid, $installer_gid, $working_dir
     or die "$working_dir: $!\n";
 print "% cd $working_dir\n";
 chdir $working_dir or die "$working_dir: $!\n";
+if (not $Cleanup) {
+    push @manual_steps,
+         "The working directory\n" .
+         "    $working_dir\n" .
+         "is likely to be taking up a lot of disk space.  Clean it up\n" .
+         "when you're done with it.\n";
+}
 
 ########################################################################
 # Download any files specified by ftp:// or http:// URLs
@@ -632,36 +639,6 @@ else {
          "Run $Config{GPT_LOCATION}/sbin/gpt-postinstall\n";
 }
 
-####################################
-# The LDAP certificate and key need to be in $GLOBUS_LOCATION/etc,
-# not in /etc/grid-security.  I'm not sure why.
-####################################
-if (defined $Config{LDAP_CERT}) {
-    Backup "$Config{GLOBUS_LOCATION}/etc/server.cert";
-    Execute @As_Installer,
-            'cp', $Config{LDAP_CERT},
-                  "$Config{GLOBUS_LOCATION}/etc/server.cert";
-    chmod 0444, "$Config{GLOBUS_LOCATION}/etc/server.cert";
-}
-else {
-    push @manual_steps,
-         "Create \$GLOBUS_LOCATION/etc/server.cert, " .
-         "mode 444, owned by $Config{INSTALLER_USER}\n";
-}
-
-if (defined $Config{LDAP_KEY}) {
-    Backup "$Config{GLOBUS_LOCATION}/etc/server.key";
-    Execute @As_Installer,
-            'cp', $Config{LDAP_KEY},
-                  "$Config{GLOBUS_LOCATION}/etc/server.key";
-    chmod 0400, "$Config{GLOBUS_LOCATION}/etc/server.key";
-}
-else {
-    push @manual_steps,
-         "Create \$GLOBUS_LOCATION/etc/server.key, " .
-         "mode 444, owned by $Config{INSTALLER_USER}\n";
-}
-
 ########################################
 # Configure batch jobmanager
 ########################################
@@ -695,7 +672,8 @@ if ($Startup) {
     if (defined $Config{GRID_MAPFILE}) {
         Backup '/etc/grid-security/grid-mapfile';
         Execute @As_Root,
-                'cp', $Config{GRID_MAPFILE}, '/etc/grid-security/grid-mapfile';
+                'cp', $Config{GRID_MAPFILE},
+                      '/etc/grid-security/grid-mapfile';
         chmod 0444, '/etc/grid-security/grid-mapfile';
     }
     else {
@@ -727,13 +705,56 @@ if ($Startup) {
              "Create /etc/grid-security/hostkey.pem, " .
              "mode 400, owned by root\n";
     }
+
+    my $ldap_dir = '/etc/grid-security/ldap';
+
+    if (defined $Config{LDAP_CERT}) {
+        if (not -d $ldap_dir) {
+            print "% mkdir $ldap_dir\n";
+            mkdir $ldap_dir, 0700 or die "$ldap_dir: $!\n";
+        }
+        Backup "$ldap_dir/ldapcert.pem";
+        Execute @As_Installer,
+                'cp', $Config{LDAP_CERT},
+                      "$ldap_dir/ldapcert.pem";
+        chmod 0444, "$ldap_dir/ldapcert.pem";
+    }
+    else {
+        push @manual_steps,
+             "Optionally create $ldap_dir/ldapcert.pem, ", 
+             "mode 444, owned by $Config{INSTALLER_USER}\n";
+    }
+
+    if (defined $Config{LDAP_KEY}) {
+        if (not -d $ldap_dir) {
+            print "% mkdir $ldap_dir\n";
+            mkdir $ldap_dir, 0700 or die "$ldap_dir: $!\n";
+        }
+        Backup "$ldap_dir/ldapkey.pem";
+        Execute @As_Installer,
+                'cp', $Config{LDAP_KEY},
+                      "$ldap_dir/ldapkey.pem";
+        chmod 0400, "$ldap_dir/ldapkey.pem";
+    }
+    else {
+        push @manual_steps,
+             "Optionally create $ldap_dir/ldapkey.pem, ", 
+             "mode 400, owned by $Config{INSTALLER_USER}\n";
+    }
 }
 else {
     push @manual_steps,
          "Set up /etc/grid-security directory.\n" .
-         "Create /etc/grid-security/grid-mapfile, mode 444, owned by root\n" .
-         "Create /etc/grid-security/hostcert.pem, mode 444, owned by root\n" .
-         "Create /etc/grid-security/hostkey.pem,  mode 400, owned by root\n";
+         "Create /etc/grid-security/grid-mapfile,      mode 444, " .
+         "owned by root\n" .
+         "Create /etc/grid-security/hostcert.pem,      mode 444, " .
+         "owned by root\n" .
+         "Create /etc/grid-security/hostkey.pem,       mode 400, " .
+         "owned by root\n" .
+         "Create /etc/grid-security/ldap/ldapcert.pem, mode 444, " .
+         "owned by $Config{INSTALLER_USER} (optional)\n" .
+         "Create /etc/grid-security/ldap/ldapkey.pem,  mode 400, " .
+         "owned by $Config{INSTALLER_USER} (optional)\n";
 }
 
 if ($Startup and defined $Config{CA_CERT_TARBALL}) {
@@ -939,6 +960,8 @@ sub Get_Config($) {
             { type => 'string', required => 0 },
         TEMP_DIR =>
             { type => 'existing_directory', required => 0, default => '/tmp' },
+        DOWNLOAD_DIR =>
+            { type => 'existing_directory', required => 0 },
         PATH =>
             { type => 'path', required => 1 },
         ENV =>
@@ -960,7 +983,7 @@ sub Get_Config($) {
         PRE_POSTINSTALL =>
             { type => 'string', required => 0 },
         GPT_LOCATION =>,
-            { type => 'new_directory', required => 1 },
+            { type => 'new_directory', required => 0 },
         GLOBUS_LOCATION =>
             { type => 'new_directory', required => 1 },
         GLOBUS_VAR_DIRECTORY =>
@@ -1314,6 +1337,14 @@ sub Get_Config($) {
 
     }
 
+    #
+    # If GPT_LOCATION is not specified, set it to the same directory
+    # as GLOBUS_LOCATION (which has already been validated above).
+    #
+    if (not defined $Var_Info{GPT_LOCATION}->{value}) {
+        $Var_Info{GPT_LOCATION}->{value} = $Var_Info{GLOBUS_LOCATION}->{value};
+    }
+
     if (defined $Var_Info{CONFIG_FILE_REVISION}->{value}) {
         $Var_Info{CONFIG_FILE_REVISION}->{value} =
             Strip_Revision_String $Var_Info{CONFIG_FILE_REVISION}->{value};
@@ -1475,6 +1506,36 @@ sub Get_System_Information() {
 # ----------------------------------------------------------------------
 
 #
+# Read the DOWNLOAD_DIR and initialize the mapping of URLs to cached
+# downloaded files.
+#
+sub Init_Download() {
+    return if $Download_Initialized;
+
+    die "No DOWNLOAD_DIR specified\n" if not defined $Config{DOWNLOAD_DIR};
+
+    my @subdirs = ();
+
+    opendir DIR, $Config{DOWNLOAD_DIR} or die "$Config{DOWNLOAD_DIR}: $!\n";
+    foreach my $subdir (sort readdir DIR) {
+        next if $subdir !~ /^\d+$/;
+        $download_index = $subdir + 1 if $subdir >= $download_index;
+        my $url_file = "$Config{DOWNLOAD_DIR}/$subdir/.url";
+        open URL, $url_file or next;
+        my $url = <URL>;
+        close URL;
+        chomp $url;
+        $Downloaded_File{$url} = "$Config{DOWNLOAD_DIR}/$subdir/" .
+                                 File::Basename::basename $url;
+    }
+    closedir DIR;
+
+    $Download_Initialized = 1;
+} # Init_Download
+
+# ----------------------------------------------------------------------
+
+#
 # Download any files specified by an "http://" or "ftp://" URL.
 # Update $Config entries to point to downloaded files.
 #
@@ -1482,38 +1543,48 @@ sub Get_System_Information() {
 #
 sub Download_Files(@) {
     my @refs = @_;
-    my $index = 0;
     my $changed_dir = 0;
 
     foreach my $ref (@refs) {
         if ($$ref =~ m<^(ftp|http)://>) {
             my $method = $1;
-            my $target_dir  = sprintf "%s/%03d", $working_dir, $index++;
-            my $target_file = "$target_dir/" .
-                              File::Basename::basename $$ref;
 
-            print "% mkdir $target_dir\n";
-            mkdir $target_dir, 0777 or die "$target_dir: $!\n";
-            chown $installer_uid, $installer_gid, $target_dir
-                or die "$target_dir: $!\n";
+            Init_Download;
 
-            print "% cd $target_dir\n";
-            chdir $target_dir or die "$target_dir: $!\n";
-            $changed_dir = 1;
+            my $target_file;
 
-            if ($method eq 'ftp') {
+            if (defined $Downloaded_File{$$ref}) {
+                $target_file = $Downloaded_File{$$ref};
+            }
+            else {
+                my $target_dir  = sprintf "%s/%03d",
+                                          $working_dir, $download_index++;
+                $target_file = "$target_dir/" .
+                               File::Basename::basename $$ref;
+
+                print "% mkdir $target_dir\n";
+                mkdir $target_dir, 0777 or die "$target_dir: $!\n";
+                chown $installer_uid, $installer_gid, $target_dir
+                    or die "$target_dir: $!\n";
+
+                print "% cd $target_dir\n";
+                chdir $target_dir or die "$target_dir: $!\n";
                 $changed_dir = 1;
-                Execute @As_Installer, 'ncftpget', '-V', $$ref;
-            }
-            elsif ($method eq 'http') {
-                Execute @As_Installer,
-                        'wget', '-o', '/dev/null', $$ref;
-            }
-            if (not -e $target_file) {
-                die "Download failed for $target_file (no file)\n";
-            }
-            elsif (-s $target_file == 0) {
-                die "Download failed for $target_file (empty file)\n";
+
+                if ($method eq 'ftp') {
+                    $changed_dir = 1;
+                    Execute @As_Installer, 'ncftpget', '-V', $$ref;
+                }
+                elsif ($method eq 'http') {
+                    Execute @As_Installer,
+                            'wget', '-o', '/dev/null', $$ref;
+                }
+                if (not -e $target_file) {
+                    die "Download failed for $target_file (no file)\n";
+                }
+                elsif (-s $target_file == 0) {
+                    die "Download failed for $target_file (empty file)\n";
+                }
             }
 
             if (defined $Bundle_Kind{$$ref}) {
@@ -1998,10 +2069,20 @@ sub Check_Services() {
 # Clean up temporary directory.
 #
 sub Die_Handler($) {
-    if ($Cleanup and defined $working_dir) {
-        print ">>> Cleaning up\n";
-        chdir '/tmp';
-        Execute @As_Root, 'rm', '-rf', $working_dir;
+    if (defined $working_dir) {
+        if ($Cleanup) {
+            print ">>> Cleaning up\n";
+            #
+            # The working dir isn't necessarily under /tmp; we chdir there
+            # so we aren't in a directory that we're about to nuke.
+            #
+            chdir '/tmp';
+            Execute @As_Root, 'rm', '-rf', $working_dir;
+        }
+        else {
+            print ">>> The working directory $working_dir\n",
+                  "    has not been cleaned up.\n";
+        }
     }
     print Time_Image time, "\n";
 } # Die_Handler
