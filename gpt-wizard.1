@@ -1,7 +1,7 @@
-i\"
+.\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.37 2004-02-22 12:55:18-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.38 2004-03-04 16:34:31-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -300,7 +300,7 @@ Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
 .br
 Example:
 .br
-.B "	CONFIG_FILE_REVISION $Revision: 1.37 $"
+.B "	CONFIG_FILE_REVISION $Revision: 1.38 $"
 .br
 Type: string
 .br
@@ -521,12 +521,19 @@ If the system host name (the value printed by the
 command) doesn't match the primary name by which the system is known on
 the network (via a reverse DNS lookup),
 .B GLOBUS_HOSTNAME
-should be set
-to the network name.
-.br
-This option is equivalent to
+should be set to the network name.
+If the system host name is the local portion of the network name (for example, if the
+.BR hostname (1)
+command prints "foobar", and the network name is "foobar.bigschool.edu"),
+it's probably not necessary to set
+.BR GLOBUS_HOSTNAME .
+This option is not exactly equivalent to
 .br
 .B "ENV GLOBUS_HOSTNAME=..."
+.br
+since it also causes the
+.I $GLOBUS_HOSTNAME 
+environment variable to be set in inetd or xinetd.
 .br
 Type: string
 .br
