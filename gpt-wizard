@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.214 2003-10-07 15:13:16-07 kst Exp $
+# $Id: gpt-wizard,v 1.215 2003-10-23 19:15:49-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -150,6 +150,16 @@
 #     For updates, figure out how to apply options (particularly
 #     "-static") depending on how the package was initially built.
 #
+#     BUG: When automatically installing files the gsigatekeeper and
+#     gsiftp scripts in /etc/xinetd.d, if there are already files of
+#     the same name, gpt-wizard creates backup copies, appending a
+#     timestamp to generate the name.  The problem: any file in that
+#     directory will be read by xinetd ("man xinetd.conf" for details).
+#     Possible solution: appending a '~' to the name will prevent xinetd
+#     from reading it (might as well append '~' to all backup file names).
+#     I don't think any other backup files gpt-wizard creates present
+#     similar problems.
+#     
 
 require 5.004;
 
@@ -200,7 +210,7 @@ my $Release_Revision = '1.211'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.214 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.215 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
