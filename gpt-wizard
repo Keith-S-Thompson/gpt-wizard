@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.19 2002-08-12 19:40:43-07 kst Exp $
+# $Id: gpt-wizard,v 1.20 2002-08-12 20:05:47-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -27,8 +27,8 @@ sub Debug(@);
 sub Usage(@);
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = '$Revision: 1.19 $';
-if ($Revision =~ /^\$Revision: 1.19 $$/) {
+my $Revision = '$Revision: 1.20 $';
+if ($Revision =~ /^\$Revision: 1.20 $$/) {
     $Revision = $1;
 }
 my $Help = undef;
@@ -272,7 +272,7 @@ sub Get_Config($) {
         die @errors;
     }
 
-    if ($Result{FILE_REVISION} =~ /^\$Revision: 1.19 $$/) {
+    if ($Result{FILE_REVISION} =~ /^\$Revision: 1.20 $$/) {
         $Result{FILE_REVISION} = $1;
     }
 
@@ -594,6 +594,8 @@ sub Check_Config_Vars() {
             push @errors, "$key \"$Config{$key}\" already exists\n";
         }
     }
+    
+    die @errors if @errors;
 } # Check_Config_Vars
 
 # ----------------------------------------------------------------------
