@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.48 2002-08-19 07:42:13-07 kst Exp $
+# $Id: gpt-wizard,v 1.49 2002-08-19 07:45:39-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -65,7 +65,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.48 $';
+my $Revision = Strip_Revision_String '$Revision: 1.49 $';
 my $Help      = undef;
 my $Debugging = undef;
 my $Cleanup   = 1;
@@ -1005,7 +1005,7 @@ sub Check_Config_Vars() {
         push @errors, "CC must be \"gcc\" or \"vendorcc\"\n";
     }
 
-    if ($Config{USE_MPI} ne '0' and $Config{CC} ne '1') {
+    if ($Config{USE_MPI} ne '0' and $Config{USE_MPI} ne '1') {
         push @errors, "USE_MPI must be \"0\" or \"1\"\n";
     }
 
