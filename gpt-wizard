@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.149 2003-02-06 18:38:58-08 kst Exp $
+# $Id: gpt-wizard,v 1.150 2003-02-06 18:43:00-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -105,7 +105,7 @@
 #     It would be nice, even as an ugly special case, to automate copying
 #     files from elmak.  Since gpt-wizard runs as root, though, this
 #     may not be feasible.  Think about it some more.  Maybe set up an
-#     anonymous ftp server on uffda?
+#     anonymous ftp server on uffda?  (I've now done that.)
 #
 #     Optionally generate a Bourne shell script to do the installation
 #     rather than actually doing the installation.
@@ -121,6 +121,11 @@
 #     See Globus Bugzilla #660,
 #     <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=660>.
 #     
+#     With the "-validate-only" option, we currently check for the
+#     existence of any local files, but not for ftp and http URLs.
+#     Add a check for ftp URLs using "ncftpls".  Think about how to
+#     check for http URLs.
+#
 
 require 5.004;
 
@@ -160,7 +165,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.149 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.150 $';
 my $Release           = '0.1.1+';
 my $Help              = undef;
 my $Show_Version      = undef;
