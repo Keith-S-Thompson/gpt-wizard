@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.145 2003-01-27 15:49:59-08 kst Exp $
+# $Id: gpt-wizard,v 1.146 2003-01-27 15:52:18-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -140,8 +140,8 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.145 $';
-my $Release           = '0.1+';
+my $Revision          = Strip_Revision_String '$Revision: 1.146 $';
+my $Release           = '0.1.1';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
