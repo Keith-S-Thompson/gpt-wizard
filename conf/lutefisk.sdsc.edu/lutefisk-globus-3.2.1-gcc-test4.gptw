@@ -1,7 +1,7 @@
-# $Id: lutefisk-globus-3.2.1-gcc-test4.gptw,v 1.1 2004-08-03 10:59:13-07 kst Exp $
+# $Id: lutefisk-globus-3.2.1-gcc-test4.gptw,v 1.2 2004-08-03 17:38:49-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-globus-3.2.1-gcc-test4.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 # PATH /usr/bin:/bin:/opt/torque/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
 PATH /usr/bin:/bin:/usr/local/apps/mpich-1.2.5.3/bin
@@ -28,7 +28,7 @@ BUNDLE globus-data-management-sdk-3.2.1-src_bundle.tar.gz         kind=source fl
 BUNDLE globus-data-management-server-3.2.1-src_bundle.tar.gz      kind=source flavor=gcc32dbg
 
 BUNDLE globus-resource-management-client-3.2.1-src_bundle.tar.gz  kind=source flavor=gcc32dbg
-BUNDLE globus-resource-management-sdk-3.2.1-src_bundle.tar.gz     kind=source flavor=mpicc64dbg,gcc32dbg
+BUNDLE globus-resource-management-sdk-3.2.1-src_bundle.tar.gz     kind=source flavor=mpicc32dbg,gcc32dbg
 BUNDLE globus-resource-management-server-3.2.1-src_bundle.tar.gz  kind=source flavor=gcc32dbg
 
 #
