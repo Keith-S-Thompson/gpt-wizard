@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: make-release,v 1.7 2003-06-06 17:51:05-07 kst Exp $
+# $Id: make-release,v 1.8 2003-06-06 17:53:14-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/make-release,v $
 
 use strict;
@@ -12,7 +12,7 @@ sub Usage(@);
 
 $| = 1;
 
-die "The make-release script needs to be updated to work with CVS\n";
+Usage ">>> The make-release script needs to be updated to work with CVS\n";
 
 my $release_number = undef;
 if (scalar @ARGV == 1 and $ARGV[0] =~ /^\d[\d.]*\d$/) {
@@ -255,4 +255,5 @@ sub Usage(@) {
 Usage: $0 release-number
 Don't forget to update Relnotes first.
 EOF
+    exit 1;
 } # Usage
