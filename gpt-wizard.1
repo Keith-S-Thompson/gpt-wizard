@@ -1,7 +1,7 @@
 i\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.36 2004-02-17 05:00:41-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.37 2004-02-22 12:55:18-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -219,15 +219,15 @@ Enable debugging output.
 .SH CONFIGURATION FILE
 The
 .I gpt\-wizard
-command requires a configuration file to be specified on the
-command line.  The name of the file is irrelevant.  I typically use
-something like
+command requires a configuration file to be specified on the command line.
+The name of the file is irrelevant, but for consistency I suggest using a
+".gptw" suffix.  I typically use something like
 .br
-.B "	<machine\-name>\-globus\-<version>\-<kind>.conf"
+.B "	<machine\-name>\-globus\-<version>\-<whatever>.gptw
 .br
 for example,
 .br
-.B "	tf005i\-globus\-2.2.3\-src.conf"
+.B "	tg\-login1.sdsc.teragrid.org\-globus\-2.4.3\-gcc\-r3.gptw
 .br
 but if you want to call it
 .B foobar.baz
@@ -300,7 +300,7 @@ Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
 .br
 Example:
 .br
-.B "	CONFIG_FILE_REVISION $Revision: 1.36 $"
+.B "	CONFIG_FILE_REVISION $Revision: 1.37 $"
 .br
 Type: string
 .br
