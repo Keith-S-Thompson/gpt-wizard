@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.268 2004-03-16 23:47:12-08 kst Exp $
+# $Id: gpt-wizard,v 1.269 2004-03-17 00:10:45-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -187,7 +187,7 @@ my $Release_Revision = '1.266'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.268 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.269 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1226,15 +1226,29 @@ if (-d "$Config{GLOBUS_LOCATION}/etc/ssh") {
 ########################################
 if (defined $Config{'MPICH-G2'}) {
     my $ref = $Config{'MPICH-G2'};
-    my $filename = $ref->{filename};
+    my $filename    = $ref->{filename};
     my $install_dir = $ref->{install};
-    my $flavor = $ref->{flavor};
-    my $arch = undef;
-    $arch = $ref->{arch} if defined $ref->{arch};
+    my $flavor      = $ref->{flavor};
+    my $arch        = $ref->{arch};
 
     if ($install_dir !~ /^\//) {
         $install_dir = "$Config{GLOBUS_LOCATION}/$install_dir";
     }
+
+    #
+    # We need the gzip and tar commands.
+    # If this is an update build, $gzip and $tar may not be defined yet.
+    #
+    my @errors = ();
+    if (not defined $gzip) {
+        $gzip = Find_Command 'gzip', $Config{GZIP};
+    }
+    push @errors, "No gzip command found\n" if not defined $gzip;
+    if (not defined $tar) {
+        $tar = Find_Command 'tar', $Config{TAR};
+    }
+    push @errors, "No tar command found\n" if not defined $tar;
+    die @errors if @errors;
 
     opendir DIR, '.' or die ".: $!\n";
     my @files_before = readdir DIR;
@@ -1242,7 +1256,7 @@ if (defined $Config{'MPICH-G2'}) {
     my %already_existed = map { $_ => 1 } @files_before;
 
     Execute @As_Installer, '/bin/sh', '-c',
-            "$gzip -d < $ref->{filename} | $tar xf -";
+            "$gzip -d < $filename | $tar xf -";
 
     opendir DIR, '.' or die ".: $!\n";
     my @files_after = readdir DIR;
@@ -1266,16 +1280,14 @@ if (defined $Config{'MPICH-G2'}) {
         die "Can't determine MPICH source directory, tar created (@new_files)\n";
     }
 
-    my @configure_args = ( "-device=globus2:-flavor=$ref->{flavor}" );
-    if (defined $ref->{arch}) {
-        push @configure_args, "-arch=$ref->{arch}";
+    my @configure_args = ( "-device=globus2:-flavor=$flavor" );
+    if (defined $arch) {
+        push @configure_args, "-arch=$arch";
     }
     push @configure_args, "-prefix=$install_dir";
     Execute @As_Installer, './configure', @configure_args;
     Execute @As_Installer, 'make';
     Execute @As_Installer, 'make', 'install';
-
-
 }
 
 ########################################
