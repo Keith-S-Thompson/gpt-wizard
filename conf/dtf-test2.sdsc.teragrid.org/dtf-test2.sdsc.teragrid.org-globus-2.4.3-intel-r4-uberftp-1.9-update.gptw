@@ -1,0 +1,16 @@
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-r4-uberftp-1.9-update.gptw,v 1.1 2004-08-10 19:39:35-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-r4-uberftp-1.9-update.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+IS_UPDATE 1
+
+PATH /usr/bin:/bin:/usr/local/apps/intel/compiler8/bin:/opt/torque/bin:/usr/local/apps/mpich/intel8-r2/bin
+
+GLOBUS_LOCATION  /work/globus/apps/globus-2.4.3-intel-r4
+
+#
+# Install newer UberFTP (replacing 1.5 with 1.9)
+#
+.PREFIX /work/kst/repo.teragrid.org/open/uberftp/1.9
+BUNDLE uberftp-client-1.9.tar.gz kind=source flavor=vendorcc64dbg
