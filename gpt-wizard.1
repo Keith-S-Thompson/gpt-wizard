@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.13 2003-03-31 17:26:52-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.14 2003-04-01 17:24:43-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -45,7 +45,7 @@
 .\" 
 .TH GPT-WIZARD 1 2003-03-11 SDSC
 .SH NAME
-gpt-wizard \- Build and install GPT bundles
+gpt-wizard \- Build and install GPT bundles and packages
 .SH SYNOPSIS
 .B "gpt-wizard -help"
 .br
@@ -61,8 +61,8 @@ This documentation is for release 0.2+ of
 .SH DESCRIPTION
 The
 .I gpt-wizard
-command builds and installs a specified set of GPT bundles, driven by a
-simple ASCII configuration file.  (GPT is the
+command builds and installs a specified set of GPT bundles and
+packages, driven by a simple ASCII configuration file.  (GPT is the
 .IR "Grid Packaging Toolkit" .)
 The intent is to automate as much as possible of the process of
 installing Globus and other software components, and starting up the
@@ -94,7 +94,8 @@ under the
 directory.  This directory will contain a copy of the configuration
 file and a plain text file called
 .IR info ,
-which contains summary information about the build.
+which contains summary information about the build, including any
+manual steps to be executed.
 
 I highly recommend capturing the output of each
 .I gpt-wizard
@@ -167,7 +168,7 @@ Pass the "-verbose" option to
 and/or
 .IR gpt-build .
 This will produce voluminous output, especially when building source
-bundles.
+bundles and packages.
 
 .IP -gpt-install-only
 Pass the "-install-only" option to
@@ -276,7 +277,7 @@ Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
 .br
 Example:
 .br
-.B "	CONFIG_FILE_REVISION $Revision: 1.13 $"
+.B "	CONFIG_FILE_REVISION $Revision: 1.14 $"
 .br
 Type: string
 .br
@@ -374,7 +375,10 @@ Mandatory.
 
 .IP BUNDLE
 A GPT bundle or package.  It may be a source, binary, or rpm bundle.
-Multiple bundles may be specified.
+(In a future release,
+.I gpt-wizard
+may require a separate PACKAGE option for packages.)  Multiple bundles
+may be specified in a single config file.
 .br
 Attributes:
 .br
@@ -395,7 +399,8 @@ attempts to guess based on the file name.
 Multiple flavors may be specified, separated by commas, e.g.,
 "flavor=gcc32dbg,gcc32".
 .br
-Options are passed to gpt-install or gpt-build.
+Options are passed to gpt-install or gpt-build, after expanding
+commas to blanks.
 .br
 Type: file name or URL
 .br
@@ -439,22 +444,28 @@ Type: new directory (must be empty if it already exists).
 .br
 Mandatory.
 
-.IP GLOBUS_VAR_DIRECTORY
-A local directory in which to install the "var" directory.
-If
+.IP GLOBUS_LOCAL_DIRECTORY
+A local directory in which to install the "var" and "tmp" directories and
+certain files under the "etc" directory.  If
 .B GLOBUS_LOCATION
 is on an NFS-mounted file system, the gatekeeper
 (which runs as root) will often not be able to write to its log file,
 .IR $GLOBUS_LOCATION/var/globus-gatekeeper.log .
-If
-.B GLOBUS_VAR_DIRECTORY
-is specified (normally on a local filesystem),
-.I $GLOBUS_LOCATION/var
-will be created as a symbolic link to it.
+Also, some files need to be unique for each system on which
+Globus services are running.  See Globus Bugzilla #660,
+<http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=660>.  If
+.B GLOBUS_LOCAL_DIRECTORY
+is specified (normally on a local filesystem), certain subdirectories
+and files will be created as symbolic links into the specified
+directory.
 .br
 Type: new directory (must be empty if it already exists).
 .br
 Optional.
+.br
+Note: This replaces and generalizes the GLOBUS_VAR_DIRECTORY
+configuration variable from earlier versions of
+.IR gpt-wizard .
 
 .IP GLOBUS_HOSTNAME
 Set the environment variable
