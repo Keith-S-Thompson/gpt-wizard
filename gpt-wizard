@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.26 2002-08-13 14:26:27-07 kst Exp $
+# $Id: gpt-wizard,v 1.27 2002-08-13 14:40:43-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -33,9 +33,14 @@ sub Die_Handler($);
 sub Debug(@);
 sub Usage(@);
 
+#
+# Make warnings fatal.
+#
+$SIG{__WARN__} = sub { die @_ };
+
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = '$Revision: 1.26 $';
-if ($Revision =~ /^\$Revision: 1.26 $$/) {
+my $Revision = '$Revision: 1.27 $';
+if ($Revision =~ /^\$Revision: 1.27 $$/) {
     $Revision = $1;
 }
 my $Help = undef;
