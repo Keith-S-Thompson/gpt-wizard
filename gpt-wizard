@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.301 2004-09-03 17:34:48-07 kst Exp $
+# $Id: gpt-wizard,v 1.302 2004-09-03 17:52:30-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -206,7 +206,7 @@ my $Release_Revision = '1.296'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.301 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.302 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -391,6 +391,7 @@ my $installer_gid = $installer_gr[2];
 
 print "% setting PATH=$Config{PATH}\n";
 $ENV{PATH} = $Config{PATH};
+$Retain_Env{PATH} = 1;
 
 foreach my $env (@{$Config{ENV}}) {
     my($name, $value);
@@ -441,10 +442,8 @@ if ($Config{INTEL_WORKAROUND}) {
     open ICCCFG, ">$filename" or die "${filename}: $!\n";
     print ICCCFG "-no-gcc\n";
     close ICCCFG;
-    $ENV{ICCCFG} = $filename;
-    $ENV{ICPCCFG} = $filename;
-    $Retain_Env{ICCCFG} = 1;
-    $Retain_Env{ICPCCFG} = 1;
+    $ENV{ICCCFG} = $ENV{ICPCCFG} = $filename;
+    $Retain_Env{ICCCFG} = $Retain_Env{ICPCCFG} = 1;
     print "% setting ICCCFG=$filename\n";
     print "% setting ICPCCFG=$filename\n";
     print "% ($filename contains \"-no-gcc\")\n";
@@ -549,7 +548,9 @@ if (not $Config{IS_UPDATE} and not $Opt{'aix-kludge'}) {
     # on Red Hat 9 causes problems building some Perl modules.
     # See <https://bugzilla.ncsa.uiuc.edu/show_bug.cgi?id=131>
     #
-    delete $ENV{LANG};
+    # (The "delete $ENV{LANG} is no longer necessary; Scrub_Env takes
+    # care of it.)
+    # delete $ENV{LANG};
     Execute @As_Installer, './build_gpt';
 
     print "% cd $working_dir\n";
@@ -3228,7 +3229,7 @@ sub Fix_Setup_Script($) {
         print "% Editing $file\n";
     }
     else {
-        print ">>> Fix_Setup_Script: No file $file\n";
+        print "% Fix_Setup_Script: No file $file\n";
         return;
     }
     my $basename = File::Basename::basename $file;
