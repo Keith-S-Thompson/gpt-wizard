@@ -1,0 +1,54 @@
+#!/usr/bin/perl -w
+
+# $Id: expand-prefix,v 1.1 2003-06-30 16:31:37-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/expand-prefix,v $
+
+use strict;
+
+sub Show($$);
+
+my @file_directives = qw( GPT_TARBALL
+                          BUNDLE
+                          UPDATE
+                          GRID_MAPFILE
+                          HOST_CERT
+                          HOST_KEY
+                          LDAP_CERT
+                          LDAP_KEY
+                          CA_CERT_TARBALL );
+my %is_file_directive = map { $_ => 1 } @file_directives;
+
+my $prefix = undef;
+while (<>) {
+    chomp;
+    my ($blanks0, $directive, $blanks1, $args, $comment)
+        = /^(\s*)([.\w]+)(\s+)([^#]*)(.*)$/;
+    if (not defined $directive) {
+        print "$_\n";
+        next;
+    }
+    if ($directive eq '.PREFIX') {
+        $prefix = $args;
+    }
+    elsif ($is_file_directive{$directive}) {
+        if (defined $prefix and $args !~ /^\//) {
+            $args = "$prefix/$args";
+        }
+    }
+
+    print "$blanks0$directive$blanks1$args$comment\n";
+}
+
+########################################################################
+
+sub Show($$) {
+    my($name, $value) = @_;
+
+    print "    $name=";
+    if (defined $value) {
+        print "\"$value\"\n";
+    }
+    else {
+        print "undef\n";
+    }
+} # Show
