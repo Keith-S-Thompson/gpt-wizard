@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.49 2002-08-19 07:45:39-07 kst Exp $
+# $Id: gpt-wizard,v 1.50 2002-08-19 09:49:58-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -16,14 +16,6 @@
 #
 #     Automatically set up to report to one or more GIIS servers.
 #     Configure this.
-#
-#     Execute "-user=..." seems to have problems detecting errors in
-#     the child process.  Diagnose and fix.  Or just set and restore
-#     things correctly; see next item.
-#
-#     In Execute(), figure out the right way to set and restore
-#     effective(?) user and group ids, preferably without having to do
-#     an extra fork.
 #
 #     Accept ftp and http URLs for file names in config file.
 #
@@ -65,7 +57,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.49 $';
+my $Revision = Strip_Revision_String '$Revision: 1.50 $';
 my $Help      = undef;
 my $Debugging = undef;
 my $Cleanup   = 1;
@@ -801,6 +793,8 @@ sub Execute(@) {
     my @before;
     my @after;
     my $system_result;
+    my $initial_uid = $>;
+    my $initial_gid = $);
 
     Debug "Execute, scalar \@args = ", scalar @args, "\n";
     my @caller = caller;
@@ -856,46 +850,9 @@ sub Execute(@) {
         my $uid = $pw[2];
         my $gid = defined $Group ? $gr[2] : undef;
         my $pid;
-        if (($pid = fork) == 0) {
-            #
-            # This is the child process.
-            # Set the real and effective user (and group) id,
-            # and continue to handle the call.
-            #
-            # To be honest, I don't quite understand the distinction
-            # between "real" and "effective" user and group ids, so I
-            # set both just to be sure.
-            #
-            # Probably a better approach would be to temporarily set
-            # the effective(?) user and group ids, run the command,
-            # and set them back, without forking a child process; some
-            # day I'll figure out how to do this.
-            #
-            # Setting the group id(s) turns out not to be as simple
-            # as setting the user id(s).  For whatever reason, just
-            # assigning to $( and $) doesn't work.  The following seems
-            # to work, though it may be overkill.  I *think* I need to
-            # call POSIX::setgid *before* setting $< and $>; otherwise
-            # I no longer have root privileges.
-            #
-            if (defined $gid) {
-                POSIX::setgid $gid;
-            }
-            $< = $uid;
-            $> = $uid;
-            if (defined $gid) {
-                $( = $gid;
-                $) = $gid;
-            }
-        }
-        else {
-            #
-            # This is the parent process.
-            # Wait for the child to finish.  
-            #
-            waitpid $pid, 0;
-            return Get_Result $?, $Check;
-        }
+
+        $) = $gid if defined $gid;
+        $> = $uid;
     }
 
     if ($Verbose) {
@@ -971,13 +928,16 @@ sub Execute(@) {
                Elapsed_Time_Image $elapsed_seconds,
                $percent_usage;
     }
-    if ($Background or defined $User) {
+    if ($Background) {
         #
         # This is the child process; bail out and let the parent handle
         # the consequences.
         #
         exit(($system_result & 0xff00) >> 8);
     }
+
+    $) = $initial_gid if defined $Group;
+    $> = $initial_uid if defined $User;
 
     return Get_Result $system_result, $Check;
 } # Execute
