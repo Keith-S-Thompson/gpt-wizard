@@ -1,5 +1,6 @@
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
-.\" $Id: gpt-wizard.1,v 1.1 2003-01-17 18:53:03-08 kst Exp $
+.\"
+.\" $Id: gpt-wizard.1,v 1.2 2003-01-17 19:44:15-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -49,23 +50,124 @@ gpt-wizard \- Build and install GPT bundles
 .B "gpt-wizard [options] config-file"
 
 .SH DESCRIPTION
+The
 .I gpt-wizard
-builds and installs a specified set of GPT bundles, driven by a simple
-ASCII configuration file.
+command builds and installs a specified set of GPT bundles, driven
+by a simple ASCII configuration file.
 
 .SH OPTIONS
 .IP -help
+Display a brief help message on stdout and exits.
+.IP -validate-only
+Validate the configuration file, display some information, and exit without
+building anything.  Useful to detect errors in a configuration file.
+.IP -cleanup
+Delete the temporary directory on completion.  This is the default
+behavior.  Use "-nocleanup" to keep the temporary directory.
+.IP -postinstall
+Run the
+.I gpt-postinstall
+command.  This is the default behavior; use "-nogpt-postinstall" if
+you don't want to run
+.IR gpt-postinstall .
+.IP -startup
+Update system files and start services.  This is the default behavior;
+use "-nostartup" if you don't want to do this.
+.br
+.B NOTE:
+This is currently implemented only on Linux systems.  On Solaris and AIX,
+the "-nostartup" option is mandatory.
+.IP -gpt-verbose
+Pass the "-verbose" option to
+.I gpt-install
+and/or
+.IR gpt-build .
+This will produce voluminous output, especially when building source
+bundles.
+.IP -gpt-install-only
+Pass the "-install-only" option to
+.IR gpt-build .
+This doesn't affect binary installations
+.RI ( gpt-install ).
+.B NOTE:
+This option is probably obsolete for the current version of
+.IR GPT .
+-gpt-ignore-errors
+Ignore errors from
+.I gpt-install
+and
+.IR gpt-build .
+Not recommended.
+-aix-kludge
+Use an existing GPT installation.  This was implemented to work around
+some obscure problems on an AIX system.  Not recommended unless you know
+what you're doing.
+-debugging
+Enable debugging output.
 
 .SH CONFIGURATION OPTIONS
+
 .IP CONFIG_FILE_REVISION
-Usually an RCS "$Revision: 1.1 $" tag.
+Usually an RCS or CVS "$Revision: 1.2 $" tag.
+.br
+Type: string
+.br
+Optional.
+
+.IP TEMP_DIR
+Location for
+.IR gpt-wizard 's
+temporary directory.  The temporary directory will be created under the
+specified directory.
+.br
+Type: existing directory
+.br
+Optional.  Default is "/tmp".
+
+.IP DOWNLOAD_DIR
+Directory to be used for downloaded files.
+.br
+Type: existing directory
+.br
+Required if any files are specified as URLs; otherwise optional.
+
 .IP PATH
-The value for $PATH.  Mandatory.
+The value for the $PATH environment variable.
+Mandatory.
+
+.IP ENV
+An environment variable setting, of the form "VAR" or "VAR=value".
+If no value is specified, the variable is set to the empty string.
+.br
+Type: string
+.br
+Optional.  May occur multiple times.
+
+.IP INSTALLER_USER
+The name of the Unix account to use for the  installation.
+.br
+Optional.  Default is "globus".
+
+.IP INSTALLER_GROUP
+The name of the Unix group to use for the  installation.
+.br
+Optional.  Default is "globus".
+
+.IP USE_SDSC_SU
+Use the non-standard "su" command in use at SDSC.  Not recommended
+for sites other than SDSC.
+.br
+Type: boolean
+.br
+Optional.  Default is 0.
+
 .IP GPT_TARBALL
 The location of the source tarball (*.tar.gz) file for GPT.
+
 .IP BUNDLE
 A GPT bundle or package.  It may be a source, binary, or rpm bundle.
 Multiple bundles may be specified.
+
 .IP YADDA
 yadda yadda.
 
