@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.212 2003-08-14 17:08:06-07 kst Exp $
+# $Id: gpt-wizard,v 1.213 2003-08-15 17:57:34-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -194,7 +194,7 @@ my $Release_Revision = '1.211'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.212 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.213 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -845,12 +845,18 @@ if (defined $Config{BATCH_SYSTEM}) {
 # Configure batch jobmanager (new style)
 ########################################
 if (defined $Config{JOB_MANAGER}) {
-    my @fields = split /\s+/, $Config{JOB_MANAGER};
-    my $jobmanager = shift @fields;
+    my @args = split /\s+/, $Config{JOB_MANAGER};
+    my $jobmanager = shift @args;
     my $setup_dir = "$Config{GLOBUS_LOCATION}/setup/globus";
+    #
+    # You have to be in the setup directory, because
+    # setup-globus-job-manager-FOO.pl invokes "./find-FOO-tools"
+    # (for FOO = pbs, lsf, etc.)  Argh!
+    #
+    chdir $setup_dir or die "$setup_dir: $!\n";
     Execute $Using_RPM ? @As_Root : @As_Installer,
         "$setup_dir/setup-globus-job-manager-$jobmanager",
-        @fields;
+        @args;
 }
 
 ########################################
