@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.198 2003-04-01 15:01:10-08 kst Exp $
+# $Id: gpt-wizard,v 1.199 2003-04-01 16:49:15-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -191,7 +191,7 @@ my $Release_Revision = '1.174'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.198 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.199 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -782,27 +782,27 @@ if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
         my @missing = ();
         foreach my $file ( @localized_etc_files ) {
             if (-e "$global_etc/$file") {
-                push @missing, $file;
-            }
-            else {
                 Execute @As_Root,
                         'cp', '-p', "$global_etc/$file", "$local_etc/$file";
                 unlink "$global_etc/$file" or die "$global_etc/${file}: $!\n";
                 symlink "$local_etc/$file", "$global_etc/$file"
                     or die "$global_etc/${file}: $!\n";
             }
+            else {
+                push @missing, $file;
+            }
         }
         if (@missing) {
             push @manual_steps,
                  "Investigate missing files in\n" .
                  "$Config{GLOBUS_LOCATION}/etc :\n" .
-                 map("    $_\n", @missing);
+                 join('', map("    $_\n", @missing));
         }
     }
     else {
         push @manual_steps,
              "After running gpt-postinstall, copy the following files:\n" .
-             map("    $_\n", @localized_etc_files) .
+             join('', map("    $_\n", @localized_etc_files)) .
              "from $global_etc\n" .
              "to $local_etc\n" .
              "and replace the originals with symbolic links\n";
