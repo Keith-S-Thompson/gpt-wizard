@@ -1,0 +1,85 @@
+# $Id: ds001.sdsc.edu-globus-2.4.3-gcc-r4.gptw,v 1.1 2004-06-29 11:26:57-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds001.sdsc.edu/ds001.sdsc.edu-globus-2.4.3-gcc-r4.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin
+
+GLOBUS_LOCATION    ~kst/apps/powerpc-ibm-aix5.2.0.0/globus-2.4.3-gcc-r4
+GLOBUS_LOCAL_DIRECTORY ~kst/var/globus-2.4.3-gcc-r4
+
+# MPI_FLAVORS_ARE_STATIC 1
+
+#
+# Use the latest beta GPT release
+#
+GPT_TARBALL ~kst/repo.teragrid.org/open/gpt/3.1.1b5/gpt-3.1.1b5-src.tar.gz
+
+.PREFIX ~kst/repo.teragrid.org/open/globus/2.4.3-r4
+#
+# Build Globus 2.4.3 from source.
+# Use customized bundles with all updates pre-applied.
+#
+BUNDLE globus-information-services-client-2.4.3-r4-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-sdk-2.4.3-r4-src_bundle.tar.gz    kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-server-2.4.3-r4-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+
+BUNDLE globus-data-management-client-2.4.3-r4-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-sdk-2.4.3-r4-src_bundle.tar.gz         kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-server-2.4.3-r4-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+
+BUNDLE globus-resource-management-client-2.4.3-r4-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-sdk-2.4.3-r4-src_bundle.tar.gz     kind=source flavor=gcc32dbg # flavor=mpicc32dbg,gcc32dbg
+BUNDLE globus-resource-management-server-2.4.3-r4-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+
+#
+# Updates have been pre-applied.
+#
+
+#
+# globus_gram_reporter and PBS support
+# No changes from 2.4.3 to 2.4.3-r4, so use the 2.4.3 directory.
+#
+.PREFIX ~kst/repo.teragrid.org/open/globus/2.4.3
+## BUNDLE globus_gram_job_manager_setup_pbs-1.5.tar.gz                kind=source flavor=gcc32dbg
+BUNDLE globus_gram_reporter-2.0.tar.gz                             kind=source flavor=gcc32dbg
+BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz                  kind=source flavor=gcc32dbg
+## BUNDLE globus_gram_reporter_setup_pbs-1.0.tar.gz                   kind=source flavor=gcc32dbg
+
+## #
+## # Install individual Condor-G packages extracted from NMI 3.2 binary bundle
+## #
+## .PREFIX ~kst/repo.teragrid.org/open/condor-g/packages-NMI-3.2
+## BUNDLE condor_base-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz         kind=binary
+## BUNDLE condor_base_libs-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz    kind=binary
+## BUNDLE condor_base_setup-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz   kind=binary
+## BUNDLE condor_config-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=binary
+## BUNDLE condor_dagman-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=binary
+## BUNDLE condor_submit-0.6-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=binary
+
+#
+# Build myproxy
+#
+.PREFIX ~kst/repo.teragrid.org/open/myproxy/1.13
+BUNDLE myproxy-1.13.tar.gz                                         kind=source flavor=gcc32dbg
+
+#
+# Build uberftp
+#
+# The source bundle on the NCSA web site includes support packages from
+# Globus 3.2.0.  Use a modified version of the bundle, incorporating
+# packages from Globus 2.4.3.
+#
+.PREFIX ~kst/repo.teragrid.org/open/uberftp/1.5
+BUNDLE uberftp-1.5-tg-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+
+## #
+## # Configure PBS jobmanager
+## #
+## JOB_MANAGER pbs -cpu-per-node 2 -remote-shell ssh
+
+## #
+## # Build and install MPICH-G2
+## #
+## .PREFIX ~kst/repo.teragrid.org/open/mpich/1.2.5.2
+## MPICH-G2 mpich-1.2.5.2-f90patch.tar.gz flavor=mpicc64dbg install=mpich-g2-1.2.5.2
