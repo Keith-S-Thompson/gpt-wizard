@@ -1,0 +1,32 @@
+# $Id: uffda-globus-3.2.0.gptw,v 1.1 2004-07-20 15:17:57-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-globus-3.2.0.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-3.2.0
+
+.PREFIX ~kst/src/gpt
+
+GPT_TARBALL gpt-3.1-src.tar.gz
+
+#
+# Build Globus 3.2-beta from source
+#
+.PREFIX ~kst/Globus/3.2.0/bundles
+
+BUNDLE globus-information-services-client-3.2-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-sdk-3.2-src_bundle.tar.gz    kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-server-3.2-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+
+BUNDLE globus-data-management-client-3.2-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-sdk-3.2-src_bundle.tar.gz         kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-server-3.2-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+
+BUNDLE globus-resource-management-client-3.2-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-sdk-3.2-src_bundle.tar.gz     kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-server-3.2-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+
+.PREFIX ~kst/Globus/3.2.0/updates/src
+UPDATE globus_common-4.9.tar.gz
