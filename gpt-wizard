@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.44 2002-08-16 20:41:54-07 kst Exp $
+# $Id: gpt-wizard,v 1.45 2002-08-16 20:43:36-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -58,7 +58,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.44 $';
+my $Revision = Strip_Revision_String '$Revision: 1.45 $';
 my $Help      = undef;
 my $Debugging = undef;
 my $Cleanup   = 1;
@@ -79,8 +79,8 @@ my %Config = Get_Config $ARGV[0];
 Check_Config_Vars();
 
 my %Sys = Get_System_Information;
-if ($Sys{OS} ne 'linux') {
-    die "Unsupported OS \"$Sys{OS}\"\n";
+if ($Sys{OSNAME} ne 'linux') {
+    die "Unsupported OS \"$Sys{OSNAME}\"\n";
 }
 
 Check_Services;
