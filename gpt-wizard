@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.32 2002-08-13 15:49:58-07 kst Exp $
+# $Id: gpt-wizard,v 1.33 2002-08-13 16:10:10-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -13,6 +13,8 @@
 #
 #     Automatically set up to report to one or more GIIS servers.
 #
+#     Assume CA_CERT_TARBALL is a flattened tar file (once I've
+#     actually made it that way).
 
 use strict;
 
@@ -40,7 +42,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.32 $';
+my $Revision = Strip_Revision_String '$Revision: 1.33 $';
 my $Help = undef;
 my $Debugging = undef;
 my $Cleanup = 1;
@@ -188,29 +190,25 @@ if ($Config{INET_DAEMON} eq 'xinetd') {
     Execute @As_Root, qw(/etc/init.d/xinetd reload);
 }
 else {
-    push @manual_steps,
-         "Update /etc/inetd.conf:\n";
+    my $update = "Update /etc/inetd.conf:\n";
     foreach my $file (@files) {
-        push @manual_steps,
-             "  ${file}:\n";
+        $update .= "  ${file}:\n";
         open IN, "< $Config{INET_DIR}/$file"
             or die "$Config{INET_DIR}/${file}: $!\n";
         while (<IN>) {
             chomp;
             s/\@(\w+)\@/Substitute $1/eg;
-            push @manual_steps,
-                 "    $_\n";
+            $update .= "    $_\n";
         }
         close IN;
     }
     if (-x '/etc/init.d/inet') {
-        push @manual_steps,
-             "Execute as root \"/etc/init.d/inet reload\"\n";
+        $update .= "Execute as root \"/etc/init.d/inet reload\"\n";
     }
     else {
-        push @manual_steps,
-             "Reload or restart inetd\n";
+        $update .= "Reload or restart inetd\n";
     }
+    push @manual_steps, $update;
 }
 
 if ($Config{BATCH_SYSTEM} ne 'none') {
@@ -225,13 +223,13 @@ if ($Config{BATCH_SYSTEM} ne 'none') {
 
 push @manual_steps,
      "Make sure that certain parts of the Globus installation, particularly\n" .
-     "   the var directory, are on a local file system\n";
+     "the var directory, are on a local file system\n";
 
 Execute @As_Installer,
         "$ENV{GLOBUS_LOCATION}/sbin/SXXgris", 'start';
 push @manual_steps,
      "Arrange for \"$ENV{GLOBUS_LOCATION}/sbin/SXXgris start\"\n" .
-     "    to be executed by user \"$Config{INSTALLER_USER}\" on system boot\n";
+     "to be executed by user \"$Config{INSTALLER_USER}\" on system boot\n";
 
 push @manual_steps,
      "Configure to report to a GIIS server\n";
@@ -243,7 +241,7 @@ if ($Cleanup) {
 
 print '*' x 72, "\n";
 print ">>> To be done manually:\n";
-print @manual_steps;
+print join "\n", @manual_steps;
 print '*' x 72, "\n";
 print Time_Image time, "\n";
 
