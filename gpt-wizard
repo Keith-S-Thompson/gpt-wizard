@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.278 2004-03-19 22:22:07-08 kst Exp $
+# $Id: gpt-wizard,v 1.279 2004-03-20 14:17:50-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -205,7 +205,7 @@ my $Release_Revision = '1.273'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.278 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.279 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -293,11 +293,10 @@ else {
              "gpt-wizard is not supported on $Sys{OSNAME},\n" .
              "but this check has been overridden " .
              "by the \"-force-arch\" option\n" .
-             "Please contact Keith Thompson <kst\@sdsc.edu> for information\n";
+             "Presumably you know what you're doing\n";
     }
     else {
-        die "Unsupported OS \"$Sys{OSNAME}\"\n" .
-            "Please contact Keith Thompson <kst\@sdsc.edu> for information\n";
+        die "Unsupported OS \"$Sys{OSNAME}\"\n";
     }
 }
 
@@ -3203,8 +3202,6 @@ Option names may be abbreviated uniquely.
     -aix-kludge         Use an existing GPT installation.
     -force-arch         Allow gpt-wizard to run on unsupported architectures.
                         This is meant for internal development.
-                        If you want to try gpt-wizard on an unsupported
-                        architecture, please contact the author.
     -debugging          Enable debugging.
 Most options can be negated by prepending "no".
 For example, "-nocleanup" inhibits cleanup.
