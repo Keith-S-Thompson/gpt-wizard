@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.183 2003-03-16 02:05:38-08 kst Exp $
+# $Id: gpt-wizard,v 1.184 2003-03-16 14:57:53-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -137,6 +137,10 @@
 #     about the possibility of other interactive postinstall scripts --
 #     and discourage writing them.
 #
+#     We now print the manual_steps on abnormal termination (in
+#     Die_Handler), but not if gpt-wizard is killed by a signal.
+#     Add handlers for common signals (at least control-C).
+#
 
 require 5.004;
 
@@ -192,7 +196,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.183 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.184 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
