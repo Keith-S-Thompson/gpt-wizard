@@ -1,12 +1,52 @@
 #!/bin/sh
 
+# $Id: mds-aix-relink.sh,v 1.2 2002-12-04 22:01:36-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/mds-aix-relink.sh,v $
+
+#
+# TO DO
+#
+# Set BUILD_DIR more sensibly.
+#
+# Deal with flavors.
+#
+
 BUILD_DIR=${HOME}/build/side_tools/BUILD
 
 cd ${BUILD_DIR}/globus_mds_back_giis-0.5
-ld -o libback_giis.so.0 ../globus_openssl_module-0.1/library/*.o ../globus_gsi_openssl_error-0.2/library/*.o ../globus_gsi_proxy_ssl-0.1/library/*.o ../globus_gsi_sysconfig-0.1/library/*.o ../globus_common-3.4/library/*.o ../globus_gss_assist-3.1/*.o *.o ../globus_gsi_credential-0.3/library/*.o ../globus_gssapi_gsi-3.2/library/*.o ../globus_gsi_proxy_core-0.3/library/*.o -bnoentry -G -bexpall -bM:SRE -lc -ldl
+ld -o libback_giis.so.0 \
+    ../globus_openssl_module-0.1/library/*.o \
+    ../globus_gsi_openssl_error-0.2/library/*.o \
+    ../globus_gsi_proxy_ssl-0.1/library/*.o \
+    ../globus_gsi_sysconfig-0.1/library/*.o \
+    ../globus_common-3.4/library/*.o \
+    ../globus_gss_assist-3.1/*.o \
+    *.o \
+    ../globus_gsi_credential-0.3/library/*.o \
+    ../globus_gssapi_gsi-3.2/library/*.o \
+    ../globus_gsi_proxy_core-0.3/library/*.o \
+    -bnoentry \
+    -G \
+    -bexpall \
+    -bM:SRE \
+    -lc \
+    -ldl
 cp libback_giis.so.0 $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr
 cd ${BUILD_DIR}/globus_ldapmodules-0.5
-ld -o libback_ldif.so.0 ../globus_gss_assist-3.1/*.o *.o ../globus_gsi_callback-0.2/library/oldgaa/*.o ../globus_gsi_proxy_core-0.3/library/*.o ../globus_gsi_callback-0.2/library/*.o ../globus_gsi_cert_utils-0.2/library/*.o ../globus_gssapi_gsi-3.2/library/*.o -bnoentry -G -bexpall -bM:SRE -lc -ldl
+ld -o libback_ldif.so.0 \
+    ../globus_gss_assist-3.1/*.o \
+    *.o \
+    ../globus_gsi_callback-0.2/library/oldgaa/*.o \
+    ../globus_gsi_proxy_core-0.3/library/*.o \
+    ../globus_gsi_callback-0.2/library/*.o \
+    ../globus_gsi_cert_utils-0.2/library/*.o \
+    ../globus_gssapi_gsi-3.2/library/*.o \
+    -bnoentry \
+    -G \
+    -bexpall \
+    -bM:SRE \
+    -lc \
+    -ldl
 cp libback_ldif.so.0 $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr
 
 cd $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr
@@ -84,7 +124,27 @@ EOF
 
 cd ${BUILD_DIR}/globus_openldap-2.0.22/openldap-2.0.22/servers/slapd
 
-cc *.o -brtl -bexpall libbackends.a -L/$GLOBUS_LOCATION/lib -L ../../libraries -lavl -lldif -lldbm -llutil_vendorcc32dbgpthr -lldap_r_vendorcc32dbgpthr -llber_vendorcc32dbgpthr -lsasl_vendorcc32dbgpthr -lssl_vendorcc32dbgpthr -lcrypto_vendorcc32dbgpthr -ls -lltdl_vendorcc32dbgpthr -lpthread -o slapd $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr/libback_ldif.so $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr/libback_giis.so
+cc *.o \
+    -brtl \
+    -bexpall \
+    libbackends.a \
+    -L$GLOBUS_LOCATION/lib \
+    -L../../libraries \
+    -lavl \
+    -lldif \
+    -lldbm \
+    -llutil_vendorcc32dbgpthr \
+    -lldap_r_vendorcc32dbgpthr \
+    -llber_vendorcc32dbgpthr \
+    -lsasl_vendorcc32dbgpthr \
+    -lssl_vendorcc32dbgpthr \
+    -lcrypto_vendorcc32dbgpthr \
+    -ls \
+    -lltdl_vendorcc32dbgpthr \
+    -lpthread \
+    -o slapd \
+    $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr/libback_ldif.so \
+    $GLOBUS_LOCATION/libexec/openldap/vendorcc32dbgpthr/libback_giis.so
 
 cp slapd $GLOBUS_LOCATION/libexec
 
