@@ -1,7 +1,7 @@
-# $Id: dtf-test1.sdsc.teragrid.org-globus-2.4.3-r6-test1.gptw,v 1.1 2004-08-30 23:03:20-07 kst Exp $
+# $Id: dtf-test1.sdsc.teragrid.org-globus-2.4.3-r6-test1.gptw,v 1.2 2004-08-31 01:57:38-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test1.sdsc.teragrid.org/dtf-test1.sdsc.teragrid.org-globus-2.4.3-r6-test1.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 #
 # Parameters to be configured for each site.
@@ -21,6 +21,9 @@ CONFIG_FILE_REVISION    $Revision: 1.1 $
 .PARAM REPO                    /work/kst/repo.teragrid.org
 
 PATH /usr/bin:/bin:$JAVA_BIN_DIR:$PBS_BIN_DIR:$MPI_BIN_DIR
+ENV INTEL_LICENSE_FILE=$INTEL_DIR/licenses
+ENV LD_LIBRARY_PATH=$INTEL_DIR/lib
+INTEL_WORKAROUND 1
 
 GLOBUS_LOCATION        $APPS_DIR/$GLOBUS_DIR
 GLOBUS_LOCAL_DIRECTORY $VAR_DIR/$GLOBUS_DIR
