@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.234 2004-02-13 19:53:00-08 kst Exp $
+# $Id: gpt-wizard,v 1.235 2004-02-13 20:14:13-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -185,7 +185,7 @@ my $Release_Revision = '1.233'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.234 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.235 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1722,7 +1722,7 @@ sub Get_Config($) {
             foreach my $item (@{$var->{value}}) {
                 my $error = File_Error "-varname=$varname", $item->{filename};
                 push @errors, $error if defined $error;
-                if ($item->{kind} eq 'rpm') {
+                if (defined $item->{kind} and $item->{kind} eq 'rpm') {
                     push @errors,
                          "RPM bundles cannot be installed " .
                          "by a non-root user\n";
