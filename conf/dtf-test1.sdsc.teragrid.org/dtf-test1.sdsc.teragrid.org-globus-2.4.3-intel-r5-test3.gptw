@@ -1,7 +1,7 @@
-# $Id: dtf-test1.sdsc.teragrid.org-globus-2.4.3-intel-r5-test3.gptw,v 1.1 2004-08-30 19:47:46-07 kst Exp $
+# $Id: dtf-test1.sdsc.teragrid.org-globus-2.4.3-intel-r5-test3.gptw,v 1.2 2004-08-30 23:02:13-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test1.sdsc.teragrid.org/dtf-test1.sdsc.teragrid.org-globus-2.4.3-intel-r5-test3.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 #
 # Parameters to be configured for each site.
@@ -106,4 +106,4 @@ JOB_MANAGER pbs -cpu-per-node 2 -remote-shell ssh
 # Build and install MPICH-G2
 #
 .PREFIX $REPO/open/mpich/1.2.6
-MPICH-G2 mpich-1.2.6.tar.gz flavor=mpicc64dbg install=mpich-g2-1.2.6
+MPICH-G2 mpich-1.2.6.tar.gz flavor=$MPI_FLAVOR install=mpich-g2-1.2.6
