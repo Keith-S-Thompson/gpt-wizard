@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.251 2004-03-08 14:18:26-08 kst Exp $
+# $Id: gpt-wizard,v 1.252 2004-03-08 16:43:08-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -120,9 +120,6 @@
 #     an overview of gpt, particularly the distinction between bundles
 #     and packages (and mention rpms).
 #
-#     Support adding updates to an existing installation, including
-#     adding information to the $GLOBUS_LOCATION/.gpt-wizard directory.
-#
 #     For updates, figure out how to apply options (particularly
 #     "-static") depending on how the package was initially built.
 #
@@ -179,12 +176,14 @@ $SIG{__WARN__} = sub { die @_ };
 
 $| = 1;
 
+my $Start_Time       = time;
+
 my $Release_Number   = '0.6.1'; # most recent release
 my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.251 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.252 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -194,6 +193,7 @@ my @Opts = ( \%Opt, qw( help!
                         cleanup!
                         postinstall!
                         startup!
+                        update!
                         gpt-verbose!
                         gpt-ignore-errors!
                         aix-kludge! ) );
@@ -204,6 +204,11 @@ Show_Version if $Opt{version};
 if ($Opt{startup} and not $Opt{postinstall}) {
     Usage "Option conflict: \"-startup\" and \"-nopostinstall\"\n",
           "    (Can't do startup without doing gpt-postinstall)\n";
+}
+
+if ($Opt{update} and $Opt{startup}) {
+    Usage "Option conflict: \"-startup\" and \"-update\"\n",
+          "    (This may be implemented in a future release)\n";
 }
 
 $SIG{__DIE__} = \&Die_Handler;
@@ -246,6 +251,7 @@ else {
     chomp $pwd;
     $Config_File_Full_Path = "$pwd/$Config_File";
 }
+my $Config_File_Basename = File::Basename::basename $Config_File;
 
 #
 # If any bundles were installed using RPM, we'll need to run
@@ -294,6 +300,13 @@ my @As_Myself = ( $Running_As_Root ? @As_Root : @As_Installer );
 my $CLK_TCK = POSIX::sysconf(&POSIX::_SC_CLK_TCK);
 
 exit 0 if $Opt{'validate-only'};
+
+if ($Opt{update}) {
+    push @manual_steps,
+         "The \"-update\" option is still under development\n" .
+         "Read the following instructions with caution.\n" .
+         "Some of them may refer to things that have already been done.\n";
+}
 
 ########################################################################
 # Create a temporary working directory and set some variables.
@@ -344,7 +357,7 @@ foreach my $env (@{$Config{ENV}}) {
 print "% umask $Config{UMASK}\n";
 umask oct $Config{UMASK} or die "umask $Config{UMASK}: $!\n";
 
-my $working_dir = "$Config{TEMP_DIR}/gpt-wizard-" . time . "-$$";
+my $working_dir = "$Config{TEMP_DIR}/gpt-wizard-$Start_Time-$$";
 print "% mkdir $working_dir\n";
 mkdir $working_dir, 0700 or die "$working_dir: $!\n";
 if ($Running_As_Root) {
@@ -380,8 +393,7 @@ if (defined $Config{GLOBUS_HOSTNAME}) {
 # If there's exactly one new thing in the current directory, assume it's
 # the extracted source directory.
 ########################################
-
-if (not $Opt{'aix-kludge'}) {
+if (not $Opt{update} and not $Opt{'aix-kludge'}) {
     opendir DIR, '.' or die ".: $!\n";
     my @files_before = readdir DIR;
     closedir DIR;
@@ -425,12 +437,12 @@ if (not $Opt{'aix-kludge'}) {
 }
 
 ########################################
-# Create the $GPT_LOCATION directory.
+# Create the $GPT_LOCATION directory or check for an existing one.
 ########################################
 print "% Setting GPT_LOCATION=$Config{GPT_LOCATION}\n";
 $ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
 
-if ($Opt{'aix-kludge'}) {
+if ($Opt{update} or $Opt{'aix-kludge'}) {
     die "No directory $Config{GPT_LOCATION}\n"
         if not -d $Config{GPT_LOCATION};
     die "No executable $Config{GPT_LOCATION}/sbin/gpt-install\n"
@@ -450,7 +462,7 @@ else {
 ########################################
 # Run build_gpt to install GPT
 ########################################
-if (not $Opt{'aix-kludge'}) {
+if (not $Opt{update} and not $Opt{'aix-kludge'}) {
     #
     # The default setting for the $LANG environment variable
     # on Red Hat 9 causes problems building some Perl modules.
@@ -462,16 +474,6 @@ if (not $Opt{'aix-kludge'}) {
     print "% cd $working_dir\n";
     chdir $working_dir or die "$working_dir: $!\n";
 }
-
-########################################
-# <http://www.nsf-middleware.org/documentation/GPT/index.htm>
-# says to delete these two files.  They seem to be installed
-# if you use the RPM, but not if you use the source tarball.
-# So in reality, these files probably won't exist in the first place;
-# ignore any errors from unlink().
-########################################
-unlink '/etc/profile.d/gpt.sh',
-       '/etc/profile.d/gpt.csh';
 
 ########################################################################
 # Confirm GPT installation
@@ -512,15 +514,22 @@ Execute @As_Installer, $gpt_install_command, '-version';
 ########################################
 print "% Setting GLOBUS_LOCATION=$Config{GLOBUS_LOCATION}\n";
 $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
-if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION} and
-    not -e $Config{GLOBUS_LOCATION})
-{
-    print "% mkdir $Config{GLOBUS_LOCATION}\n";
-    mkdir $Config{GLOBUS_LOCATION}, 0777
-        or die "$Config{GLOBUS_LOCATION}: $!\n";
-    if ($Running_As_Root) {
-        chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCATION}
+if ($Opt{update}) {
+    if (not -d $Config{GLOBUS_LOCATION}) {
+        die "No directory $Config{GLOBUS_LOCATION}\n";
+    }
+}
+else {
+    if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION} and
+        not -e $Config{GLOBUS_LOCATION})
+    {
+        print "% mkdir $Config{GLOBUS_LOCATION}\n";
+        mkdir $Config{GLOBUS_LOCATION}, 0777
             or die "$Config{GLOBUS_LOCATION}: $!\n";
+        if ($Running_As_Root) {
+            chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCATION}
+                or die "$Config{GLOBUS_LOCATION}: $!\n";
+        }
     }
 }
 
@@ -529,15 +538,37 @@ if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION} and
 # about the build, including a copy of the config file.
 ########################################
 my $info_dir = "$Config{GLOBUS_LOCATION}/.gpt-wizard";
-my $info_file = "$info_dir/info";
+my $info_file;
 
-print "% mkdir $info_dir\n";
-mkdir $info_dir, 0777 or die "$info_dir: $!\n";
-if ($Running_As_Root) {
-    chown $installer_uid, $installer_gid, $info_dir or die "$info_dir: $!\n";
+if ($Opt{update}) {
+    $info_file = "$info_dir/update-" . Timestamp_Of $Start_Time;
+}
+else {
+    $info_file = "$info_dir/info";
 }
 
-Execute @As_Installer, 'cp', '-p', $Config_File_Full_Path, "$info_dir/.";
+#
+# If this is an update, it's ok for $info_dir to exist already.
+#
+if (not -d $info_dir) {
+    print "% mkdir $info_dir\n";
+    mkdir $info_dir, 0777 or die "$info_dir: $!\n";
+    if ($Running_As_Root) {
+        chown $installer_uid, $installer_gid, $info_dir
+            or die "$info_dir: $!\n";
+    }
+}
+
+if (-e "$info_dir/$Config_File_Basename") {
+    Execute @As_Installer, 'cp', '-p',
+                           $Config_File_Full_Path,
+                           "$info_dir/$Config_File_Basename" .
+                           '-' .
+                           Timestamp_Of $Start_Time;
+}
+else {
+    Execute @As_Installer, 'cp', '-p', $Config_File_Full_Path, "$info_dir/.";
+}
 
 open INFO, ">$info_file" or die "$info_file: $!\n";
 print INFO $build_info;
@@ -653,26 +684,30 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
 # Method: For each subdirectory of $GLOBUS_LOCATION/include, if the
 # subdirectory contains globus_common.h but not globus_config.h, add
 # the subdirectory name to the list of flavors.
+#
+# We don't need to do this for an update.
 ########################################
-my @nosrc_flavors = ();
-my $include_dir = "$ENV{GLOBUS_LOCATION}/include";
-if (-d $include_dir) {
-    opendir DIR, $include_dir or die "$include_dir: $!\n";
-    my @subdirs = sort
-                      grep { $_ ne '.' and
-                             $_ ne '..' and
-                             -d "$include_dir/$_" }
-                          readdir DIR;
-    foreach my $subdir (@subdirs) {
-        if (-e "$include_dir/$subdir/globus_common.h" and
-            not -e "$include_dir/$subdir/globus_config.h")
-        {
-            push @nosrc_flavors, $subdir;
+if (not $Opt{update}) {
+    my @nosrc_flavors = ();
+    my $include_dir = "$ENV{GLOBUS_LOCATION}/include";
+    if (-d $include_dir) {
+        opendir DIR, $include_dir or die "$include_dir: $!\n";
+        my @subdirs = sort
+                          grep { $_ ne '.' and
+                                 $_ ne '..' and
+                                 -d "$include_dir/$_" }
+                              readdir DIR;
+        foreach my $subdir (@subdirs) {
+            if (-e "$include_dir/$subdir/globus_common.h" and
+                not -e "$include_dir/$subdir/globus_config.h")
+            {
+                push @nosrc_flavors, $subdir;
+            }
         }
-    }
-    if (@nosrc_flavors) {
-        Execute @As_Installer_GPT,
-                $gpt_build_command, '-nosrc', @nosrc_flavors;
+        if (@nosrc_flavors) {
+            Execute @As_Installer_GPT,
+                    $gpt_build_command, '-nosrc', @nosrc_flavors;
+        }
     }
 }
 
@@ -685,8 +720,10 @@ if (-d $include_dir) {
 # Certain subdirectories and files must be on local filesystems,
 # so root can write to logs and so forth.  See Globus Bugzilla #660,
 # <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=660>.
+#
+# We don't need to do this for an update.
 ########################################
-if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
+if (defined $Config{GLOBUS_LOCAL_DIRECTORY} and not $Opt{update}) {
     if (not -d $Config{GLOBUS_LOCAL_DIRECTORY}) {
         print "% mkdir $Config{GLOBUS_LOCAL_DIRECTORY}\n";
         mkdir $Config{GLOBUS_LOCAL_DIRECTORY}, 0777
@@ -777,13 +814,14 @@ else {
 # Localize certain files under $GLOBUS_LOCATION/etc
 # See Globus Bugzilla #660,
 # <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=660>.
+# We don't need to do this for an update.
 ########################################
 my @localized_etc_files = qw( globus-job-manager.conf
                               grid-info-resource-ldif.conf
                               grid-info-resource-register.conf
                               grid-info-site-policy.conf
                               grid-info-slapd.conf );
-if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
+if (defined $Config{GLOBUS_LOCAL_DIRECTORY} and not $Opt{update}) {
     my $global_etc = "$Config{GLOBUS_LOCATION}/etc";
     my $local_etc  = "$Config{GLOBUS_LOCAL_DIRECTORY}/etc";  
     if ($Opt{postinstall}) {
@@ -823,7 +861,7 @@ if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
 #
 # This is obsolete as of Globus 2.2
 #
-if (defined $Config{BATCH_SYSTEM}) {
+if (defined $Config{BATCH_SYSTEM} and not $Opt{update}) {
     Execute $Using_RPM ? @As_Root : @As_Installer,
         "$Config{GLOBUS_LOCATION}/setup/globus/setup-globus-gram-job-manager",
         "-type=$Config{BATCH_SYSTEM}";
@@ -836,7 +874,7 @@ if (defined $Config{BATCH_SYSTEM}) {
 ########################################
 # Configure batch jobmanager (new style)
 ########################################
-if (defined $Config{JOB_MANAGER}) {
+if (defined $Config{JOB_MANAGER} and not $Opt{update}) {
     my @args = split /\s+/, $Config{JOB_MANAGER};
     my $jobmanager = shift @args;
     my $setup_dir = "$Config{GLOBUS_LOCATION}/setup/globus";
@@ -1408,9 +1446,9 @@ sub Get_Config($) {
         UMASK =>
             { type => 'umask', required => 0, default => '022' },
         GPT_TARBALL =>
-            { type => 'file', required => 1 },
+            { type => 'file', required => not $Opt{update} },
         BUNDLE =>
-            { type => 'array_of_bundle', required => 1 },
+            { type => 'array_of_bundle', required => not $Opt{update} },
         UPDATE =>
             { type => 'array_of_bundle', required => 0 },
         PRE_POSTINSTALL =>
@@ -2954,6 +2992,7 @@ Option names may be abbreviated uniquely.
     -postinstall        Run gpt-postinstall (default).
     -startup            Update system files and start services
                         (default is -nostartup)
+    -update             Apply an update to an existing Globus installation.
     -gpt-verbose        Pass -verbose option to gpt-install and/or gpt-build.
     -gpt-ignore-errors  Ignore errors from gpt-install and gpt-build.
     -aix-kludge         Use an existing GPT installation.
