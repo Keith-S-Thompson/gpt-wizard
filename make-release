@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: make-release,v 1.8 2003-06-06 17:53:14-07 kst Exp $
+# $Id: make-release,v 1.9 2003-07-01 02:37:48-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/make-release,v $
 
 use strict;
@@ -11,8 +11,6 @@ sub Edit_File($);
 sub Usage(@);
 
 $| = 1;
-
-Usage ">>> The make-release script needs to be updated to work with CVS\n";
 
 my $release_number = undef;
 if (scalar @ARGV == 1 and $ARGV[0] =~ /^\d[\d.]*\d$/) {
@@ -58,22 +56,33 @@ foreach my $file (@files) {
     print "$file { ", join(", ", @values), " }\n";
 }
 
+$ENV{CVS_RSH} = 'ssh';
+$ENV{CVSROOT} = '/projects/globus/kst/CVS';
+if (not -d $ENV{CVSROOT}) {
+    $ENV{CVSROOT} = 'kst@elmak.sdsc.edu:' . $ENV{CVSROOT};
+}
+
+print "CVS_RSH=$ENV{CVS_RSH}\n";
+print "CVSROOT=$ENV{CVSROOT}\n";
+
 foreach my $file (@files) {
     my $new_revision;
     if ($needs_editing{$file}) {
-        print "% co -l $file\n";
-        system 'co', '-l', $file;
         print "... Editing $file\n";
         Edit_File $file;
-        print "% ci -u $file\n";
-        system "/bin/echo 'Release $release_number' | ci -u $file";
+        print "% cvs commit $file\n";
+        system 'cvs', 'commit', '-m', "Release $release_number", $file;
         $new_revision = $Info->{$file}->{next_revision};
     }
     else {
         $new_revision = $Info->{$file}->{head_revision};
     }
-    print "% rcs -n$release_symbol:$new_revision $file\n";
-    system 'rcs', "-n$release_symbol:$new_revision", $file;
+    print "% cvs tag $release_symbol $file\n";
+    system 'cvs', 'tag', $release_symbol, $file;
+}
+
+if (not -d 'release') {
+    mkdir 'release', 0777;
 }
 
 my $release_dir = "release/gpt-wizard-$release_number";
@@ -100,8 +109,8 @@ system 'tar', 'zcf', $tarball, $dir;
 
 #
 # Returns a hash reference containing information about the file:
-#     head_revision : The head RCS revision of the file.
-#     next_revision : The next RCS revision of the file, obtained by
+#     head_revision : The head CVS revision of the file.
+#     next_revision : The next CVS revision of the file, obtained by
 #                     incrementing the head_revision.
 #     errors        : A multi-line error string, set only if the file is
 #                     modified or locked, or if there were problems
@@ -112,36 +121,15 @@ sub File_Info($) {
     my $result = {};
     my @errors = ();
     my $head_revision = undef;
-    #
-    # If the file is locked, the line immediately after the line starting
-    # with "locks:" will start with whitespace.
-    #
-    my $is_locked = 0;
 
-    my $locks_line = undef;
-    print "% rlog -h $file\n";
-    open PIPE, "rlog -h $file |";
+    print "% cvs log $file\n";
+    open PIPE, "cvs log $file |";
     while (<PIPE>) {
-        if (/^locks:/) {
-            $locks_line = $.;
-        }
-        elsif (defined $locks_line and $. == $locks_line + 1 and /^\s/) {
-            $is_locked = 1;
-        }
         if (/^head: (.*)$/) {
             $head_revision = $1;
         }
     }
     close PIPE;
-
-    if (defined $locks_line) {
-        if ($is_locked) {
-            push @errors, "$file is locked\n"
-        }
-    }
-    else {
-        push @errors, "Unable to determine whether $file is locked\n";
-    }
 
     if (defined $head_revision) {
         $result->{head_revision} = $head_revision;
@@ -152,12 +140,12 @@ sub File_Info($) {
     }
 
     #
-    # If there are any differences, the rcsdiff command will fail,
-    # which will set $?.  We also check (redundantly) whether rcsdiff
+    # If there are any differences, the "cvs diff" command will fail,
+    # which will set $?.  We also check (redundantly) whether "cvs diff"
     # printed any output.
     #
     my $is_modified = 0;
-    open PIPE, "rcsdiff $file 2>/dev/null |";
+    open PIPE, "cvs diff $file 2>/dev/null |";
     while (<PIPE>) {
         #
         # If we see anything on the pipe, the file is modified.
