@@ -1,0 +1,14 @@
+# $Id: lutefisk-nmi-7-test3-bin.gptw,v 1.1 2005-02-16 18:53:11-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-nmi-7-test3-bin.gptw,v $
+
+CONFIG_FILE_REVISION	$Revision: 1.1 $
+
+PATH		/usr/bin:/bin:/usr/local/apps/apache-ant-1.6.2/bin
+ENV		JAVA_HOME=/usr/local/apps/j2sdk1.4.2_05
+
+GLOBUS_LOCATION	/usr/local/apps/nmi-7-test3-bin
+
+GPT_TARBALL	~kst/src/gpt/gpt-3.2-src.tar.gz
+
+BUNDLE		~kst/NMI/7/globus-nmi-7.0-i686-pc-linux-gnu-bin.tar.gz             kind=binary
+BUNDLE		~kst/src/apst/nmi-build/apst-NMI-7.0-i686-pc-linux-gnu-bin.tar.gz  kind=binary
