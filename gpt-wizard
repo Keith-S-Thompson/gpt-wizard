@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.52 2002-08-19 10:33:13-07 kst Exp $
+# $Id: gpt-wizard,v 1.53 2002-08-19 11:13:24-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -48,6 +48,7 @@ sub Check_Services();
 sub Die_Handler($);
 sub Timestamp_Of($);
 sub Backup($);
+sub Test_File_Creation();
 sub Image($);
 sub Debug(@);
 sub Usage(@);
@@ -58,7 +59,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.52 $';
+my $Revision = Strip_Revision_String '$Revision: 1.53 $';
 my $Help      = undef;
 my $Debugging = undef;
 my $Cleanup   = 1;
@@ -805,6 +806,7 @@ sub Execute(@) {
     #
     # Process arguments
     #
+    Test_File_Creation if $Debugging;
     while ( scalar @args > 0 && $args[0] =~ /^-/) {
         my $arg = shift @args;
         if ($arg eq '-verbose') {
@@ -861,7 +863,7 @@ sub Execute(@) {
         Debug "setting \$> = $uid\n";
         $> = $uid;
 
-        Debug "\$<=$< \$>=$> \$(=$( \$)=$)\n";
+        Test_File_Creation if $Debugging;
     }
 
     if ($Verbose) {
@@ -954,7 +956,7 @@ sub Execute(@) {
         $> = $initial_uid;
     }
 
-    Debug "\$<=$< \$>=$> \$(=$( \$)=$)\n";
+    Test_File_Creation if $Debugging;
 
     return Get_Result $system_result, $Check;
 } # Execute
@@ -1107,6 +1109,20 @@ sub Backup($) {
     my $new_name = "$filename-$timestamp";
     rename $filename, $new_name or die "$new_name: $!\n";
 } # Backup
+
+# ----------------------------------------------------------------------
+
+sub Test_File_Creation() {
+    print ">>> File creation test\n";
+    print "\$<=$< \$>=$> \$(=\"$(\" \$)=\"$)\"\n";
+    my $file1 = "$working_dir/test-file-1";
+    my $file2 = "$working_dir/test-file-2";
+    open FILE1, ">$file1";
+    close FILE1;
+    system 'touch', $file2;
+    system 'ls', '-lsF', $file1, $file2;
+    unlink $file1, $file2;
+} # Test_File_Creation
 
 # ----------------------------------------------------------------------
 
