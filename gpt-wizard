@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.120 2002-11-21 13:45:20-08 kst Exp $
+# $Id: gpt-wizard,v 1.121 2002-11-22 07:50:27-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -120,7 +120,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.120 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.121 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -473,15 +473,15 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         elsif ($Is_Update{$bundle}) {
             @flavors = Get_Update_Flavors $bundle;
         }
-        elsif ($bundle_basename =~ /^globus/) {
-            my $mpi = $Config{USE_MPI} ? 'mpi' : '';
-            if ($bundle_basename =~ /^globus.information/) {
-                push @flavors, "$Config{CC}$Sys{BITS}dbgpthr$mpi";
-            }
-            else {
-                push @flavors, "$Config{CC}$Sys{BITS}dbg$mpi";
-            }
-        }
+#       elsif ($bundle_basename =~ /^globus/) {
+#           my $mpi = $Config{USE_MPI} ? 'mpi' : '';
+#           if ($bundle_basename =~ /^globus.information/) {
+#               push @flavors, "$Config{CC}$Sys{BITS}dbgpthr$mpi";
+#           }
+#           else {
+#               push @flavors, "$Config{CC}$Sys{BITS}dbg$mpi";
+#           }
+#       }
         else {
             push @options, '-std-flavors';
         }
