@@ -1,0 +1,34 @@
+# $Id: lutefisk-globus-3.2.0-2004-07-09.gptw,v 1.1 2004-07-09 14:19:08-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-globus-3.2.0-2004-07-09.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-3.2.0-2004-07-09
+GLOBUS_LOCAL_DIRECTORY /var/globus/globus-3.2.0-2004-07-09
+
+.PREFIX ~kst/Globus/3.2.0/gpt
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+#
+# Build Globus 3.2.0 from source (no updates)
+#
+.PREFIX ~kst/Globus/3.2.0/bundles/src
+
+BUNDLE globus-information-services-client-3.2-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-sdk-3.2-src_bundle.tar.gz    kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-server-3.2-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+
+BUNDLE globus-data-management-client-3.2-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-sdk-3.2-src_bundle.tar.gz         kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-server-3.2-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+
+BUNDLE globus-resource-management-client-3.2-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-sdk-3.2-src_bundle.tar.gz     kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-server-3.2-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+
+#
+# Create a binary bundle
+#
+CREATE_BINARY_BUNDLE dir=~globus name=globus version=3.2.0 label=3.2.0-2004-07-09
