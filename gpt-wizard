@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.250 2004-03-08 14:15:33-08 kst Exp $
+# $Id: gpt-wizard,v 1.251 2004-03-08 14:18:26-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -184,7 +184,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.250 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.251 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -872,7 +872,10 @@ if ($Opt{startup}) {
 }
 else {
     push @manual_steps,
-         "As root, run $Config{GLOBUS_LOCATION}/setup/globus/setup-gsi\n";
+         "As root, run $Config{GLOBUS_LOCATION}/setup/globus/setup-gsi\n" .
+         "-- OR --\n" .
+         "as $Config{INSTALLER_USER}, run " .
+         "$Config{GLOBUS_LOCATION}/setup/globus/setup-gsi -nonroot\n";
 }
 
 ########################################
