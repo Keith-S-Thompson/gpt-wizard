@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.8 2003-01-27 15:58:15-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.9 2003-03-04 01:35:20-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -43,7 +43,7 @@
 .\" 
 .\" @Copyright@
 .\" 
-.TH GPT-WIZARD 1 2003-01-27 SDSC
+.TH GPT-WIZARD 1 2003-03-04 SDSC
 .SH NAME
 gpt-wizard \- Build and install GPT bundles
 .SH SYNOPSIS
@@ -52,7 +52,7 @@ gpt-wizard \- Build and install GPT bundles
 .B "gpt-wizard [options] config-file"
 
 .SH VERSION
-This documentation is for release 0.1.1 of
+This documentation is for release 0.1.1+ of
 .IR gpt-wizard .
 
 .SH DESCRIPTION
@@ -81,6 +81,17 @@ manage it in such a way that any changes would be clobbered.)  The
 command keeps track of these manual steps and prints a summary.
 This summary is printed in a single well-marked block at the end of
 the output.
+
+The
+.I gpt-wizard
+command creates a directory called
+.I .gpt-wizard
+under the
+.I $GLOBUS_LOCATION
+directory.  This directory will contain a copy of the configuration
+file and a plain text file called
+.IR info ,
+which contains summary information about the build.
 
 I highly recommend capturing the output of each
 .I gpt-wizard
@@ -141,12 +152,11 @@ you don't want to run
 .IR gpt-postinstall .
 
 .IP -startup
-Update system files and start services.  This is the default behavior;
-use "-nostartup" if you don't want to do this.
+Update system files and start services.  The default is "-nostartup".
+(In previous releases, "-startup" was the default.)
 .br
 .B NOTE:
-This is currently implemented only on Linux systems.  On Solaris and AIX,
-the "-nostartup" option is mandatory.
+This is currently supported only on Linux systems.
 
 .IP -gpt-verbose
 Pass the "-verbose" option to
@@ -186,19 +196,22 @@ The
 command requires a configuration file to be specified on the
 command line.  The name of the file is irrelevant.  I typically use
 something like
-
-.B <machine-name>-globus-<version>-<kind>.conf
-
+.br
+.B "	<machine-name>-globus-<version>-<kind>.conf"
+.br
 for example,
-
-.B tf005i-globus-2.2.3-src.conf
-
+.br
+.B "	tf005i-globus-2.2.3-src.conf"
+.br
 but if you want to call it
 .B foobar.baz
 I won't complain.
 
 The configuration file is a plain text file with a simple syntax.
-Everything from a
+A
+.B '\\\\'
+character at the end of a line (possibly followed by whitespace) indicates
+a line continuation.  Everything from a
 .B '#'
 character to the end of the line is treated as a comment and ignored.
 (This means that a variable value cannot include a
@@ -206,7 +219,11 @@ character to the end of the line is treated as a comment and ignored.
 character; there is no mechanism for specifing a literal
 .BR '#' .)
 Leading whitespace, trailing whitespace, and empty lines are also
-ignored.
+ignored.  The effect of combining
+.B '\\\\'
+and
+.B '#'
+characters on the same physical line is undefined; don't try it.
 
 Each line consists of a variable name, followed by whitespace, followed
 by the value of the variable.  All variable names must be specified
@@ -226,23 +243,37 @@ Some variables specifying file names may also be given as URLs starting
 with "ftp://" or "http://".
 .I gpt-wizard
 uses the
-.I ncftpget
-command for ftp URLs, and the
 .I wget
-command for http URLs; these commands must be available in
-.BR $PATH .
-Downloaded files are automatically cached under the directory specified
-by the
+command for both ftp and http URLs; if the wget command does not
+appear in the
+.B PATH
+defined in the configuration file, the full path name may be specified
+(see the
+.B WGET
+configuration variable, below).  Downloaded files are automatically
+cached under the directory specified by the
 .B DOWNLOAD_DIR
 configuration variable.
 
 For security reasons, certificate and key files may not be specified
-as URLS; they must be available as local files.
+as URLS.  They must be available as local files.
 
 .SH CONFIGURATION OPTIONS
 
+.IP .PREFIX
+This is a pseudo-option.  It specified a default prefix to be prepended,
+with a
+.B '/'
+character, to any following file name or URL given as a relative path
+name.  It can be used to avoid extremely long lines in configuration
+files.
+
 .IP CONFIG_FILE_REVISION
 Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
+.br
+Example:
+.br
+.B "	CONFIG_FILE_REVISION $Revision: 1.9 $"
 .br
 Type: string
 .br
@@ -256,7 +287,8 @@ under the specified directory.
 .br
 Type: existing directory
 .br
-Optional.  Default is "/tmp".
+Optional.  Default is "/tmp".  This must be specified as an absolute
+pathname.
 
 .IP DOWNLOAD_DIR
 Directory to be used for downloaded files.
@@ -264,14 +296,30 @@ Directory to be used for downloaded files.
 Type: existing directory
 .br
 Required if any files are specified as URLs; otherwise optional.
-If any files are specified as URLs, they will be downloaded into
-subdirectories of this directory.  For any files that have already
-been downloaded, the local copy will be used.
+This must be specified as an absolute pathname.  If any files are
+specified as URLs, they will be downloaded into subdirectories of
+this directory.  For any files that have already been downloaded,
+the local copy will be used.
+
+.IP WGET
+The full path name of the
+.I wget
+command, used to downloaded files specified as ftp or http URLs.
+.br
+Type: executable file
+.br
+Optional.  This is only necessary if some files are specified as
+URLs and the
+.I wget
+command does not appear in the
+.B PATH
+specified in the configuration file.
 
 .IP PATH
 The value for the
 .B $PATH
 environment variable.
+.br
 Mandatory.
 
 .IP ENV
@@ -555,7 +603,9 @@ please let me know as soon as possible by e-mail to
 .SH REFERENCES
 .IP GPT
 GPT is the Grid Packaging Toolkit, developed at NCSA.  It is the
-method used to install Globus for releases 2.0 and later.
+method used to install Globus for releases 2.0 and later.  A version
+is provided with the Globus Toolkit; see also
+.IR <http://www.ncsa.uiuc.edu/Divisions/ACES/GPT/> .
 
 .IP "Globus Project"
 The Globus Project develops the Globus Toolkit.  If you've read this far,
@@ -577,7 +627,7 @@ The San Diego Supercomputer Center,
 .IR <http://www.sdsc.edu> .
 The author of
 .I gpt-wizard
-works there.
+works there.  Hi.
 
 .IP NCSA
 The National Center for Supercomputing Applications,
