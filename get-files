@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: get-files,v 1.4 2002-12-20 16:18:37-08 kst Exp $
+# $Id: get-files,v 1.5 2002-12-20 16:23:45-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/get-files,v $
 
 use strict;
@@ -13,8 +13,6 @@ sub Debug(@);
 sub Execute(@);
 
 $| = 1;
-
-Usage if scalar @ARGV != 3;
 
 my $Program_Name    = File::Basename::basename $0;
 my $Source_Host     = 'elmak.sdsc.edu';
