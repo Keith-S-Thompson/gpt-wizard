@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: get-files,v 1.5 2002-12-20 16:23:45-08 kst Exp $
+# $Id: get-files,v 1.6 2002-12-20 16:35:20-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/get-files,v $
 
 use strict;
@@ -41,7 +41,7 @@ close LIST;
 chomp @files;
 
 foreach my $file (@files) {
-    if (substr($file, 0, length $Local_Base_Dir) ne $Local_Base_Dir) {
+    if ($file !~ /^\Q$Local_Base_Dir\E/) {
         die "${file} doesn't start with \"${Local_Base_Dir}\"\n";
     }
 }
@@ -73,8 +73,8 @@ foreach my $file (@files) {
     if (-e $file and $Force) {
         Execute 'rm', '-f', $file;
     }
-    my $remote_file = $Remote_Base_Dir .
-                      substr($file, length $Local_Base_Dir);
+    my $remote_file = $file;
+    $remote_file =~ s/^\Q$Local_Base_Dir\E/$Remote_Base_Dir/;
     Execute 'scp', '-p', "${Source_Host}:$remote_file", $file;
 }
 
