@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.239 2004-02-17 05:00:40-08 kst Exp $
+# $Id: gpt-wizard,v 1.240 2004-02-17 16:24:55-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -143,6 +143,10 @@
 #     only be one, since we don't actually use "-background"); modify
 #     Signal_Handler() to kill them.
 #
+#     In Get_Config(), bail out after, say, 100 errors (so it doesn't
+#     go insane when I feed it a multi-megabyte log file rather than a
+#     config file).
+#
 
 require 5.004;
 
@@ -190,7 +194,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.239 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.240 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
