@@ -1,0 +1,29 @@
+# $Id: uffda-globus-2.4.3-gcc-test-update1.gptw,v 1.1 2004-03-08 16:59:26-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-globus-2.4.3-gcc-test-update1.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3-gcc-test
+GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3-gcc-test
+
+.PREFIX ~kst/repo.teragrid.org/open/globus/2.4.3
+
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+#
+# globus_gram_reporter support
+#
+BUNDLE globus_gram_reporter-2.0.tar.gz                             kind=source flavor=gcc32dbg
+BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz                  kind=source flavor=gcc32dbg
+
+#
+# Apply all currently available updates
+#
+UPDATE updates/globus_gridftp_server-1.12.tar.gz
+UPDATE updates/globus_ldapmodules-0.14.tar.gz
+UPDATE updates/globus_openldap-2.0.22.tar.gz
+UPDATE updates/globus_common-3.17.tar.gz
+UPDATE updates/globus_ftp_client-1.10.tar.gz
+UPDATE updates/globus_openssl-0.19.tar.gz
