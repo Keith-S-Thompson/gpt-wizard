@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.281 2004-05-05 13:37:03-07 kst Exp $
+# $Id: gpt-wizard,v 1.282 2004-05-05 16:25:49-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -205,7 +205,7 @@ my $Release_Revision = '1.280'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.281 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.282 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -419,13 +419,15 @@ if (not $Opt{cleanup}) {
 }
 
 if ($Config{INTEL_WORKAROUND}) {
-    my $filename = "$working_dir/ICPCCFG";
-    open ICPCCFG, ">$filename" or die "${filename}: $!\n";
-    print ICPCCFG "-no-gcc\n";
-    close ICPCCFG;
+    my $filename = "$working_dir/icccfg";
+    open ICCCFG, ">$filename" or die "${filename}: $!\n";
+    print ICCCFG "-no-gcc\n";
+    close ICCCFG;
+    $ENV{ICCCFG} = $filename;
     $ENV{ICPCCFG} = $filename;
-    print "% Setting ICPCCFG=$filename\n";
-    print "  (file contains \"-no-gcc\")\n";
+    print "% setting ICCCFG=$filename\n";
+    print "% setting ICPCCFG=$filename\n";
+    print "% ($filename contains \"-no-gcc\")\n";
 }
 
 ########################################################################
