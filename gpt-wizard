@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.130 2002-12-27 17:19:11-08 kst Exp $
+# $Id: gpt-wizard,v 1.131 2003-01-09 11:13:41-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -86,6 +86,10 @@
 #     If GLOBUS_LOCATION is specified, set $GLOBUS_LOCATION
 #     environment variable in inetd.conf or xinetd config files.
 #
+#     Add an "env" configuration option to set environment variables.
+#     (This is a generalization of PATH -- which should still be specified
+#     separately, since we always want to set $PATH explicitly.)
+#
 
 use strict;
 
@@ -122,7 +126,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.130 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.131 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
