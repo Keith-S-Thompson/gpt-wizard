@@ -1,7 +1,15 @@
-$Id: Relnotes,v 1.9 2004-02-12 14:53:33-08 kst Exp $
+$Id: Relnotes,v 1.10 2004-02-14 16:54:22-08 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.5.1 to release 0.6:
+
+    gpt-wizard can now be executed from a non-root account (finally!).
+    Any actions that need to be performed by root are added to the
+    list of manual steps at the end of the output log.
+
+    Some cleanup in the man page.
 
 Changes from release 0.5 to release 0.5.1:
 
