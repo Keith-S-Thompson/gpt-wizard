@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.1 2002-08-08 02:02:25-07 kst Exp $
+# $Id: gpt-wizard,v 1.2 2002-08-08 02:11:13-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -52,7 +52,7 @@ my $globus_gid = $globus_gr[2];
 die ">>> globus_uid = $globus_uid\n" unless $globus_uid > 0;
 die ">>> globus_gid = $globus_gid\n" unless $globus_gid > 0;
 
-my $gpt_rpm           = '/home/kst/src/NMI/tools/gpt-2.1-1.i386.rpm';
+my $gpt_tarball       = '/home/kst/src/NMI/tools/gpt-2.1-src.tar.gz';
 my $bundle_dir        = '/home/kst/src/NMI/linux/gpt-bundles';
 my $nmi_client_bundle = "$bundle_dir/nmi-client-NMI-1.0.0-i686.gpt.tar.gz";
 my $nmi_server_bundle = "$bundle_dir/nmi-server-NMI-1.0.0-i686.gpt.tar.gz";
@@ -60,18 +60,27 @@ my $nmi_server_bundle = "$bundle_dir/nmi-server-NMI-1.0.0-i686.gpt.tar.gz";
 #
 # Install GPT in /usr/grid
 #
+my $tmp_dir = "/tmp/gpt-build-$$";
 print Time_Image, "\n";
-Execute '-time', '-verbose', '-check', 'rpm', '-ivh', $gpt_rpm;
+mkdir $tmp_dir or die "$tmp_dir: $!\n";
+chown $globus_uid, $globus_gid, $tmp_dir or die "$tmp_dir: $!\n";
+chdir $tmp_dir or die "$tmp_dir: $!\n";
+Execute '-user=globus', '-time', '-verbose', '-check',
+        'tar', 'zxf', $gpt_tarball;
+chdir "gpt-2.1" or die "gpt-2.1: $!\n";
+$ENV{GPT_LOCATION} = '/usr/local/apps/gpt-2.1';
+Execute '-user=globus', '-time', '-verbose', '-check', './build_gpt';
 unlink '/etc/profile.d/gpt.sh', '/etc/profile.d/gpt.csh';
+chdir $ENV{HOME};
+system 'rm', '-rf', $tmp_dir;
 
 #
 # Confirm GPT installation
 #
-$ENV{GPT_LOCATION} = '/usr/grid';
 Execute '-user=globus', '-time', '-verbose', '-check',
         "$ENV{GPT_LOCATION}/sbin/gpt-install", "-version";
 
-$ENV{GLOBUS_LOCATION} = '/usr/nmi';
+$ENV{GLOBUS_LOCATION} = '/usr/local/apps/nmi-1.0.0';
 mkdir $ENV{GLOBUS_LOCATION} or die "$ENV{GLOBUS_LOCATION}: $!\n";
 chown $globus_uid, $globus_gid, $ENV{GLOBUS_LOCATION}
     or die "$ENV{GLOBUS_LOCATION}: $!\n";
