@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.138 2003-01-23 18:41:52-08 kst Exp $
+# $Id: gpt-wizard,v 1.139 2003-01-23 19:55:41-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -137,7 +137,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.138 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.139 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -311,6 +311,9 @@ foreach my $var (qw(GPT_TARBALL GRID_MAPFILE CA_CERT_TARBALL)) {
 
 for (my $i = 0; $i <= $#{$Config{BUNDLE}}; $i ++) {
     push @file_refs, \$Config{BUNDLE}->[$i];
+}
+for (my $i = 0; $i <= $#{$Config{UPDATE}}; $i ++) {
+    push @file_refs, \$Config{UPDATE}->[$i];
 }
 
 Download_Files @file_refs;
@@ -1557,8 +1560,8 @@ sub Download_Files(@) {
                 $target_file = $Downloaded_File{$$ref};
             }
             else {
-                my $target_dir  = sprintf "%s/%03d",
-                                          $working_dir, $download_index++;
+                my $target_dir = sprintf "%s/%03d",
+                                         $working_dir, $download_index++;
                 $target_file = "$target_dir/" .
                                File::Basename::basename $$ref;
 
@@ -1585,6 +1588,9 @@ sub Download_Files(@) {
                 elsif (-s $target_file == 0) {
                     die "Download failed for $target_file (empty file)\n";
                 }
+                open URL, ">$target_dir/.url" or die "$target_dir/$url: $!\n";
+                print URL "$$ref\n";
+                close URL;
             }
 
             if (defined $Bundle_Kind{$$ref}) {
