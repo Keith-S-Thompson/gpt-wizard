@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.222 2004-02-02 17:24:20-08 kst Exp $
+# $Id: gpt-wizard,v 1.223 2004-02-08 13:39:22-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -221,7 +221,7 @@ my $Release_Revision = '1.221'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.222 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.223 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -514,7 +514,7 @@ else {
 }
 
 ########################################
-# Run build-gpt to install GPT
+# Run build_gpt to install GPT
 ########################################
 if (not $AIX_Kludge) {
     #
