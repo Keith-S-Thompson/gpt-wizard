@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.158 2003-02-27 21:59:47-08 kst Exp $
+# $Id: gpt-wizard,v 1.159 2003-02-27 22:17:44-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -171,7 +171,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.158 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.159 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1061,6 +1061,42 @@ sub File_Or_URL_Error(@) {
 # ----------------------------------------------------------------------
 
 #
+# Returns the next line from the file.
+# A trailing '\', possibly followed by whitespace, indicates a line
+# continuation.
+# Comments (introduced by '#') are stripped.
+# Leading and trailing whitespace are stripped.
+#
+# The '\' may be followed by whitespace, but not by a comment.
+# Any '#' character introduces a comment; there is no provision for
+# escaping a '#' character.
+# 
+sub Next_Line($) {
+    my($file) = @_;
+
+    my $result = <$file>;
+    return $result if not defined $result; # end of file
+
+    while ($result =~ /\\\s*$/) {
+        chomp $result;
+        $result =~ s/\\\s*$//;
+        my $contin = <$file>;
+        if (defined $contin) {
+            $result .= $contin;
+        }
+        else {
+            die "Last line ends with '\\'\n";
+        }
+    }
+    $result =~ s/#.*$//;
+    $result =~ s/^\s+//;
+    $result =~ s/\s+$//;
+    return $result;
+} # Next_Line;
+
+# ----------------------------------------------------------------------
+
+#
 # Read and parse the config file (name given on the command line) and
 # return the results as a hash (to be assigned to the global %Config).
 #
@@ -1138,16 +1174,7 @@ sub Get_Config($) {
     # Check for duplicate entries, unrecognized names, and syntax errors.
     #
     open CONFIG, $config_file or die "$config_file: $!\n";
-    while (<CONFIG>) {
-        #
-        # Strip comments (note that '#' introduces a comment, even in
-        # a string literal).
-        # Strip leading and trailing whitespace.
-        # Skip empty lines.
-        #
-        s/#.*$//;
-        s/^\s+//;
-        s/\s+$//;
+    while (defined ($_ = Next_Line 'CONFIG')) {
         next if /^$/;
         if (/^(\w+)\s+(.*)$/) {
             my ($name, $value) = ($1, $2);
