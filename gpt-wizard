@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.12 2002-08-10 16:25:18-07 kst Exp $
+# $Id: gpt-wizard,v 1.13 2002-08-10 16:26:27-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 use strict;
@@ -23,9 +23,9 @@ my $Prog_Name = File::Basename::basename $0;
 my $Help = undef;
 my $Debugging = undef;
 my $Cleanup = 1;
-my @Options = ( 'help'      => \$Help,
-                'debugging' => \$Debugging,
-                'cleanup!' => \$Cleanup );
+my @Opts = ( 'help'      => \$Help,
+             'debugging' => \$Debugging,
+             'cleanup!' => \$Cleanup );
 Getopt::Long::GetOptions @Opts or Usage;
 Usage if $Help;
 
