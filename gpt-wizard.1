@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.20 2003-07-01 11:51:47-07 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.21 2003-07-28 16:56:40-07 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -281,7 +281,7 @@ Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
 .br
 Example:
 .br
-.B "	CONFIG_FILE_REVISION $Revision: 1.20 $"
+.B "	CONFIG_FILE_REVISION $Revision: 1.21 $"
 .br
 Type: string
 .br
@@ -549,9 +549,7 @@ Optional.
 The name of a file containing the Globus LDAP certificate, to be used
 for non-anonymous MDS queries (see the
 .I grid-info-search
-command).
-It will be be
-copied to
+command).  It will be copied to
 .IR /etc/grid-security/ldap/ldapcert.pem .
 .br
 Type: file name
@@ -562,7 +560,7 @@ Optional.
 The name of a file containing the Globus LDAP private key, to be used
 for non-anonymous MDS queries (see the
 .I grid-info-search
-command).  It will be be copied to
+command).  It will be copied to
 .IR /etc/grid-security/ldap/ldapkey.pem .
 .br
 Type: file name
