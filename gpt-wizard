@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.9 2002-08-09 19:58:07-07 kst Exp $
+# $Id: gpt-wizard,v 1.10 2002-08-10 16:05:36-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 use strict;
@@ -12,13 +12,21 @@ use POSIX ();
 sub Get_Config($);
 sub Substitute($);
 sub Elapsed_Time_Image($);
-sub Time_Image();
+sub Time_Image($);
 sub Make_Temp_File($);
 sub Get_Result($$);
 sub Execute(@);
+sub Debug(@);
 sub Usage(@);
 
 my $Prog_Name = File::Basename::basename $0;
+my $Help = undef;
+my $Debugging = undef;
+my $Cleanup = 1;
+my @Options = ( 'help'      => \$Help,
+                'debugging' => \$Debugging,
+                'cleanup!' => \$Cleanup );
+
 my $temp_file_serial_number = 0;
 
 Usage if scalar @ARGV != 1;
@@ -40,10 +48,6 @@ if ($< != 0) {
 
 $| = 1;
 
-my $start_dir = `pwd`;
-die "pwd failed\n" if $? != 0;
-chomp $start_dir;
-
 if ($Config{OS} ne 'linux') {
     die "Unsupported OS: $Config{OS}\n";
 }
@@ -61,23 +65,26 @@ my $bundle_dir        = '/home/kst/src/NMI/linux/gpt-bundles';
 my $nmi_client_bundle = "$bundle_dir/nmi-client-NMI-1.0.0-i686.gpt.tar.gz";
 my $nmi_server_bundle = "$bundle_dir/nmi-server-NMI-1.0.0-i686.gpt.tar.gz";
 
+print Time_Image time, "\n";
+
+$ENV{PATH} = $Config{PATH};
+
+my $tmp_dir = "$Config{TEMP_DIR}/install-nmi-" . time . "-$$";
+mkdir $tmp_dir or die "$tmp_dir: $!\n";
+chown $globus_uid, $globus_gid, $tmp_dir or die "$tmp_dir: $!\n";
+chmod 0700, $tmp_dir or warn "$tmp_dir: $!\n";
+chdir $tmp_dir or die "$tmp_dir: $!\n";
+
 #
 # Install GPT
 #
-my $tmp_dir = "/tmp/gpt-build-$$";
-print Time_Image, "\n";
-mkdir $tmp_dir or die "$tmp_dir: $!\n";
-chown $globus_uid, $globus_gid, $tmp_dir or die "$tmp_dir: $!\n";
-chdir $tmp_dir or die "$tmp_dir: $!\n";
 Execute @As_Globus, 'tar', 'zxf', $Config{GPT_TARBALL};
-my $gpt_src_dir = File::Basename::basename $Config{GPT_TARBALL};
-$gpt_src_dir =~ s/\.tar\.gz$//;
-$gpt_src_dir =~ s/-src$//;
-chdir $gpt_src_dir or die "${gpt_src_dir}: $!\n";
+chdir $Config{GPT_SRC_DIR} or die "$Config{GPT_SRC_DIR}: $!\n";
 $ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
 mkdir $ENV{GPT_LOCATION} or die "$ENV{GPT_LOCATION}: $!\n";
 chown $globus_uid, $globus_gid, $ENV{GPT_LOCATION}
     or die "$ENV{GPT_LOCATION}: $!\n";
+chmod 0755, $ENV{GPT_LOCATION} or die "$ENV{GPT_LOCATION}: $!\n";
 Execute @As_Globus, './build_gpt';
 
 #
@@ -94,16 +101,12 @@ if (@files_to_delete) {
     unlink @files_to_delete or warn ">>> $!\n";
 }
 
-print "% chdir $start_dir\n";
-chdir $start_dir or die "${start_dir}: $!\n";
-Execute '-verbose', 'rm', '-rf', $tmp_dir;
-
 #
 # Confirm GPT installation
 #
 Execute @As_Globus, "$ENV{GPT_LOCATION}/sbin/gpt-install", '-version';
 
-$ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATIN};
+$ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
 mkdir $ENV{GLOBUS_LOCATION} or die "$ENV{GLOBUS_LOCATION}: $!\n";
 chown $globus_uid, $globus_gid, $ENV{GLOBUS_LOCATION}
     or die "$ENV{GLOBUS_LOCATION}: $!\n";
@@ -113,8 +116,6 @@ foreach my $bundle ( $Config{NMI_CLIENT_BUNDLE},
 {
     Execute @As_Globus, "$ENV{GPT_LOCATION}/sbin/gpt-install", $bundle;
 }
-
-my $input_file;
 
 Execute @As_Globus, "-input=0\n0\nn\n\n",
         "$ENV{GPT_LOCATION}/sbin/gpt-postinstall";
@@ -161,6 +162,11 @@ Execute qw(-verbose -check), qw(/etc/init.d/xinetd reload);
 Execute qw(-verbose -check -user=globus),
         "$ENV{GLOBUS_LOCATION}/sbin/SXXgris", 'start';
 
+chdir $ENV{HOME};
+if ($Cleanup) {
+    Execute '-verbose', 'rm', '-rf', $tmp_dir;
+}
+
 ########################################################################
 
 #
@@ -173,7 +179,10 @@ sub Get_Config($) {
     print "Getting configuration from $config_file\n";
 
     my %options = ( OS                => 0,
-                    GPT_BUNDLE        => 0,
+                    TEMP_DIR          => 0,
+                    PATH              => 0,
+                    GPT_TARBALL       => 0,
+                    GPT_SRC_DIR       => 0,
                     NMI_CLIENT_BUNDLE => 0,
                     NMI_SERVER        => 0,
                     GPT_LOCATION      => 0,
@@ -233,12 +242,9 @@ sub Get_Config($) {
     #
     $Result{OS} = lc $Result{OS};
 
-#   if ($Debugging) {
-#       print "Result:\n";
-#       foreach my $key (sort keys %Result) {
-#           printf "    %-20s => \"%s\"\n", $key, $Result{$key};
-#       }
-#   }
+    foreach my $key (sort keys %Result) {
+        printf "    %-20s => \"%s\"\n", $key, $Result{$key};
+    }
     return %Result;
 } # Get_Config
 
@@ -275,34 +281,21 @@ sub Elapsed_Time_Image($) {
 
 # ----------------------------------------------------------------------
 
-sub Time_Image() {
-    #
-    # Kludge: There's no good way (as far as I know) to get the name
-    # of the time zone, so we invoke "date +%Z" and grab the output.
-    # Barring a lot of extra work, this works only for the current time,
-    # which is why this version of Time_Image has no time parameter.
-    #
-    # There's a tiny chance of a glitch around DST transitions, since the
-    # calls to the time function and the date program aren't simultaneous.
-    # Oh well.
-    #
+sub Time_Image($) {
+    my($time) = @_;
     my($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst)
-        = localtime time;
-    my $tz = `date +%Z`;
-    chomp $tz;
-    my $result;
-
-    return sprintf "%s %04d-%02d-%02d %02d:%02d:%02d %s",
+        = gmtime time;
+    return sprintf "%s %04d-%02d-%02d %02d:%02d:%02d UTC",
                    (qw(Sun Mon Tue Wed Thu Fri Sat))[$wday],
-                   1900+$year, 1+$mon, $mday, $hour, $min, $sec, $tz;
+                   1900+$year, 1+$mon, $mday, $hour, $min, $sec;
 } # Time_Image
 
 # ----------------------------------------------------------------------
 
 sub Make_Temp_File($) {
     my($content) = @_;
-    my $filename = sprintf "/tmp/tmp-%d-%d-%02d",
-                           time, $$, $temp_file_serial_number ++;
+    my $filename = sprintf "$Config{TEMP_DIR}/input-%02d",
+                           $temp_file_serial_number ++;
     open TMP, ">$filename" or die "${filename}: $!\n";
     print TMP $content;
     close TMP;
@@ -362,6 +355,7 @@ sub Execute(@) {
     my @after;
     my $system_result;
 
+    Debug "Execute @args\n";
     #
     # Process arguments
     #
@@ -397,6 +391,7 @@ sub Execute(@) {
         }
     }
 
+    Debug "   args = @args\n";
     if (defined $User) {
         my @pw = getpwnam $User;
         die "${User}: No such user\n" if not @pw;
@@ -422,6 +417,7 @@ sub Execute(@) {
     }
 
     if ($Verbose) {
+        Debug "Building command_string, args = @args\n";
         my $command_string = '% ';
         $command_string .= "[$User] " if defined $User;
         $command_string .= 'time ' if $Time;
@@ -501,15 +497,26 @@ sub Execute(@) {
         exit(($system_result & 0xff00) >> 8);
     }
 
-    return Get_Result($system_result, $Check);
+    return Get_Result $system_result, $Check;
 } # Execute
+
+# ----------------------------------------------------------------------
+
+sub Debug(@) {
+    print @_ if $Debugging;
+} # Debug
 
 # ----------------------------------------------------------------------
 
 sub Usage(@) {
     print @_ if @_;
     print <<"EOF";
-Usage: $Prog_Name config_file
+Usage: $Prog_Name [options] config_file
+    -help      : Display this message and exit
+    -cleanup   : Delete temporary directory on completion (default)
+    -nocleanup : Do not delete temporary directory
+    -debugging : Enable debugging
+
 EOF
     exit 1;
 } # Usage
