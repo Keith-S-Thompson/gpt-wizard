@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.224 2004-02-11 20:17:45-08 kst Exp $
+# $Id: gpt-wizard,v 1.225 2004-02-11 20:39:49-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -140,38 +140,14 @@
 #     an overview of gpt, particularly the distinction between bundles
 #     and packages (and mention rpms).
 #
-#     Support adding updates to an existing installation.
+#     Support adding updates to an existing installation, including
+#     adding information to the $GLOBUS_LOCAITON/.gpt-wizard directory.
 #
 #     Allow a bundle to be built with different options for different
 #     flavors (e.g., use "-static" only for an mpi flavor).
 #
 #     For updates, figure out how to apply options (particularly
 #     "-static") depending on how the package was initially built.
-#
-#     For a binary installation, we need to do the following:
-#         gpt-build -nosrc <flavors>
-#     to create globus_config.h file(s).  This is necessary for
-#     all flavors used for sdk packages (details?).
-#     The command for GPT 1 is
-#         globus-build -install-only globus_core-99.tar.gz <flavors>
-#     It's probably not worth supporting that.
-#     Possible approach:
-#         The configuration information returned by Get_Config should be
-#         enough to get a list of all the flavors being built.  (Currently
-#         some of that information is stored in separate hashes; I want
-#         to change that anyway).  Before invoking gpt-postinstall, run
-#         "gpt-build -nosrc <flavors>", where <flavors> is the list of
-#         flavors for which
-#             $GLOBUS_LOCATION/include/globus_config.h
-#         doesn't exist.
-#     Another possible approach:
-#         After installating everything, look under $GLOBUS_LOCATION
-#         to determine which flavors need globus_config.h -- i.e.,
-#         any subdirectory of $GLOBUS_LOCATION/include that contains a
-#         globus_common.h file but not a globus_config.h file.
-#     See <http://www-fp.globus.org/gt2.4/install.html>.
-#
-#     Drop support for GPT 1.X.
 #
 #     Take another look for the scripts on which Fix_Setup_Script
 #     is invoked.  Drop any that are no longer relevant.
@@ -226,7 +202,7 @@ my $Release_Revision = '1.221'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.224 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.225 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -554,31 +530,24 @@ unlink '/etc/profile.d/gpt.sh',
 my $gpt_install_command = undef;
 my $gpt_build_command   = undef;
 my $sbin_dir = "$Config{GPT_LOCATION}/sbin";
-my $using_old_gpt;
 
 if (-x "$sbin_dir/gpt-install" and -x "$sbin_dir/gpt-build") {
     $gpt_install_command = "$sbin_dir/gpt-install";
     $gpt_build_command   = "$sbin_dir/gpt-build";
-    $using_old_gpt = 0;
 }
 elsif (-x "$sbin_dir/globus-install" and -x "$sbin_dir/globus-build") {
-    $gpt_install_command = "$sbin_dir/globus-install";
-    $gpt_build_command   = "$sbin_dir/globus-build";
-    $using_old_gpt = 1;
+    die "gpt-wizard no longer supports GPT release 1\n",
+        "Use GPT release 2 or higher.\n";
 }
 else {
     die "Can't find install and build commands in $sbin_dir\n";
 }
 
 #
-# Verify GPT installation.
-# For recent releases of GPT, verify that "gpt-install -version" succeeds.
-# In older releases, globus-install doesn't support the "-version"
-# option; we've already checked that the command exists.
+# Verify GPT installation by verifying that "gpt-install -version"
+# succeeds.
 #
-if (not $using_old_gpt) {
-    Execute @As_Installer, $gpt_install_command, '-version';
-}
+Execute @As_Installer, $gpt_install_command, '-version';
 
 ########################################################################
 # Install bundles (presumably Globus et al)
@@ -705,7 +674,7 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         # Using gpt-install to install a binary or RPM bundle.
         #
         my @options = ();
-        if ($GPT_Verbose and not $using_old_gpt) {
+        if ($GPT_Verbose) {
             push @options, '-verbose';
         }
         #
@@ -727,6 +696,37 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         # Perl to print more information about the location of the error.
         #
         die "Internal error, \$bundle_kind = \"$bundle_kind\"";
+    }
+}
+
+########################################
+# A binary installation does not include the globus_config.h header
+# file.  It must be generated with "gpt-build -nosrc <flavors>".
+#
+# We need to determine the set of flavors for which this is needed.
+# Method: For each subdirectory of $GLOBUS_LOCATION/include, if the
+# subdirectory contains globus_common.h but not globus_config.h, add
+# the subdirectory name to the list of flavors.
+########################################
+my @nosrc_flavors = ();
+my $include_dir = "$ENV{GLOBUS_LOCATION}/include";
+if (-d $include_dir) {
+    opendir DIR, $include_dir or die "$include_dir: $!\n";
+    my @subdirs = sort
+                      grep { $_ ne '.' and
+                             $_ ne '..' and
+                             -d "$include_dir/$_" }
+                          readdir DIR;
+    foreach my $subdir (@subdirs) {
+        if (-e "$include_dir/$subdir/globus_common.h" and
+            not -e "$include_dir/$subdir/globus_config.h")
+        {
+            push @nosrc_flavors, $subdir;
+        }
+    }
+    if (@nosrc_flavors) {
+        Execute @As_Installer_GPT,
+                $gpt_build_command, '-nosrc', @nosrc_flavors;
     }
 }
 
