@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.54 2004-05-05 13:37:04-07 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.55 2004-05-07 23:10:08-07 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -314,9 +314,10 @@ Optional.
 .IP IS_UPDATE
 Specifies that this configuration file is for an update to an existing
 Globus installation.  If this is specified, the GLOBUS_LOCATION
-directory must already exist, and must contain a Globus installation,
-and the GPT_TARBALL option may not be specified.  This feature is
-new in release 0.7.0, and should be used with some caution.
+directory must already exist and should contain a Globus installation;
+also, the GPT_TARBALL and GLOBUS_LOCAL_DIRECTORY variables may not
+be specified.  This feature is new in release 0.7.0, and should be
+used with some caution.
 .br
 (This is not to be confused with the UPDATE option, which specifies
 an update package.  UPDATE options may be given either for new Globus
