@@ -1,0 +1,36 @@
+# $Id: lutefisk-globus-3.9.3-prews.gptw,v 1.1 2004-11-10 20:40:53-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-globus-3.9.3-prews.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+# PATH /usr/bin:/bin:/opt/torque/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
+# PATH /usr/bin:/bin:/usr/local/apps/mpich-1.2.5.3/bin
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-3.9.3-prews
+GLOBUS_LOCAL_DIRECTORY /var/globus/globus-9.3.3-prews
+
+.PREFIX ~kst/Globus/3.9.3/gt3.9.3-prews-source-installer
+GPT_TARBALL gpt-3.2autotools2004-src.tar.gz
+
+#
+# Build Globus 3.9.3 (pre-ws) from source
+#
+
+.PREFIX ~kst/Globus/3.9.3/gt3.9.3-prews-source-installer/bundles
+
+BUNDLE globus-information-services-client-3.9-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-sdk-3.9-src_bundle.tar.gz    kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-server-3.9-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+
+BUNDLE globus-data-management-client-3.9-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-sdk-3.9-src_bundle.tar.gz         kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-server-3.9-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+
+BUNDLE globus-resource-management-client-3.9-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-sdk-3.9-src_bundle.tar.gz     kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-server-3.9-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+
+.PREFIX ~kst/Globus/3.9.3/gt3.9.3-prews-source-installer/contrib
+BUNDLE gsi_openssh_bundle-3.5-src.tar.gz                        kind=source flavor=gcc32dbg
+BUNDLE myproxy-1.14.tar.gz                                      kind=source flavor=gcc32dbg
