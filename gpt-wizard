@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.211 2003-08-12 20:08:09-07 kst Exp $
+# $Id: gpt-wizard,v 1.212 2003-08-14 17:08:06-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -194,7 +194,7 @@ my $Release_Revision = '1.211'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.211 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.212 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -826,7 +826,7 @@ if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
 }
 
 ########################################
-# Configure batch jobmanager
+# Configure batch jobmanager (old style)
 ########################################
 #
 # This is obsolete as of Globus 2.2
@@ -839,6 +839,18 @@ if (defined $Config{BATCH_SYSTEM}) {
     push @manual_steps,
          "Fix $Config{GLOBUS_LOCATION}/libexec/" .
          "globus-script-$Config{BATCH_SYSTEM}-* if necessary\n";
+}
+
+########################################
+# Configure batch jobmanager (new style)
+########################################
+if (defined $Config{JOB_MANAGER}) {
+    my @fields = split /\s+/, $Config{JOB_MANAGER};
+    my $jobmanager = shift @fields;
+    my $setup_dir = "$Config{GLOBUS_LOCATION}/setup/globus";
+    Execute $Using_RPM ? @As_Root : @As_Installer,
+        "$setup_dir/setup-globus-job-manager-$jobmanager",
+        @fields;
 }
 
 ########################################
@@ -1344,6 +1356,8 @@ sub Get_Config($) {
             { type => 'file', required => 0 },
         BATCH_SYSTEM =>
             { type => 'batch_system', required => 0 },
+        JOB_MANAGER =>
+            { type => 'job_manager', required => 0 },
         CA_CERT_TARBALL =>
             { type => 'file_or_url', required => 0 }
     );
@@ -1717,6 +1731,17 @@ sub Get_Config($) {
                               "    @batch_systems\n";
             }
 
+        }
+
+        elsif ($var->{type} eq 'job_manager') {
+            #
+            # For now, treat all the arguments as a single string.
+            # We'll split it into words when we use it; the first word
+            # is the name of the jobmanager (e.g., "pbs"), any remaining
+            # words are arguments to the setup script.
+            #
+            # Later, we'll do more checking.
+            #
         }
 
         else {
