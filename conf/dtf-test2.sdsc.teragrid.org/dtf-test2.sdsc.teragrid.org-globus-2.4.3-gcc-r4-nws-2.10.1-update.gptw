@@ -1,0 +1,16 @@
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-nws-2.10.1-update.gptw,v 1.1 2004-08-31 19:39:26-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-nws-2.10.1-update.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+IS_UPDATE 1
+
+PATH /usr/bin:/bin:/opt/torque/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
+
+GLOBUS_LOCATION  /work/globus/apps/globus-2.4.3-gcc-r4
+
+#
+# Install NWS 2.10.1
+#
+.PREFIX /users/kst/src/nws
+BUNDLE nws-2.10.1.tar kind=source flavor=gcc64dbg
