@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.288 2004-07-02 02:50:51-07 kst Exp $
+# $Id: gpt-wizard,v 1.289 2004-07-02 03:03:59-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -205,7 +205,7 @@ my $Release_Revision = '1.285'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.288 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.289 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1466,7 +1466,7 @@ sub File_Error(@) {
             return "$varname \"$name\": no such directory\n";
         }
         if (not -w $dirname) {
-            return "$varname \"$name\": no such directory\n";
+            return "$varname \"$name\": directory is not writable\n";
         }
     }
     else {
