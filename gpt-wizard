@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.200 2003-04-01 17:27:10-08 kst Exp $
+# $Id: gpt-wizard,v 1.201 2003-05-08 14:49:52-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -191,7 +191,7 @@ my $Release_Revision = '1.200'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.200 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.201 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -2018,14 +2018,12 @@ sub Download_Files(@) {
         if (defined URL_Protocol $name) {
             Init_Download;
 
-            my $target_file;
-
             if (not defined $Local_File{$name}) {
                 my $target_dir = sprintf "%s/%03d",
                                          $Config{DOWNLOAD_DIR},
                                          $download_index++;
-                $target_file = "$target_dir/" .
-                               File::Basename::basename $name;
+                my $target_file = "$target_dir/" .
+                                  File::Basename::basename $name;
 
                 print "% mkdir $target_dir\n";
                 mkdir $target_dir, 0777 or die "$target_dir: $!\n";
@@ -2051,6 +2049,7 @@ sub Download_Files(@) {
                 #
                 # Ignore any errors from chown (no biggie if it fails).
                 #
+                $Local_File{$name} = $target_file;
             }
         }
         else {
