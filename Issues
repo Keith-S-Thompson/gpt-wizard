@@ -1,15 +1,20 @@
-# $Id: Issues,v 1.1 2002-11-20 11:48:14-08 kst Exp $
+# $Id: Issues,v 1.2 2002-11-21 09:55:45-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/Issues,v $
 
 AIX: Obscure failure invoking build_gpt from install_nmi.  Somewhere in
 the bowels of Perl, something thinks it's setuid, so it refuses to
-accept a "-e".  Workaround: Build GPT manually, then use
-"install-nmi -aix-kludge'.  Solution (not implemented): Figure out how
-to completely drop privileges, so both real and effective uids are
-non-root.
+accept a "-e".  Workaround: Build GPT manually, then use "install-nmi
+-aix-kludge'.  Solution: Figure out how to completely drop privileges,
+so both real and effective uids are non-root.  The current stopgap
+solution is the USE_SDSC_SU config option
 
-"gpt-build -std-flavors" seems to default to gcc flavors;
-COMPILER in config file is ignored.
+"gpt-build -std-flavors" seems to default to gcc flavors; COMPILER
+in config file is ignored.
 
 NMI 2.1 release was modified on the FTP site after it was released
 and announced.  Appropriate flamage delivered.
+
+With USE_SDSC_SU, the child process doesn't inherit the umask -- which
+makes me wonder what else isn't being inherited ($PATH?).  I may need
+to set the umask (and what else?) explicitly in the invoked command:
+    su globus -c "umask 027 ; some_command"
