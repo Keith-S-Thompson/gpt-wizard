@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.31 2002-08-13 15:05:41-07 kst Exp $
+# $Id: gpt-wizard,v 1.32 2002-08-13 15:49:58-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -20,6 +20,7 @@ use File::Basename ();
 use Getopt::Long ();
 use POSIX ();
 
+sub Strip_Revision_String($);
 sub Get_Config($);
 sub Check_Config_Vars();
 sub Substitute($);
@@ -39,14 +40,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = '$Revision: 1.31 $';
-#
-# Don't let RCS step on the search pattern.
-#
-my $rev_tag = '$' . 'Revision:';
-if ($Revision =~ /^$rev_tag ([\\d.]+) \$$/) {
-    $Revision = $1;
-}
+my $Revision = Strip_Revision_String '$Revision: 1.32 $';
 my $Help = undef;
 my $Debugging = undef;
 my $Cleanup = 1;
@@ -256,6 +250,24 @@ print Time_Image time, "\n";
 ########################################################################
 
 #
+# Extract the actual revision number from an RCS revision string.
+# The code is a little convoluted to prevent RCS from stepping on
+# the search pattern.
+#
+sub Strip_Revision_String($) {
+    my($revision) = @_;
+    my $rev_tag = '\$' . 'Revision:';
+    if ($revision =~ /^$rev_tag ([\d.]+) \$$/) {
+        return $1;
+    }
+    else {
+        return $revision;
+    }
+} # Strip_Revision_String
+
+# ----------------------------------------------------------------------
+
+#
 # Read and parse the config file (name given on the command line) and
 # return the results as a hash (to be assigned to the global %Config).
 #
@@ -357,13 +369,8 @@ sub Get_Config($) {
         die @errors;
     }
 
-    #
-    # Don't let RCS step on the search pattern.
-    #
-    my $revision_tag = '$' . 'Revision:';
-    if ($Result{CONFIG_FILE_REVISION} =~ /^$revision_tag ([\d.]+) \$$/) {
-        $Result{CONFIG_FILE_REVISION} = $1;
-    }
+    $Result{CONFIG_FILE_REVISION}
+        = Strip_Revision_String $Result{CONFIG_FILE_REVISION};
 
     #
     # OS, BATCH_SYSTEM, and INET_DAEMON are case-insensitive; map to
