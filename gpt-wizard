@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.269 2004-03-17 00:10:45-08 kst Exp $
+# $Id: gpt-wizard,v 1.270 2004-03-17 00:56:24-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -187,7 +187,7 @@ my $Release_Revision = '1.266'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.269 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.270 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1231,7 +1231,12 @@ if (defined $Config{'MPICH-G2'}) {
     my $flavor      = $ref->{flavor};
     my $arch        = $ref->{arch};
 
-    if ($install_dir !~ /^\//) {
+    my $under_globus_location;
+    if ($install_dir =~ /^\//) {
+        $under_globus_location = 0;
+    }
+    else {
+        $under_globus_location = 1;
         $install_dir = "$Config{GLOBUS_LOCATION}/$install_dir";
     }
 
@@ -1288,6 +1293,12 @@ if (defined $Config{'MPICH-G2'}) {
     Execute @As_Installer, './configure', @configure_args;
     Execute @As_Installer, 'make';
     Execute @As_Installer, 'make', 'install';
+
+    if (not $under_globus_location) {
+        open GL, ">$install_dir/.globus_location";
+        print GL, "$Config{GLOBUS_LOCATION}\n";
+        close GL;
+    }
 }
 
 ########################################
