@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.307 2004-11-21 14:21:48-08 kst Exp $
+# $Id: gpt-wizard,v 1.308 2005-03-29 21:45:16-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -207,7 +207,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.307 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.308 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1196,6 +1196,10 @@ if (defined $Sys{NET_DAEMON} and $Sys{NET_DAEMON} eq 'xinetd') {
     my $gsiftp_file     = "$xinetd_dir/gsiftp";
     my $gatekeeper_text = Inet_Config_Text 'xinetd', 'gsigatekeeper';
     my $gsiftp_text     = Inet_Config_Text 'xinetd', 'gsiftp';
+=============================================================
+=== The new gridftp server is no longer called "in.ftpd". ===
+=== Figure out the new name and check which one exists.   ===
+=============================================================
     if (not -d $xinetd_dir) {
         my $s = "You seem to be running xinetd";
         if (not defined $Sys{NET_DAEMON_PID}) {
