@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.96 2002-10-25 01:48:48-07 kst Exp $
+# $Id: gpt-wizard,v 1.97 2002-10-27 20:16:19-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -45,7 +45,6 @@ sub Strip_Revision_String($);
 sub Get_Config($);
 sub Get_System_Information();
 sub Download_Files(@);
-sub Substitute($);
 sub Elapsed_Time_Image($);
 sub Time_Image($);
 sub Make_Temp_File($);
@@ -69,7 +68,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.96 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.97 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -364,9 +363,9 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
 
         my @flavors = ();
         if ($bundle_name =~ /^globus/) {
-            if ($bundle_name =~ /^globus_(data|resource).*-server/) {
-                push @options, '-static=1';
-            }
+            # if ($bundle_name =~ /^globus_(data|resource).*-server/) {
+            #     push @options, '-static=1';
+            # }
             if ($bundle_name =~ /^globus_information/) {
                 push @flavors, "$Config{CC}$Sys{BITS}dbgpthr";
             }
@@ -618,9 +617,10 @@ else {
 
     $update .= "gsiftp:\n";
     $update .= "gsiftp  stream  tcp     nowait  root    " .
-               "$Config{GLOBUS_LOCATION}/sbin/in.ftpd in.ftpd -l -a";
+               "$Config{GLOBUS_LOCATION}/sbin/in.ftpd in.ftpd -l -a\n";
 
     $update .= "Allow for any site-specific conventions for /etc/inetd.conf\n";
+    $update .= "Set \$LD_LIBRARY_PATH in /etc/inetd.conf\n";
 
     $update .= "Execute as root \"$Sys{NET_DAEMON_RELOAD}\"\n";
     push @manual_steps, $update;
@@ -1226,18 +1226,6 @@ sub Download_Files(@) {
 
 # ----------------------------------------------------------------------
 
-sub Substitute($) {
-    my($key) = @_;
-    if (defined $Config{$key}) {
-        return $Config{$key};
-    }
-    else {
-        die "Unrecognized substitution key: $key\n";
-    }
-} # Substitute
-
-# ----------------------------------------------------------------------
-
 #
 # Given a number of seconds (possibly fractional), return a readable
 # string, similar to the format used by the csh "time" builtin command.
@@ -1758,13 +1746,14 @@ sub Inet_Config_Text($$) {
         return <<"EOF";
 service gsigatekeeper
 {
-    socket_type  = stream
-    protocol     = tcp
-    wait         = no
-    user         = root
-    server       = $Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper
-    server_args  = -conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf
-    disable      = no
+    socket_type     = stream
+    protocol        = tcp
+    wait            = no
+    user            = root
+    server          = $Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper
+    server_args     = -conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf
+    env             = LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib
+    disable         = no
 }
 EOF
     }
@@ -1772,16 +1761,17 @@ EOF
         return <<"EOF";
 service gsiftp
 {
-    instances               = 1000
-    socket_type             = stream
-    wait                    = no
-    user                    = root
-    server                  = $Config{GLOBUS_LOCATION}/sbin/in.ftpd
-    server_args             = -l -a -G /usr/nmi
-    log_on_success         += DURATION USERID
-    log_on_failure         += USERID
-    nice                    = 10
-    disable                 = no
+    instances       = 1000
+    socket_type     = stream
+    wait            = no
+    user            = root
+    server          = $Config{GLOBUS_LOCATION}/sbin/in.ftpd
+    server_args     = -l -a -G /usr/nmi
+    env             = LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib
+    log_on_success  += DURATION USERID
+    log_on_failure  += USERID
+    nice            = 10
+    disable         = no
 }
 EOF
     }
