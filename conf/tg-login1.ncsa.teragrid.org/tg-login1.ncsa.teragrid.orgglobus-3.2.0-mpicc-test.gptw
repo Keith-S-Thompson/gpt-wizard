@@ -1,0 +1,21 @@
+# $Id: tg-login1.ncsa.teragrid.orgglobus-3.2.0-mpicc-test.gptw,v 1.1 2004-06-21 17:42:12-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/tg-login1.ncsa.teragrid.org/tg-login1.ncsa.teragrid.orgglobus-3.2.0-mpicc-test.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin:/usr/local/mpich/mpich-gm-1.2.5..10-gcc-r1/bin
+
+GLOBUS_LOCATION    /scratch/kst/apps/globus-3.2.0-mpicc-test
+
+.PREFIX /scratch/kst/Globus/3.2.0/gpt
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+#
+# Build Globus 3.2.0 from source.
+# For this test build, one bundle only.
+#
+
+MPI_FLAVORS_ARE_STATIC 1
+
+.PREFIX /scratch/kst/Globus/3.2.0/bundles/src
+BUNDLE globus-resource-management-sdk-3.2-src_bundle.tar.gz kind=source flavor=mpicc64dbg,gcc64dbg
