@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.128 2002-12-12 01:38:15-08 kst Exp $
+# $Id: gpt-wizard,v 1.129 2002-12-20 17:47:04-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -122,7 +122,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.128 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.129 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -207,7 +207,14 @@ if ($GPT_Ignore_Errors) {
 my $CLK_TCK;
 eval { $CLK_TCK = &POSIX::CLK_TCK };
 if ($@) {
-    $CLK_TCK = 100;
+    my $machine_name = `uname -m`;
+    chomp $machine_name;
+    if ($machine_name eq 'ia64') {
+        $CLK_TCK = 1024;
+    }
+    else {
+        $CLK_TCK = 100;
+    }
     # warn ">>> CLK_TCK not available, assuming 100\n";
 }
 
