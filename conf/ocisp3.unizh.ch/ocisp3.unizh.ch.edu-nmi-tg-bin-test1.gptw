@@ -1,0 +1,20 @@
+# $Id: ocisp3.unizh.ch.edu-nmi-tg-bin-test1.gptw,v 1.1 2004-11-06 14:38:51-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ocisp3.unizh.ch/ocisp3.unizh.ch.edu-nmi-tg-bin-test1.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
+
+TEMP_DIR ~kst/tmpdir     # not enough room in /tmp
+
+.PARAM NMI_DIR /u/kst/NMI/ftp.isi.edu
+.PARAM APPS_DIR /u/kst/apps/powerpc-ibm-aix5.2.0.0
+.PARAM VAR_DIR /u/kst/var
+.PARAM GLOBUS_SUBDIR nmi-tg-bin-test1
+
+GLOBUS_LOCATION       $APPS_DIR/$GLOBUS_SUBDIR
+GLOBUS_LOCAL_DIRECTORY $VAR_DIR/$GLOBUS_SUBDIR
+
+GPT_TARBALL $NMI_DIR/gpt-3.0.1-nmi-tg1-src.tar.gz
+
+BUNDLE $NMI_DIR/nmi-all-NMI-TG1-powerpc-ibm-aix5.2.0.0-bin.tar.gz kind=binary
