@@ -1,7 +1,7 @@
-# $Id: ocisp3.unizh.ch.edu-nmi-5.1-bin-test1.gptw,v 1.1 2004-09-09 09:42:54-07 kst Exp $
+# $Id: ocisp3.unizh.ch.edu-nmi-5.1-bin-test1.gptw,v 1.2 2004-09-09 11:35:25-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ocisp3.unizh.ch/ocisp3.unizh.ch.edu-nmi-5.1-bin-test1.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 .PARAM NMI ~kst/NMI/5.1
 
