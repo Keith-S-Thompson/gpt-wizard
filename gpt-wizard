@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.2 2002-08-08 02:11:13-07 kst Exp $
+# $Id: gpt-wizard,v 1.3 2002-08-08 16:18:16-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -12,7 +12,7 @@
 #     Where to install Globus et al ($GLOBUS_LOCATION).
 #     Where to get grid-mapfile, hostcert.pem, hostkey.pem.
 #     Where to get CA signing certs.
-#     Whether to use inetd or xinetd.
+#     Whether to use inetd or xinetd (and perhaps some more details).
 #
 
 use strict;
@@ -30,6 +30,9 @@ sub Elapsed_Time_Image($);
 my $Prog_Name = File::Basename::basename $0;
 my $temp_file_serial_number = 0;
 
+my @As_Globus = qw(-time -verbose -check -user=globus);
+my @As_Root   = qw(-time -verbose -check);
+
 my $CLK_TCK;
 eval { $CLK_TCK = &POSIX::CLK_TCK };
 if ($@) {
@@ -44,9 +47,9 @@ if ($< != 0) {
 $| = 1;
 
 my @globus_pw = getpwnam 'globus';
-die ">>> No user globus\n" if not @globus_pw;
+die ">>> No user globus\n" unless $#globus_pw >= 2;
 my @globus_gr = getgrnam 'globus';
-die ">>> No group globus\n" if not @globus_gr;
+die ">>> No group globus\n" unless $#globus_gr >= 2;
 my $globus_uid = $globus_pw[2];
 my $globus_gid = $globus_gr[2];
 die ">>> globus_uid = $globus_uid\n" unless $globus_uid > 0;
@@ -58,49 +61,58 @@ my $nmi_client_bundle = "$bundle_dir/nmi-client-NMI-1.0.0-i686.gpt.tar.gz";
 my $nmi_server_bundle = "$bundle_dir/nmi-server-NMI-1.0.0-i686.gpt.tar.gz";
 
 #
-# Install GPT in /usr/grid
+# Install GPT in /usr/local/apps/gpt-2.1
 #
 my $tmp_dir = "/tmp/gpt-build-$$";
 print Time_Image, "\n";
 mkdir $tmp_dir or die "$tmp_dir: $!\n";
 chown $globus_uid, $globus_gid, $tmp_dir or die "$tmp_dir: $!\n";
 chdir $tmp_dir or die "$tmp_dir: $!\n";
-Execute '-user=globus', '-time', '-verbose', '-check',
-        'tar', 'zxf', $gpt_tarball;
+Execute @As_Globus, 'tar', 'zxf', $gpt_tarball;
 chdir "gpt-2.1" or die "gpt-2.1: $!\n";
 $ENV{GPT_LOCATION} = '/usr/local/apps/gpt-2.1';
-Execute '-user=globus', '-time', '-verbose', '-check', './build_gpt';
-unlink '/etc/profile.d/gpt.sh', '/etc/profile.d/gpt.csh';
-chdir $ENV{HOME};
-system 'rm', '-rf', $tmp_dir;
+mkdir $ENV{GPT_LOCATION} or die "$ENV{GPT_LOCATION}: $!\n";
+chown $globus_uid, $globus_gid, $ENV{GPT_LOCATION}
+    or die "$ENV{GPT_LOCATION}: $!\n";
+Execute @As_Globus, './build_gpt';
+
+#
+# <http://www.nsf-middleware.org/documentation/GPT/index.htm>
+# says to delete these two files.
+#
+my @files_to_delete = ();
+foreach my $file ('/etc/profile.d/gpt.sh', '/etc/profile.d/gpt.csh') {
+    push @files_to_delete, $file if -e $file;
+}
+if (@files_to_delete) {
+    print "% unlink @files_to_delete\n";
+    unlink @files_to_delete or warn ">>> $!\n";
+}
+
+# chdir $ENV{HOME};
+# system 'rm', '-rf', $tmp_dir;
 
 #
 # Confirm GPT installation
 #
-Execute '-user=globus', '-time', '-verbose', '-check',
-        "$ENV{GPT_LOCATION}/sbin/gpt-install", "-version";
+Execute @As_Globus, "$ENV{GPT_LOCATION}/sbin/gpt-install", '-version';
 
 $ENV{GLOBUS_LOCATION} = '/usr/local/apps/nmi-1.0.0';
 mkdir $ENV{GLOBUS_LOCATION} or die "$ENV{GLOBUS_LOCATION}: $!\n";
 chown $globus_uid, $globus_gid, $ENV{GLOBUS_LOCATION}
     or die "$ENV{GLOBUS_LOCATION}: $!\n";
 
-Execute '-user=globus', '-time', '-verbose', '-check',
-        "$ENV{GPT_LOCATION}/sbin/gpt-install", $nmi_client_bundle;
-Execute '-user=globus', '-time', '-verbose', '-check',
-        "$ENV{GPT_LOCATION}/sbin/gpt-install", $nmi_server_bundle;
+foreach my $bundle ( $nmi_client_bundle, $nmi_server_bundle) {
+    Execute @As_Globus, "$ENV{GPT_LOCATION}/sbin/gpt-install", $bundle;
+}
 
 my $input_file;
 
-$input_file = Make_Temp_File "0\n0\nn\n\n";
-Execute '-user=globus', '-time', '-verbose', '-check', "-stdin=$input_file",
+Execute @As_Globus, "-input=0\n0\nn\n\n",
         "$ENV{GPT_LOCATION}/sbin/gpt-postinstall";
-unlink $input_file;
 
-$input_file = Make_Temp_File "y\nq\n";
-Execute '-time', '-verbose', '-check', "-stdin=$input_file",
+Execute @As_Root, "-input=y\nq\n",
         "$ENV{GLOBUS_LOCATION}/setup/globus/setup-gsi";
-unlink $input_file;
 
 print <<"EOF";
 To do:
@@ -218,6 +230,7 @@ sub Execute(@) {
     my $Check = 0;
     my $User = undef;
     my $Stdin = undef;
+    my $Stdin_Is_Temporary = undef;
     my @before;
     my @after;
     my $system_result;
@@ -244,6 +257,10 @@ sub Execute(@) {
         }
         elsif ($arg =~ /^-stdin=(.+)$/) {
             $Stdin = $1;
+        }
+        elsif ($arg =~ /^-input=(.+)$/) {
+            $Stdin = Make_Temp_File $1;
+            $Stdin_Is_Temporary = 1;
         }
         else {
             die "Execute: Unrecognized argument: $arg\n";
@@ -311,6 +328,7 @@ sub Execute(@) {
     }
     if (defined $Stdin) {
         open STDIN, "<&SAVE_STDIN";
+        unlink $Stdin if $Stdin_Is_Temporary;
     }
 
     #
