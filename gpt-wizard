@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.287 2004-06-07 16:31:35-07 kst Exp $
+# $Id: gpt-wizard,v 1.288 2004-07-02 02:50:51-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -205,7 +205,7 @@ my $Release_Revision = '1.285'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.287 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.288 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -895,6 +895,16 @@ if ($Opt{postinstall} and defined $Config{PRE_POSTINSTALL}) {
 }
 
 ########################################
+# Invoke gpt-bundle to create a binary bundle if requested.
+########################################
+if (defined $Config{CREATE_BINARY_BUNDLE}) {
+    Execute @As_Installer,
+            "$Config{GPT_LOCATION}/sbin/gpt-bundle",
+            '-all',
+            "-output=$Config{CREATE_BINARY_BUNDLE}";
+}
+
+########################################
 # Run gpt-postinstall.
 ########################################
 if ($Opt{postinstall}) {
@@ -1423,6 +1433,7 @@ sub Strip_Revision_String($) {
 sub File_Error(@) {
     my $varname = undef;
     my $executable = undef;
+    my $new = undef;
     my $name = undef;
 
     foreach my $arg (@_) {
@@ -1431,6 +1442,9 @@ sub File_Error(@) {
         }
         elsif ($arg eq '-executable') {
             $executable = 1;
+        }
+        elsif ($arg eq '-new') {
+            $new = 1;
         }
         elsif ($arg =~ /^-/) {
             die "Internal error, File_Error, arg \"$arg\"\n";
@@ -1443,24 +1457,36 @@ sub File_Error(@) {
     if ($name !~ /^\//) {
         return "$varname file \"$name\", relative path not allowed\n";
     }
-    elsif (not -e $name) {
-        return "$varname file \"$name\" does not exist\n";
-    }
-    elsif (not -f _) {
-        return "$varname file \"$name\" is not an ordinary file\n";
-    }
-    elsif (not $executable and not -r _) {
-        return "Can't read $varname file \"$name\"\n";
-    }
-    elsif (-z _) {
-        return "$varname file \"$name\" is empty\n";
-    }
-    elsif ($executable and not -x _) {
-        return "$varname file \"$name\" is not executable\n";
+    if ($new) {
+        if (-e $name) {
+            return "$varname file \"$name\" already exists\n";
+        }
+        my $dirname = File::Basename::dirname $name;
+        if (not -d $dirname) {
+            return "$varname \"$name\": no such directory\n";
+        }
+        if (not -w $dirname) {
+            return "$varname \"$name\": no such directory\n";
+        }
     }
     else {
-        return undef;
+        if (not -e $name) {
+            return "$varname file \"$name\" does not exist\n";
+        }
+        if (not -f _) {
+            return "$varname file \"$name\" is not an ordinary file\n";
+        }
+        if (not $executable and not -r _) {
+            return "Can't read $varname file \"$name\"\n";
+        }
+        if (-z _) {
+            return "$varname file \"$name\" is empty\n";
+        }
+        if ($executable and not -x _) {
+            return "$varname file \"$name\" is not executable\n";
+        }
     }
+    return undef;
 } # File_Error
 
 # ----------------------------------------------------------------------
@@ -1603,6 +1629,8 @@ sub Get_Config($) {
             { type => 'new_directory', required => 0 },
         GLOBUS_HOSTNAME =>
             { type => 'string', required => 0 },
+        CREATE_BINARY_BUNDLE =>
+            { type => 'new_file', reuquired => 0 },
         GRID_MAPFILE =>
             { type => 'file', required => 0 },
         HOST_CERT =>
@@ -2075,6 +2103,11 @@ sub Get_Config($) {
 
         elsif ($var->{type} eq 'file') {
             my $error = File_Error "-varname=$varname", $var->{value};
+            &$ERROR($error) if defined $error;
+        }
+
+        elsif ($var->{type} eq 'new_file') {
+            my $error = File_Error "-varname=$varname", "-new", $var->{value};
             &$ERROR($error) if defined $error;
         }
 
