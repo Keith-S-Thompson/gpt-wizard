@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.100 2002-10-28 17:55:23-08 kst Exp $
+# $Id: gpt-wizard,v 1.101 2002-10-30 18:35:54-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -70,7 +70,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.100 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.101 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -110,8 +110,8 @@ $SIG{__DIE__} = \&Die_Handler;
 
 my $temp_file_serial_number = 0;
 my @manual_steps = ();
-my %Is_Binary = ();
-my %Is_Source = ();
+my %Bundle_Kind = ();
+my %Bundle_Flavor = ();
 
 Usage if scalar @ARGV != 1;
 my $Config_File = $ARGV[0];
@@ -342,17 +342,37 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
     my $bundle_name = File::Basename::basename $bundle;
 
     #
-    # If the file name was specified in the config file with a ": binary"
-    # suffix, treat it as a binary bundle (use gpt-install).
+    # If the file name was specified in the config file with a
+    # "kind=binary" attribute, treat it as a binary bundle (use
+    # gpt-install).
     #
-    # If it was specified with a ": source" suffix, treat it as a source
-    # bundle (use gpt-build).
+    # If it was specified with a "kind=source" suffix, treat it as a
+    # source bundle (use gpt-build).
     #
-    # If neither was specified, assume that if the file name contains
-    # the string "src", preceded and followed by either an underscore
-    # or a word boundary, it's a source bundle, otherwise a binary bundle.
+    # If neither was specified, assume that if the file name contains the
+    # string "src", preceded and followed by either an underscore or a
+    # word boundary, it's a source bundle, otherwise it's a binary bundle.
     #
-    if ($Is_Source{$bundle} or $bundle_name =~ /(\b|_)src(\b|_)/) {
+    my $is_source = undef;
+    if (defined $Bundle_Kind{$bundle}) {
+        if ($Bundle_Kind{$bundle} eq 'source') {
+            $is_source = 1;
+        elsif ($Bundle_Kind{$bundle} eq 'binary') {
+            $is_source = 0;
+        }
+        else {
+            die "Internal error, " .
+                "\$Bundle_Kind{$bundle} = \"$Bundle_Kind{$bundle}\"";
+        }
+    }
+    elsif ($bundle_name =~ /(\b|_)src(\b|_)/) {
+        $is_source = 1;
+    }
+    else {
+        $is_source = 0;
+    }
+
+    if ($is_source)/) {
         #
         # Using gpt-build to build and install a source bundle.
         #
@@ -369,10 +389,10 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
         }
 
         my @flavors = ();
-        if ($bundle_name =~ /^globus/) {
-            # if ($bundle_name =~ /^globus_(data|resource).*-server/) {
-            #     push @options, '-static=1';
-            # }
+        if (defined $Bundle_Flavor{$bundle}) {
+            @flavors = split /,/, @flavors;
+        }
+        elsif ($bundle_name =~ /^globus/) {
             if ($bundle_name =~ /^globus_information/) {
                 push @flavors, "$Config{CC}$Sys{BITS}dbgpthr";
             }
@@ -817,20 +837,81 @@ sub Get_Config($) {
         next if /^$/;
         if (/^(\w+)\s+(.*)$/) {
             my ($name, $value) = ($1, $2);
+            #
+            # Bundles may have additional attributes specified on the
+            # same line.  Recognized attributes are:
+            #     kind=binary
+            #     kind=source
+            #     flavor=<string>
+            # Multiple flavors may be specified, separated by commas, e.g.:
+            #     flavor=gcc32dbg,gcc32
+            # Attributes names and values are case-insensitive (at least
+            # for now).
+            #
             if ($name eq 'BUNDLE') {
-                if ($value =~ /^(.*\S)\s*:\s*(binary|source)$/i) {
-                    $value = $1;
-                    my $kind = lc $2;
-                    if ($kind eq 'binary') {
-                        $Is_Binary{$1} = 1;
+                my $filename = undef;
+                my $kind = undef;
+                my $flavor = undef;
+
+                foreach my $field (split /\s+/, $value) {
+                    if (lc $field =~ /^kind=(.*)$/) {
+                        if (defined $kind) {
+                            push @errors, "Duplicate kind, line $.\n";
+                        }
+                        else {
+                            if ($kind eq 'binary' or $kind eq 'source') {
+                                $kind = $1;
+                            }
+                            else {
+                                push @errors,
+                                     "Unrecognized kind, line $., " .
+                                     "should be \"binary\" or \"source\"\n";
+                            }
+                        }
                     }
-                    elsif ($kind eq 'source') {
-                        $Is_Source {$1} = 1;
+                    elsif (lc $field =~ /^flavor=(.*)$/) {
+                        if (defined $flavor) {
+                            push @errors, "Duplicate flavor, line $.\n";
+                        }
+                        else {
+                            $flavor = $1;
+                        }
+                    }
+                    elsif ($field =~ /^(\w+)=/) {
+                        push @errors,
+                             "Unrecognized attribute \"$1\", line $.\n";
                     }
                     else {
-                        die "Internal error, " .
-                            "\"$kind\" should be \"binary\" or \"source\"";
+                        if (defined $filename) {
+                            push @errors, "Duplicate name, line $." .
+                                          " (possible space in filename?)\n";
+                        }
+                        else {
+                            $filename = $field;
+                        }
                     }
+                    $value = $filename;
+                    $Bundle_Kind{$value} = $kind if defined $kind;
+                    $Bundle_Flavor{$value} = $flavor if defined $flavor;
+
+                    #
+                    # If the kind ("binary" or "source") has not been
+                    # specified in the config file, take a guess based
+                    # on the file name.  If the file name contains the
+                    # string "src", preceded and followed by either an
+                    # underscore or a word boundary, it's a source bundle;
+                    # otherwise it's a binary bundle.
+                    #
+                    if (not defined $Bundle_Kind{$value}) {
+                        my $bundle_name = File::Basename::basename $value;
+                        if ($bundle_name =~ /(\b|_)src(\b|_)/) {
+                            $Bundle_Kind{$value} = 'source';
+                        }
+                        else {
+                            $Bundle_Kind{$value} = 'binary';
+                        }
+                    }
+
                 }
             }
             if (defined $Var_Info{$name}) {
@@ -1083,14 +1164,14 @@ sub Get_Config($) {
         if (ref $value eq 'ARRAY') {
             printf "    %-20s => {\n", $key;
             foreach my $elem (@$value) {
-                print "        \"$elem\"";
-                if ($Is_Binary{$elem}) {
-                    print " : Binary";
+                my @fields = ("\"$elem\"");
+                if (defined $Bundle_Kind{$elem}) {
+                    push @fields, "kind=$Bundle_Kind{$elem}";
                 }
-                elsif ($Is_Source{$elem}) {
-                    print " : Source";
+                if (defined $Bundle_Flavor{$elem}) {
+                    push @fields, "flavor=$Bundle_Flavor{$elem}";
                 }
-                print "\n";
+                print "        @fields\n";
             }
             print "    }\n";
         }
@@ -1098,14 +1179,10 @@ sub Get_Config($) {
             printf "    %-20s => %s",
                    $key,
                    defined $value ? "\"$value\"" : 'undef';
-            if (defined $value) {
-                if ($Is_Binary{$value}) {
-                    print " : Binary";
-                }
-                elsif ($Is_Source{$value}) {
-                    print " : Source";
-                }
-            }
+            #
+            # Currently, attributes can only be defined for BUNDLE,
+            # which is an array.
+            #
             print "\n";
         }
     }
@@ -1251,11 +1328,11 @@ sub Download_Files(@) {
             elsif (-s $target_file == 0) {
                 die "Download failed for $target_file (empty file)\n";
             }
-            if ($Is_Binary{$$ref}) {
-                $Is_Binary{$target_file} = 1;
+            if (defined $Bundle_Kind{$$ref}) {
+                $Bundle_Kind{$target_file} = $Bundle_Kind{$$ref};
             }
-            elsif ($Is_Source{$$ref}) {
-                $Is_Source{$target_file} = 1;
+            if (defined $Bundle_Flavor{$$ref}) {
+                $Bundle_Flavor{$target_file} = $Bundle_Flavor{$$ref};
             }
 
             $$ref = $target_file;
