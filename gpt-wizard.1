@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.63 2004-09-04 02:02:15-07 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.64 2004-09-08 12:24:25-07 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -320,6 +320,13 @@ where
 is not defined as a
 .B PARAM
 are not replaced.
+.br
+The
+.B $NAME
+syntax refers only to parameters defined by
+.B .PARAM
+directives; there is no mechanism for referring to the value of an
+environment variable.
 
 .IP .PREFIX
 This is a pseudo\-option.  It specifies a default prefix to be prepended,
@@ -410,6 +417,10 @@ An environment variable setting, of the form "VAR" or "VAR=value".
 If no value is specified, the variable is set to the empty string.
 See also the GLOBUS_HOSTNAME and INHERIT_ENV options.
 .br
+There is no mechanism for referring to the value of an environment
+variable (see
+.BR .PARAM ).
+.br
 Type: string
 .br
 Optional.  May occur multiple times.
@@ -427,6 +438,10 @@ happens to be in the invoking environment.  MPICH-G2 configuration
 sometimes requires a valid $DISPLAY for Java Swing; in this case, use
 .br
 .B "	INHERIT_ENV DISPLAY"
+.br
+There is no mechanism for referring to the value of an environment
+variable (see
+.BR .PARAM ).
 .br
 See also the ENV option.
 .br
