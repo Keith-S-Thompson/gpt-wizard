@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.116 2002-11-19 12:10:40-08 kst Exp $
+# $Id: gpt-wizard,v 1.117 2002-11-20 08:47:44-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -120,7 +120,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.116 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.117 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -131,6 +131,7 @@ my $GPT_Verbose       = undef;
 my $GPT_Log           = undef;
 my $GPT_Install_Only  = undef;
 my $GPT_Ignore_Errors = undef;
+my $AIX_Kludge        = undef;
 my @Opts = ( 'help!'              => \$Help,
              'validate-only'      => \$Validate_Only,
              'debugging!'         => \$Debugging,
@@ -140,7 +141,8 @@ my @Opts = ( 'help!'              => \$Help,
              'gpt-verbose!'       => \$GPT_Verbose,
              'gpt-log!'           => \$GPT_Log,
              'gpt-install-only!'  => \$GPT_Install_Only,
-             'gpt-ignore-errors!' => \$GPT_Ignore_Errors );
+             'gpt-ignore-errors!' => \$GPT_Ignore_Errors,
+             'aix-kludge!'        => \$AIX_Kludge );
 Getopt::Long::GetOptions @Opts or Usage;
 Usage if $Help;
 
@@ -272,56 +274,69 @@ Download_Files @file_refs;
 # the extracted source directory.
 ########################################
 
-opendir DIR, '.' or die ".: $!\n";
-my @files_before = readdir DIR;
-closedir DIR;
-my %already_existed = map { $_ => 1 } @files_before;
+if (not $AIX_Kludge) {
+    opendir DIR, '.' or die ".: $!\n";
+    my @files_before = readdir DIR;
+    closedir DIR;
+    my %already_existed = map { $_ => 1 } @files_before;
 
-# Execute @As_Installer, 'tar', 'zxf', $Config{GPT_TARBALL};
-Execute @As_Installer, 'sh', '-c', "gzip -d < $Config{GPT_TARBALL} | tar xf -";
+    # Execute @As_Installer, 'tar', 'zxf', $Config{GPT_TARBALL};
+    Execute @As_Installer, 'sh', '-c',
+            "gzip -d < $Config{GPT_TARBALL} | tar xf -";
 
-opendir DIR, '.' or die ".: $!\n";
-my @files_after = readdir DIR;
-closedir DIR;
+    opendir DIR, '.' or die ".: $!\n";
+    my @files_after = readdir DIR;
+    closedir DIR;
 
-my @new_files = ();
-foreach my $file (@files_after) {
-    push @new_files, $file if not $already_existed{$file};
-}
+    my @new_files = ();
+    foreach my $file (@files_after) {
+        push @new_files, $file if not $already_existed{$file};
+    }
 
-if (scalar @new_files == 0) {
-    die "Can't determine GPT source directory, tar didn't create anything\n";
-}
-elsif (scalar @new_files == 1) {
-    my $src_dir = $new_files[0];
-    print "% cd $working_dir/$src_dir\n";
-    chdir "$working_dir/$src_dir" or die "$working_dir/$src_dir: $!\n";
-}
-else {
-    die "Can't determine GPT source directory, tar created (@new_files)\n";
+    if (scalar @new_files == 0) {
+        die "Can't determine GPT source directory, " .
+            "tar didn't create anything\n";
+    }
+    elsif (scalar @new_files == 1) {
+        my $src_dir = $new_files[0];
+        print "% cd $working_dir/$src_dir\n";
+        chdir "$working_dir/$src_dir" or die "$working_dir/$src_dir: $!\n";
+    }
+    else {
+        die "Can't determine GPT source directory, tar created (@new_files)\n";
+    }
 }
 
 ########################################
-# Create the $GPT_LOCATION directory if it doesn't already exist.
-# (If it exists it must be empty; this is handled in Check_Config_Vars.)
+# Create the $GPT_LOCATION directory.
 ########################################
-
 print "% Setting GPT_LOCATION=$Config{GPT_LOCATION}\n";
 $ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
-if (not -d $Config{GPT_LOCATION}) {
-    print "% mkdir $Config{GPT_LOCATION}\n";
-    mkdir $Config{GPT_LOCATION}, 0777 or die "$Config{GPT_LOCATION}: $!\n";
-    chown $installer_uid, $installer_gid, $Config{GPT_LOCATION}
-        or die "$Config{GPT_LOCATION}: $!\n";
+
+if ($AIX_Kludge) {
+    die "No directory $Config{GPT_LOCATION}\n"
+        if not -d $Config{GPT_LOCATION};
+    die "No executable $Config{GPT_LOCATION}/sbin/gpt-install\n"
+        if not -x "$Config{GPT_LOCATION}/sbin/gpt-install";
+}
+else {
+    if (not -d $Config{GPT_LOCATION}) {
+        print "% mkdir $Config{GPT_LOCATION}\n";
+        mkdir $Config{GPT_LOCATION}, 0777 or die "$Config{GPT_LOCATION}: $!\n";
+        chown $installer_uid, $installer_gid, $Config{GPT_LOCATION}
+            or die "$Config{GPT_LOCATION}: $!\n";
+    }
 }
 
 ########################################
 # Run build-gpt to install GPT
 ########################################
-Execute @As_Installer, './build_gpt';
+if (not $AIX_Kludge) {
+    Execute @As_Installer, './build_gpt';
 
-print "% cd $working_dir\n";
-chdir $working_dir or die "$working_dir: $!\n";
+    print "% cd $working_dir\n";
+    chdir $working_dir or die "$working_dir: $!\n";
+}
 
 ########################################
 # <http://www.nsf-middleware.org/documentation/GPT/index.htm>
@@ -374,20 +389,17 @@ if (not $using_old_gpt) {
 ########################################################################
 
 ########################################
-# Create the $GLOBUS_LOCATION directory if it doesn't already exist.
-# (If it exists it must be an empty directory; this is handled in
-# Check_Config_Vars.)
+# Create the $GLOBUS_LOCATION directory (unless $GLOBUS_LOCATION and
+# $GPT_LOCATION are the same; in that case, it already exists.)
 ########################################
 print "% Setting GLOBUS_LOCATION=$Config{GLOBUS_LOCATION}\n";
 $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
 if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
-    if (not -d $Config{GLOBUS_LOCATION}) {
-        print "% mkdir $Config{GLOBUS_LOCATION}\n";
-        mkdir $Config{GLOBUS_LOCATION}, 0777
-            or die "$Config{GLOBUS_LOCATION}: $!\n";
-        chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCATION}
-            or die "$Config{GLOBUS_LOCATION}: $!\n";
-    }
+    print "% mkdir $Config{GLOBUS_LOCATION}\n";
+    mkdir $Config{GLOBUS_LOCATION}, 0777
+        or die "$Config{GLOBUS_LOCATION}: $!\n";
+    chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCATION}
+        or die "$Config{GLOBUS_LOCATION}: $!\n";
 }
 
 ########################################
@@ -1054,8 +1066,18 @@ sub Get_Config($) {
         #
         elsif ($var->{type} eq 'new_directory') {
             my $dir = $var->{value};
-            if (-e $dir) {
-                push @errors, "$varname \"$dir\" already exists\n";
+            if ( $AIX_Kludge and
+                 ( ( $varname eq 'GPT_LOCATION' ) or
+                   ( $varname eq 'GLOBUS_LOCATION' and 
+                     ( $Var_Info{GPT_LOCATION}->{value} eq
+                       $Var_Info{GLOBUS_LOCATION}->{value} ) ) ) )
+            {
+                # Ok for directory to exist.
+            }
+            else {
+                if (-e $dir) {
+                    push @errors, "$varname \"$dir\" already exists\n";
+                }
             }
         }
 
@@ -2071,6 +2093,7 @@ Usage: $Prog_Name [options] config_file
     -gpt-install-only   Pass -install-only option to gpt-build.
                         Doesn't affect binary installations (gpt-install).
     -gpt-ignore-errors  Ignore errors from gpt-install and gpt-build.
+    -aix-kludge         Use an existing GPT installation.
     -debugging          Enable debugging.
 Most options can be negated by prepending "no".
 For example, "-nocleanup" inhibits cleanup.
