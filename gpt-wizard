@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.129 2002-12-20 17:47:04-08 kst Exp $
+# $Id: gpt-wizard,v 1.130 2002-12-27 17:19:11-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -122,7 +122,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.129 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.130 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -204,19 +204,7 @@ if ($GPT_Ignore_Errors) {
     @As_Installer_GPT = grep { $_ ne '-check' } @As_Installer;
 }
 
-my $CLK_TCK;
-eval { $CLK_TCK = &POSIX::CLK_TCK };
-if ($@) {
-    my $machine_name = `uname -m`;
-    chomp $machine_name;
-    if ($machine_name eq 'ia64') {
-        $CLK_TCK = 1024;
-    }
-    else {
-        $CLK_TCK = 100;
-    }
-    # warn ">>> CLK_TCK not available, assuming 100\n";
-}
+my $CLK_TCK = POSIX::sysconf(&POSIX::_SC_CLK_TCK);
 
 if ($< != 0) {
     die ">>> $Prog_Name must be run as root\n";
