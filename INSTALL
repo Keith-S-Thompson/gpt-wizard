@@ -1,4 +1,4 @@
-# $Id: INSTALL,v 1.3 2004-01-09 20:30:56-08 kst Exp $
+# $Id: INSTALL,v 1.4 2004-02-12 13:40:22-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/INSTALL,v $
 
 To install gpt-wizard, run the "install-gpt-wizard" script from the
@@ -47,11 +47,6 @@ Requirements:
 gpt-wizard requires Perl version 5.004 or higher.  It uses the
 File::Basename, Getopt::Long, and POSIX modules, all of which are
 part of the standard Perl distribution.
-
-If you want to specify ftp and/or http URLs for some files, you'll
-need to have the wget command.  If it's not in the PATH that you
-specify in the config file, you can specify its location with the
-WGET configuration variable.
 
 gpt-wizard is currently supported on Linux, SunOS (Solaris), and AIX
 systems, but automated service startup is only supported on Linux.
