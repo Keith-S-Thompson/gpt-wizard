@@ -1,9 +1,9 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-test1.gptw,v 1.1 2004-05-04 21:45:00-07 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-test1.gptw,v 1.2 2004-05-05 00:50:42-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-test1.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
-PATH /usr/bin:/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/intel8-r1/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
+PATH /usr/bin:/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
 
 GLOBUS_LOCATION  /work/globus/apps/globus-2.4.3-gcc-r4-test1
 GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3-gcc-r4-test1
