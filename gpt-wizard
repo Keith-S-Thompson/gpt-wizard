@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.86 2002-10-09 19:06:28-07 kst Exp $
+# $Id: gpt-wizard,v 1.87 2002-10-16 23:36:34-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -64,7 +64,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.86 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.87 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -390,17 +390,25 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
 }
 
 ########################################
-# If GLOBUS_VAR_DIRECTORY is defined in the config file:
-#     Copy $GLOBUS_LOCATION/var to GLOBUS_VAR_DIRECTORY
-#     Delete $GLOBUS_LOCATION/var 
-#     Recreate $GLOBUS_LOCATION/var as a symlink to GLOBUS_VAR_DIRECTORY
+# If GLOBUS_VAR_DIRECTORY is defined in the config file, make
+# $GLOBUS_LOCATION/var a symlink to it (after copying it if it exists,
+# or creating it if it doesn't).
 # (The $GLOBUS_LOCATION/var directory must be on a local filesystem,
 # so root can write to logs.)
 ########################################
 if (defined $Config{GLOBUS_VAR_DIRECTORY}) {
-    Execute @As_Root, 'cp', '-pr', "$ENV{GLOBUS_LOCATION}/var",
-                                   $Config{GLOBUS_VAR_DIRECTORY};
-    Execute @As_Root, 'rm', '-rf', "$ENV{GLOBUS_LOCATION}/var";
+    if (-d "$ENV{GLOBUS_LOCATION}/var") {
+        Execute @As_Root, 'cp', '-pr', "$ENV{GLOBUS_LOCATION}/var",
+                                       $Config{GLOBUS_VAR_DIRECTORY};
+        Execute @As_Root, 'rm', '-rf', "$ENV{GLOBUS_LOCATION}/var";
+    }
+    else {
+        print "% mkdir $Config{GLOBUS_VAR_DIRECTORY}\n";
+        mkdir $Config{GLOBUS_VAR_DIRECTORY}, 0700
+            or die "$Config{GLOBUS_VAR_DIRECTORY}: $!\n";
+        chown $installer_uid, $installer_gid, $Config{GLOBUS_VAR_DIRECTORY}
+            or die "$Config{GLOBUS_VAR_DIRECTORY}: $!\n";
+    }
     symlink $Config{GLOBUS_VAR_DIRECTORY}, "$ENV{GLOBUS_LOCATION}/var"
         or die "$ENV{GLOBUS_LOCATION}/var: $!\n";
 }
