@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.89 2002-10-18 02:53:09-07 kst Exp $
+# $Id: gpt-wizard,v 1.90 2002-10-18 03:48:16-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -62,7 +62,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.89 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.90 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -1697,7 +1697,7 @@ sub Fix_Setup_Script($) {
         while (<ORIG>) {
             s/\$myincrement = <STDIN>;/print "0\n"; \$myincrement = 0; # $&/;
             s/\$myserial = <STDIN>;/print "\n"; \$myserial = ""; # $&/;
-            s/\$resp=<STDIN>;/print "No\n"; \$resp="No"; # $&/;
+            s/\$resp = <STDIN>;/print "No\n"; \$resp="No"; # $&/;
             print NEW;
         }
     }
@@ -1718,6 +1718,11 @@ sub Fix_Setup_Script($) {
     }
     close ORIG;
     close NEW;
+
+    my @stat = stat $backup_file;
+    my ($mode, $uid, $gid) = ($stat[2], $stat[4], $stat[5]);
+    chmod $mode, $file;
+    chown $uid, $gid, $file;
 } # Fix_Setup_Script
 
 # ----------------------------------------------------------------------
