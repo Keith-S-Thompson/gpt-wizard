@@ -1,7 +1,24 @@
-$Id: Relnotes,v 1.7 2003-12-17 00:58:37-08 kst Exp $
+$Id: Relnotes,v 1.8 2004-02-12 13:32:16-08 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.4 to release 0.5:
+
+    Dropped support for GPT 1.X (all current Globus releases include
+    GPT 2.X or better).
+
+    For binary builds, invoke "gpt-build -nosrc <flavors>" to build
+    globus_config.h
+
+    Dropped support for URLs.  All files specified in a config file
+    must be directly visible.  The DOWNLOAD_DIR and WGET configuration
+    variables are no longer recognized.
+
+    Re-worked some internal data structures, allowing a single
+    bundle to be specified multiple times with different attributes.
+    For example, it's now possible to build a bundle with "-static"
+    for some flavors, and without "-static" for others.
 
 Changes from release 0.3.3 to release 0.4:
 
