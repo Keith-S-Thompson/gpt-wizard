@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.46 2004-03-15 18:09:24-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.47 2004-03-16 23:42:53-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -328,7 +328,7 @@ Location for
 .IR gpt\-wizard 's
 temporary working directory.  The temporary directory will be created
 under the specified directory.  This can be overridden with the
-"-temp-dir" command-line option.
+"\-temp\-dir" command\-line option.
 .br
 Type: existing directory
 .br
@@ -385,7 +385,7 @@ Type: string (must be a valid user name)
 Optional.  Default is "globus" if running as root, the current user
 otherwise.  If you run
 .I gpt\-wizard
-from a non-root account, you may not specify an INSTALLER_USER other
+from a non\-root account, you may not specify an INSTALLER_USER other
 than your current account; in this case, it may be best not to specify
 an INSTALLER_USER at all.
 
@@ -397,7 +397,7 @@ Type: string (must be a valid group name)
 Optional.  Default is "globus" if running as root, the current primary
 group otherwise.  If you run
 .I gpt\-wizard
-from a non-root account, you may not specify an INSTALLER_GROUP
+from a non\-root account, you may not specify an INSTALLER_GROUP
 other than your current primary group, even if you are a member of
 the specified group; in this case, it may be best not to specify an
 INSTALLER_GROUP at all.
@@ -494,7 +494,7 @@ If some flavors need to be built with different options (particularly
 "\-static"), you can specify the same update package twice with
 different attributes.  As a special case, the MPI_FLAVORS_ARE_STATIC
 option specifies that all flavors whose names start with "mpi"
-(such as "mpicc32dbg") are to be built with "-static".
+(such as "mpicc32dbg") are to be built with "\-static".
 .br
 Type: file name
 .br
@@ -583,7 +583,7 @@ Optional.
 .IP GRID_MAPFILE
 The name of a file to be copied to
 .I /etc/grid\-security/grid\-mapfile
-if the "-startup" option is specified.
+if the "\-startup" option is specified.
 This is a text file mapping Globus certificate subject names to Unix
 account names.  See the Globus documentation for more information.
 .br
@@ -595,7 +595,7 @@ Optional.
 The name of a file containing the Globus host certificate,
 also known as the gatekeeper certificate.  It will be copied to
 .I /etc/grid\-security/hostcert.pem
-if the "-startup" option is specified.
+if the "\-startup" option is specified.
 .br
 Type: file name
 .br
@@ -605,7 +605,7 @@ Optional.
 The name of a file containing the Globus host private key, also known as
 the gatekeeper key.  It will be copied to
 .I /etc/grid\-security/hostkey.pem
-if the "-startup" option is specified.
+if the "\-startup" option is specified.
 .br
 Type: file name
 .br
@@ -617,7 +617,7 @@ for non\-anonymous MDS queries (see the
 .I grid\-info\-search
 command).  It will be copied to
 .I /etc/grid\-security/ldap/ldapcert.pem
-if the "-startup" option is specified.
+if the "\-startup" option is specified.
 .br
 Type: file name
 .br
@@ -629,7 +629,7 @@ for non\-anonymous MDS queries (see the
 .I grid\-info\-search
 command).  It will be copied to
 .I /etc/grid\-security/ldap/ldapkey.pem
-if the "-startup" option is specified.
+if the "\-startup" option is specified.
 .br
 Type: file name
 .br
@@ -674,25 +674,25 @@ Optional.
 .IP MPICH\-G2
 The name of a tarball file
 .RI ( *.tar.gz )
-containing sources for MPICH, used to build and install MPICH-G2.
+containing sources for MPICH, used to build and install MPICH\-G2.
 .br
 This option is newly implemented; use with caution.  See
 .I <http://www3.niu.edu/mpi/>
-for more information on MPICH-G2.
+for more information on MPICH\-G2.
 .br
 Attributes:
 .br
 	flavor=<flavor>
 .br
-	install=<installation-directory>
+	install=<installation\-directory>
 .br
 	arch=<arch>
 .br
 The mandatory "flavor" attribute specifies the Globus flavor to be used
-to build MPICH-G2.
+to build MPICH\-G2.
 .br
 The mandatory "install" attribute specifies the installation directory
-for MPICH-G2.  If this is a relative path, it specifies a subdirectory
+for MPICH\-G2.  If this is a relative path, it specifies a subdirectory
 of $GLOBUS_LOCATION.
 .br
 The optional "arch" attribute specifies the architecture, to be passed
@@ -700,17 +700,19 @@ to the MPICH "configure" script; this is usually not necessary.
 
 For example, the following line:
 .br
-	MPICH\-G2 mpich-1.2.5.2.tar.gz \\
+	MPICH\-G2 mpich\-1.2.5.2.tar.gz \\
 .br
 		flavor=mpicc32dbg \\
 .br
-		install=mpich-g2-1.2.5.2
+		install=mpich\-g2\-1.2.5.2
 .br
 causes the MPICH "configure" script to be invoked as follows:
 .br
-	\./configure -device=globus2:-flavor=mpicc32dbg \\
+	\./configure \\
 .br
-		-prefix=$GLOBUS_LOCATION/mpich-g2-1.2.5.2
+		\-device=globus2:\-flavor=mpicc32dbg \\
+.br
+		\-prefix=$GLOBUS_LOCATION/mpich\-g2\-1.2.5.2
 .br
 Type: mpich\-g2
 .br
