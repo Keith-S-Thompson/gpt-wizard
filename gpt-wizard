@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.77 2002-10-04 18:15:58-07 kst Exp $
+# $Id: gpt-wizard,v 1.78 2002-10-04 21:34:55-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -13,8 +13,6 @@
 #
 #     Automatically set up to report to one or more GIIS servers.
 #     Configure this.
-#
-#     Accept ftp and http URLs for file names in config file.
 #
 #     Be smarter about tarballs.  Handle .tar, .tar.gz, .tgz,
 #     .tar.bz2.  Auto-detect what tar can handle (check output
@@ -47,6 +45,7 @@ sub Strip_Revision_String($);
 sub Get_Config($);
 sub Check_Config_Vars();
 sub Get_System_Information();
+sub Download_Files(@);
 sub Substitute($);
 sub Elapsed_Time_Image($);
 sub Time_Image($);
@@ -71,7 +70,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.77 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.78 $';
 my $Help              = undef;
 my $Debugging         = undef;
 my $Cleanup           = 1;
@@ -168,6 +167,21 @@ mkdir $working_dir, 0700 or die "$working_dir: $!\n";
 chown $installer_uid, $installer_gid, $working_dir
     or die "$working_dir: $!\n";
 chdir $working_dir or die "$working_dir: $!\n";
+
+########################################################################
+# Download any files specified by ftp:// or http:// URLs
+########################################################################
+my @file_refs = ();
+push @file_refs, \$Config{GPT_TARBALL};
+for (my $i = 0; $i <= $#{$Config{BUNDLES}}; $i ++) {
+    push @file_refs, \$Config{BUNDLES}->[$i];
+}
+push @file_refs, \$Config{GRID_MAPFILE};
+#
+# For security reasons, certificates and keys may not be downloaded.
+#
+push @file_refs, \$Config{CA_CERT_TARBALL};
+Download_Files @file_refs;
 
 ########################################################################
 # Install GPT
@@ -563,9 +577,11 @@ if ($Cleanup) {
 # things are collected and printed in one well-marked block at the end
 # of the log.
 ########################################################################
+my $text = ">>> To be done manually:\n" .
+           join "\n", @manual_steps;
+$text =~ s/^/* /gm;
 print '*' x 72, "\n";
-print ">>> To be done manually:\n";
-print join "\n", @manual_steps;
+print $text;
 print '*' x 72, "\n";
 
 print Time_Image time, "\n";
@@ -810,6 +826,55 @@ sub Get_System_Information() {
 
     return %Result;
 } # Get_System_Information
+
+# ----------------------------------------------------------------------
+
+#
+# Download any files specified by an "http://" or "ftp://" URL.
+# Update $Config entries to point to downloaded files.
+#
+# Arguments are references to file names.
+#
+sub Download_Files(@) {
+    my @refs = @_;
+    my $index = 0;
+    my $changed_dir = 0;
+
+    foreach my $ref (@refs) {
+        if ($$ref =~ m<^(ftp|http)://>) {
+            my $method = $1;
+            my $target_dir  = sprintf "%s/%03d", $working_dir, $index++;
+            my $target_file = "$target_dir/" .
+                              File::Basename::basename $$ref;
+
+            mkdir $target_dir, 0777 or die "$target_dir: $!\n";
+
+            chdir $target_dir or die "$target_dir: $!\n";
+            $changed_dir = 1;
+
+            if ($method eq 'ftp') {
+                $changed_dir = 1;
+                Execute @As_Installer, 'ncftpget', '-V', $$ref;
+            }
+            elsif ($method eq 'http') {
+                Execute @As_Installer,
+                        'wget', '-o', '/dev/null', $$ref;
+            }
+            if (not -e $target_file) {
+                die "Download failed for $target_file (no file)\n";
+            }
+            elsif (-s $target_file == 0) {
+                die "Download failed for $target_file (empty file)\n";
+            }
+
+            $$ref = $target_file;
+        }
+    }
+
+    if ($changed_dir) {
+        chdir $working_dir or die "$working_dir: $!\n";
+    }
+} # Download_Files
 
 # ----------------------------------------------------------------------
 
