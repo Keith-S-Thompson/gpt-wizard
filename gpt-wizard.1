@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.49 2004-03-18 14:21:54-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.50 2004-03-18 14:29:37-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -207,6 +207,12 @@ Not recommended.
 Use an existing GPT installation.  This was implemented to work around
 some obscure problems on an AIX system.  Not recommended unless you know
 what you're doing.
+
+.IP \-force\-arch
+Override the check for supported architectures.
+This option is meant for internal development.
+If you want to try gpt-wizard on an unsupported
+architecture, please contact the author.
 
 .IP \-debugging
 Enable debugging output.
