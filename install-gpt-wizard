@@ -1,0 +1,250 @@
+#!/usr/bin/perl -w
+
+# $Id: install-gpt-wizard,v 1.1 2004-01-09 20:31:12-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/install-gpt-wizard,v $
+
+use strict;
+
+use File::Basename ();
+use Getopt::Long ();
+
+sub Get_File_Version($);
+sub Is_Empty_Dir($);
+sub Run_Command(@);
+sub Make_Directory($);
+sub Make_Symlink($$);
+sub Usage(@);
+
+$| = 1;
+
+my $Program_Name = File::Basename::basename $0;
+
+my $Default_Perl   = '/usr/bin/perl';
+
+my $Help           = undef;
+my $Perl           = $Default_Perl;
+my $Apps           = undef;
+my $Prefix         = undef;
+my $Create_Symlink = undef;
+my $Force          = undef;
+my $Dryrun         = undef;
+my @Opts = ( 'help!'    => \$Help,
+             'perl=s'   => \$Perl,
+             'apps=s'   => \$Apps,
+             'symlink!' => \$Create_Symlink,
+             'prefix=s' => \$Prefix,
+             'force!'   => \$Force,
+             'dryrun!'  => \$Dryrun );
+Getopt::Long::GetOptions @Opts or Usage;
+Usage if $Help;
+if (not defined $Apps and not defined $Prefix) {
+    Usage "Specify either -apps or -prefix\n";
+}
+if (defined $Apps and defined $Prefix) {
+    Usage "Specify only one of -apps or -prefix\n";
+}
+if (defined $Create_Symlink and not defined $Apps) {
+    Usage "-symlink option may be used only with -apps\n";
+}
+
+my @dirs = qw( sbin man man/man1 etc );
+my %file_dir = ( 'gpt-wizard'   => 'sbin',
+                 'gpt-wizard.1' => 'man/man1',
+                 'INSTALL'      => 'etc',
+                 'README'       => 'etc',
+                 'Relnotes'     => 'etc',
+                 'sample.conf'  => 'etc' );
+
+my @missing = ();
+foreach my $file (sort keys %file_dir) {
+    if (not -e $file) {
+        push @missing, $file;
+    }
+}
+if (@missing) {
+    Usage "$Program_Name must be executed in the source directory\n",
+          "Missing file(s): @missing\n",
+          "\n";
+}
+
+my $version = Get_File_Version 'gpt-wizard';
+if (not defined $version) {
+    die "Can't determine version of file gpt-wizard\n";
+}
+
+my $install_dir;
+my $symlink_source;
+my $symlink_target;
+if (defined $Apps) {
+    $install_dir    = "$Apps/gpt-wizard-$version";
+    $symlink_source = "gpt-wizard-$version";
+    $symlink_target = "$Apps/gpt-wizard";
+}
+elsif (defined $Prefix) {
+    $install_dir = $Prefix;
+    $symlink_source = undef;
+    $symlink_target = undef;
+}
+
+if ($Force) {
+    if (-e $install_dir and not -d $install_dir) {
+        die "$install_dir already exists and is not a directory\n";
+    }
+}
+else {
+    if (-e $install_dir and not Is_Empty_Dir $install_dir) {
+        die "$install_dir already exists\n";
+    }
+}
+if ($Create_Symlink and defined $symlink_target and -e $symlink_target) {
+    die "$symlink_target already exists\n";
+}
+
+Make_Directory $install_dir if not -d $install_dir;
+foreach my $dir (@dirs) {
+    Make_Directory "$install_dir/$dir";
+}
+my $cp_opt = defined $Force ? '-pf' : '-p';
+FILE:
+foreach my $file (sort keys %file_dir) {
+    if ($file eq 'gpt-wizard' and
+        defined $Perl and
+        $Perl ne $Default_Perl)
+    {
+	my $target = "$install_dir/$file_dir{$file}/$file";
+        print "% (Copy $file to $target replacing '#!' line)\n";
+        if (not $Dryrun) {
+            open SOURCE, $file or die "${file}: $!\n";
+            open TARGET, "> $target" or die "${target}: $!\n";
+            while (<SOURCE>) {
+                if ($. == 1) {
+                    print TARGET "#!$Perl -w\n";
+                }
+                else {
+                    print TARGET $_;
+                }
+            }
+            close SOURCE;
+            close TARGET;
+        }
+
+        my @stat = stat $file;
+        die "stat ${file}: $!\n" if not @stat;
+        my $file_mode = $stat[2] & 0777;
+        printf "%% chmod %o %s\n", $file_mode, $target;
+        if (not $Dryrun) {
+            chmod $file_mode, $target or die "${target}: $!\n";
+        }
+    }
+    else {
+        Run_Command 'cp', $cp_opt, $file, "$install_dir/$file_dir{$file}/.";
+    }
+}
+
+if ($Create_Symlink and
+    defined $symlink_source and
+    defined $symlink_target)
+{
+    Make_Symlink $symlink_source, $symlink_target;
+}
+
+print "Installation complete\n";
+
+########################################################################
+
+sub Get_File_Version($) {
+    my($filename) = @_;
+    my $result = undef;
+    open FILE, $filename or return undef;
+    LINE:
+    while (<FILE>) {
+        #
+        # Search for the definition of $Release_Number.
+        #
+        if (/\$Release_Number.*'(\d[\d.]*\d)'/) {
+            $result = $1;
+            last LINE;
+        }
+    }
+    close FILE;
+    return $result;
+} # Get_File_Version
+
+# ----------------------------------------------------------------------
+
+sub Is_Empty_Dir($) {
+    my($dir) = @_;
+    if (-d $dir) {
+        opendir DIR, $dir or die "${dir}: $!\n";
+        my @files = grep { $_ ne '.' and $_ ne '..' } readdir DIR;
+        closedir DIR;
+        if (@files) { return 0; } else { return 1; }
+    }
+    else {
+        return 0;
+    }
+} # Is_Empty_Dir
+
+# ----------------------------------------------------------------------
+
+sub Run_Command(@) {
+    my(@command) = @_;
+
+    print "% @command\n";
+    if (not $Dryrun) {
+        my $result = system @command;
+        if ($result != 0) {
+            if ($result & 0xff == 0) {
+                die ">>> exit " . ($result >> 8);
+            }
+            else {
+                die ">>> system() returned $result\n";
+            }
+        }
+    }
+} # Run_Command
+
+# ----------------------------------------------------------------------
+
+sub Make_Directory($) {
+    my($dir) = @_;
+    return if $Force and -d $dir;
+    print "% mkdir $dir\n";
+    if (not $Dryrun) {
+        mkdir $dir, 0777 or die "mkdir ${dir}: $!\n";
+    }
+} # Make_Directory
+
+# ----------------------------------------------------------------------
+
+sub Make_Symlink($$) {
+    my ($source, $target) = @_;
+    print "% symlink $source $target\n";
+    if (not $Dryrun) {
+        symlink $source, $target or die "symlink: $!\n";
+    }
+} # Make_Symlink
+
+# ----------------------------------------------------------------------
+
+sub Usage(@) {
+    print @_ if @_;
+    print <<"EOF";
+Usage: $Program_Name [options]
+Installs gpt-wizard.
+This must be executed in the source directory so it can find
+the files to be installed.
+    -help          Show this message and exit.
+    -perl   PERL   Full path to Perl interpreter; default is $Default_Perl
+    -apps   APPS   Install in APPS/gpt-wizard-VERSION
+    -prefix DIR    Install in DIR
+    -symlink       Make DIR/gpt-wizard a symlink to gpt-wizard-VERSION
+                   Valid only with "-apps"
+    -force         Allow installation directory to be an existing
+                   non-empty directory; by default, it must be nonexistent
+                   or empty
+    -dryrun        Don't do the installation, just show the steps
+Exactly one of "-apps" and "-prefix" must be specified.
+EOF
+    exit 1;
+} # Usage
