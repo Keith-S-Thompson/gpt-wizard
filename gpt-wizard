@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.33 2002-08-13 16:10:10-07 kst Exp $
+# $Id: gpt-wizard,v 1.34 2002-08-13 16:38:53-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -42,7 +42,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.33 $';
+my $Revision = Strip_Revision_String '$Revision: 1.34 $';
 my $Help = undef;
 my $Debugging = undef;
 my $Cleanup = 1;
@@ -61,6 +61,8 @@ Usage if scalar @ARGV != 1;
 my $Config_File = $ARGV[0];
 my %Config = Get_Config $ARGV[0];
 Check_Config_Vars();
+
+Check_Services;
 
 my @As_Root      = qw(-time -verbose -check);
 my @As_Installer = (qw(-time -verbose -check),
@@ -727,16 +729,23 @@ sub Check_Services() {
     my %expected_name = ( 2119 => 'gsigatekeeper',
                           2135 => 'gris',
                           2811 => 'gsiftp' );
+    my @errors = ();
     foreach my $port (sort keys %expected_name) {
-        my @serv = getservbyport $port, $expected_name{$port};
+        my @serv = getservbyport $port, 'tcp';
         if (not @serv) {
-            print ">>> No service on port $port ",
-                  "(expected $expected_name{$port})\n";
+            push @errors,
+                 "    No service on port $port, " .
+                 "expected $expected_name{$port}\n";
         }
         elsif ($serv[0] ne $expected_name{$port}) {
-            print ">>> Service on port $port is \"$serv[0]\", ",
+            push @errors,
+                 "    Service on port $port is \"$serv[0]\", ",
                   "should be \"$expected_name{$port}\"\n";
         }
+    }
+    if (@errors) {
+        push @manual_steps,
+             "Correct /etc/services or equivalent:\n@errors";
     }
 } # Check_Services
 
