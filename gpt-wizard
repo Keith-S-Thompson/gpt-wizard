@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.177 2003-03-15 15:17:44-08 kst Exp $
+# $Id: gpt-wizard,v 1.178 2003-03-15 15:45:05-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -179,7 +179,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.177 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.178 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -247,8 +247,15 @@ my %Config = Get_Config $Config_File;
 
 my %Sys = Get_System_Information;
 
-my $Initial_Dir = `pwd`;
-chomp $Initial_Dir;
+my $Config_File_Full_Path;
+if ($Config_File =~ /^\//) {
+    $Config_File_Full_Path = $Config_File;
+}
+else {
+    my $pwd = `pwd`;
+    chomp $pwd;
+    $Config_File_Full_Path = "$pwd/$Config_File";
+}
 
 #
 # If any bundles were installed using RPM, we'll need to run
@@ -534,7 +541,7 @@ print "% mkdir $info_dir\n";
 mkdir $info_dir, 0777 or die "$info_dir: $!\n";
 chown $installer_uid, $installer_gid, $info_dir or die "$info_dir: $!\n";
 
-Execute @As_Installer, 'cp', '-p', "$Initial_Dir/$Config_File", "$info_dir/.";
+Execute @As_Installer, 'cp', '-p', $Config_File_Full_Path, "$info_dir/.";
 
 open INFO, ">$info_file" or die "$info_file: $!\n";
 print INFO $build_info;
