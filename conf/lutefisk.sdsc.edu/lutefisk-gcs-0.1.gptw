@@ -1,0 +1,21 @@
+# $Id: lutefisk-gcs-0.1.gptw,v 1.1 2004-10-20 19:38:28-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-gcs-0.1.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION /usr/local/apps/gcs-0.1
+
+.PARAM GLOBUS_DIR /home/kst/Globus/2.4.3
+.PARAM BUNDLE_DIR $GLOBUS_DIR/bundles/src
+.PARAM UPDATE_DIR $GLOBUS_DIR/updates/src
+.PARAM GCS_DIR    /home/kst/Globus/gcs-0.1
+
+GPT_TARBALL $GLOBUS_DIR/gpt/gpt-3.0.1-src.tar.gz
+
+BUNDLE $BUNDLE_DIR/globus-gsi-2.4.3-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+BUNDLE $GCS_DIR/globus_gcs_b38b4d8c_setup-0.1.tar.gz   kind=source flavor=gcc32dbg
+
+UPDATE $UPDATE_DIR/globus_common-3.17.tar.gz
+UPDATE $UPDATE_DIR/globus_openssl-0.20.tar.gz
