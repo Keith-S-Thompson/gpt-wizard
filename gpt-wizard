@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.135 2003-01-10 23:54:03-08 kst Exp $
+# $Id: gpt-wizard,v 1.136 2003-01-16 11:27:16-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -128,7 +128,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.135 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.136 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -268,7 +268,7 @@ foreach my $env (@{$Config{ENV}}) {
 print "% umask $Config{UMASK}\n";
 umask oct $Config{UMASK} or die "umask $Config{UMASK}: $!\n";
 
-my $working_dir = "$Config{TEMP_DIR}/install-nmi-" . time . "-$$";
+my $working_dir = "$Config{TEMP_DIR}/nmi-wizard-" . time . "-$$";
 print "% mkdir $working_dir\n";
 mkdir $working_dir, 0700 or die "$working_dir: $!\n";
 chown $installer_uid, $installer_gid, $working_dir
@@ -1585,7 +1585,7 @@ sub Make_Temp_File($) {
 # Print a message on failure if check is false.
 #
 # Note: die'ing and/or printing a message from this routine is a bit ugly,
-# but it's useful in the context of this program (install-nmi).
+# but it's useful in the context of this program (gpt-wizard).
 #
 sub Get_Result($$) {
     my ($status, $check) = @_;
