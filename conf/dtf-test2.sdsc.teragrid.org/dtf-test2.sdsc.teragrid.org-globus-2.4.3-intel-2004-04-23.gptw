@@ -1,7 +1,7 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-04-23.gptw,v 1.1 2004-04-23 21:30:57-07 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-04-23.gptw,v 1.2 2004-04-23 21:34:12-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-04-23.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin:/usr/local/apps/intel/compiler8/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/intel8-r1/bin
 ENV INTEL_LICENSE_FILE=/usr/local/apps/intel/compiler8/licenses
@@ -33,6 +33,8 @@ BUNDLE globus-data-management-server-2.4.3-src_bundle.tar.gz      kind=source fl
 BUNDLE globus-resource-management-client-2.4.3-src_bundle.tar.gz  kind=source flavor=vendorcc64dbg
 BUNDLE globus-resource-management-sdk-2.4.3-src_bundle.tar.gz     kind=source flavor=mpicc64dbg,vendorcc64dbg
 BUNDLE globus-resource-management-server-2.4.3-src_bundle.tar.gz  kind=source flavor=vendorcc64dbg
+
+.PREFIX /work/kst/repo.teragrid.org/open/globus/2.4.3
 
 #
 # Apply all currently available updates
