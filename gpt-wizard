@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.111 2002-11-03 14:12:54-08 kst Exp $
+# $Id: gpt-wizard,v 1.112 2002-11-03 14:58:57-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -35,10 +35,6 @@
 #     by brute force.  Find out more about the implications of doing this.
 #
 #     Allow GPT to be installed from an RPM or binary package.
-#
-#     In Get_Update_Flavors(), if the only flavor listed is "noflavor",
-#     should I build with no flavor specified?  Currently it's treated
-#     as an error.
 #
 
 use strict;
@@ -75,7 +71,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.111 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.112 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -1532,13 +1528,16 @@ sub Get_Update_Flavors($) {
         my @fields = split /-/, $_;
         if (scalar @fields >= 2) {
             my $new_flavor = $fields[$#fields - 1];
-            $flavor{$new_flavor} = 1 if $new_flavor ne 'noflavor';
+            $flavor{$new_flavor} = 1;
         }
     }
     close PIPE;
 
     my @flavors = sort keys %flavor;
-    if (@flavors) {
+    if (scalar @flavors == 1 and $flavors[0] eq 'noflavor') {
+        return ();
+    }
+    elsif (@flavors) {
         return @flavors;
     }
     else {
