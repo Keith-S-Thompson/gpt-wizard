@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.123 2002-11-27 23:46:00-08 kst Exp $
+# $Id: gpt-wizard,v 1.124 2002-12-07 00:18:49-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -121,7 +121,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.123 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.124 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -552,6 +552,20 @@ Fix_Setup_Script
     "$ENV{GLOBUS_LOCATION}/setup/gsi_openssh_setup/setup-openssh.pl";
 
 ########################################
+# Allow a specified command to be executed before running gpt-postinstall.
+# This is used on AIX to run mds-aix-relink.sh, which works around some
+# AIX-specific libtool problems.  It's a bit of a kludge, not to be used
+# unless it's necessary.  Just to make it even kludgier, any occurence of
+# the string BUILD_DIR is replaced with the name of the build directory.
+########################################
+if ($Postinstall and defined $Config{PRE_POSTINSTALL}) {
+    my $pre_postinstall = $Config{PRE_POSTINSTALL};
+    $pre_postinstall =~ s(BUILD_DIR)($working_dir/BUILD);
+    my @fixup_command = split /\s+/, $pre_postinstall;
+    Execute @As_Installer, @fixup_command;
+}
+
+########################################
 # Run gpt-postinstall.
 ########################################
 if ($Postinstall) {
@@ -891,6 +905,8 @@ sub Get_Config($) {
             { type => 'array_of_file_or_url', required => 1 },
         UPDATE =>
             { type => 'array_of_file_or_url', required => 0 },
+        PRE_POSTINSTALL ->
+            { type => 'string', required => 0 },
         GPT_LOCATION =>,
             { type => 'new_directory', required => 1 },
         GLOBUS_LOCATION =>
