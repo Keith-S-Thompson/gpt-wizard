@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.107 2002-10-31 19:17:42-08 kst Exp $
+# $Id: gpt-wizard,v 1.108 2002-11-01 19:45:03-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -51,6 +51,7 @@ sub Elapsed_Time_Image($);
 sub Time_Image($);
 sub Make_Temp_File($);
 sub Get_Result($$);
+sub Get_Update_Flavors($);
 sub Execute(@);
 sub Check_Services();
 sub Die_Handler($);
@@ -70,7 +71,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.107 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.108 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -110,9 +111,14 @@ $SIG{__DIE__} = \&Die_Handler;
 
 my $temp_file_serial_number = 0;
 my @manual_steps = ();
-my %Bundle_Kind = ();
+
+#
+# Attributes for bundles and updates:
+#
+my %Bundle_Kind   = ();
 my %Bundle_Option = ();
 my %Bundle_Flavor = ();
+my %Is_Update     = ();
 
 Usage if scalar @ARGV != 1;
 my $Config_File = $ARGV[0];
@@ -340,7 +346,7 @@ if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
 ########################################
 
 foreach my $bundle ( @{$Config{BUNDLE}} ) {
-    my $bundle_name = File::Basename::basename $bundle;
+    my $bundle_basename = File::Basename::basename $bundle;
 
     #
     # If the file name was specified in the config file with a
@@ -367,7 +373,10 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
                 "\$Bundle_Kind{$bundle} = \"$Bundle_Kind{$bundle}\"";
         }
     }
-    elsif ($bundle_name =~ /(\b|_)src(\b|_)/) {
+    elsif ($Is_Update{$bundle}) {
+        $is_source = 1;
+    }
+    elsif ($bundle_basename =~ /(\b|_)src(\b|_)/) {
         $is_source = 1;
     }
     else {
@@ -397,9 +406,12 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
         if (defined $Bundle_Flavor{$bundle}) {
             @flavors = split /,/, $Bundle_Flavor{$bundle};
         }
-        elsif ($bundle_name =~ /^globus/) {
+        elsif ($Is_Update{$bundle}) {
+            @flavors = Get_Update_Flavors $bundle;
+        }
+        elsif ($bundle_basename =~ /^globus/) {
             my $mpi = $Config{USE_MPI} ? 'mpi' : '';
-            if ($bundle_name =~ /^globus_information/) {
+            if ($bundle_basename =~ /^globus_information/) {
                 push @flavors, "$Config{CC}$Sys{BITS}dbgpthr$mpi";
             }
             else {
@@ -800,6 +812,8 @@ sub Get_Config($) {
             { type => 'file_or_url', required => 1 },
         BUNDLE =>
             { type => 'array_of_file_or_url', required => 1 },
+        UPDATE =>
+            { type => 'array_of_file_or_url', required => 0 },
         GPT_LOCATION =>,
             { type => 'new_directory', required => 1 },
         GLOBUS_LOCATION =>
@@ -855,11 +869,11 @@ sub Get_Config($) {
             # Multiple options may be specified, separated by commas, e.g.:
             #     -update,-std-flavors
             #
-            if ($name eq 'BUNDLE') {
+            if ($name eq 'BUNDLE' or $name eq 'UPDATE') {
                 my $filename = undef;
-                my $kind = undef;
-                my $flavor = undef;
-                my $option = undef;
+                my $kind     = undef;
+                my $flavor   = undef;
+                my $option   = undef;
 
                 foreach my $field (split /\s+/, $value) {
                     if (lc $field =~ /^kind=(.*)$/) {
@@ -914,6 +928,7 @@ sub Get_Config($) {
                     $Bundle_Kind{$value}   = $kind   if defined $kind;
                     $Bundle_Option{$value} = $option if defined $option;
                     $Bundle_Flavor{$value} = $flavor if defined $flavor;
+                    $Is_Update{$value}     = 1       if $name eq 'UPDATE';
 
                     #
                     # If the kind ("binary" or "source") has not been
@@ -924,8 +939,8 @@ sub Get_Config($) {
                     # otherwise it's a binary bundle.
                     #
                     if (not defined $Bundle_Kind{$value}) {
-                        my $bundle_name = File::Basename::basename $value;
-                        if ($bundle_name =~ /(\b|_)src(\b|_)/) {
+                        my $bundle_basename = File::Basename::basename $value;
+                        if ($bundle_basename =~ /(\b|_)src(\b|_)/) {
                             $Bundle_Kind{$value} = 'source';
                         }
                         else {
@@ -1350,6 +1365,7 @@ sub Download_Files(@) {
             elsif (-s $target_file == 0) {
                 die "Download failed for $target_file (empty file)\n";
             }
+
             if (defined $Bundle_Kind{$$ref}) {
                 $Bundle_Kind{$target_file} = $Bundle_Kind{$$ref};
             }
@@ -1358,6 +1374,9 @@ sub Download_Files(@) {
             }
             if (defined $Bundle_Flavor{$$ref}) {
                 $Bundle_Flavor{$target_file} = $Bundle_Flavor{$$ref};
+            }
+            if (defined $Is_Update{$$ref}) {
+                $Is_Update{$target_file} = $Is_Update{$$ref};
             }
 
             $$ref = $target_file;
@@ -1495,6 +1514,48 @@ sub Get_Result($$) {
     }
     return $Result;
 } # Get_Result
+
+# ----------------------------------------------------------------------
+
+sub Get_Update_Flavors($) {
+    my($filename) = @_;
+
+    my $module_name = File::Basename::basename $filename;
+    #
+    # File name format is name-version.tar.gz
+    #
+    $module_name =~ s/-[^-]*\.tar\.gz$//;
+
+    my %flavor = ();
+
+    open PIPE, "$ENV{GLOBUS_LOCATION}/sbin/gpt-query $module_name |";
+    while (<PIPE>) {
+        chomp;
+        next if not /ver:/;
+        #
+        # Strip leading whitespace and grab first word.
+        #
+        s/^\s*//;
+        s/\s.*$//;
+        #
+        # e.g., "globus_openssl_module-gcc32dbg-dev".
+        # Split on /-/ and grab next-to-last field.
+        #
+        my @fields = split /-/, $_;
+        if (scalar @fields >= 2) {
+            $flavor{$fields[$#fields - 1]} = 1;
+        }
+    }
+    close PIPE;
+
+    my @flavors = sort keys %flavor;
+    if (@flavors) {
+        return @flavors;
+    }
+    else {
+        die "Unable to determine flavors for $filename\n";
+    }
+} # Get_Update_Flavors
 
 # ----------------------------------------------------------------------
 
