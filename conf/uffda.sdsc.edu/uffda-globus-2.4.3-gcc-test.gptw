@@ -1,0 +1,28 @@
+# $Id: uffda-globus-2.4.3-gcc-test.gptw,v 1.1 2004-03-08 16:56:49-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-globus-2.4.3-gcc-test.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3-gcc-test
+GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3-gcc-test
+
+.PREFIX ~kst/repo.teragrid.org/open/globus/2.4.3
+
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+#
+# Build Globus 2.4.3 from source
+#
+BUNDLE globus-data-management-client-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-sdk-2.4.3-src_bundle.tar.gz         kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-server-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+
+BUNDLE globus-information-services-client-2.4.3-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-sdk-2.4.3-src_bundle.tar.gz    kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-server-2.4.3-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+
+BUNDLE globus-resource-management-client-2.4.3-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-sdk-2.4.3-src_bundle.tar.gz     kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-server-2.4.3-src_bundle.tar.gz  kind=source flavor=gcc32dbg
