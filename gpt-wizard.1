@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.60 2004-09-03 16:58:23-07 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.61 2004-09-03 17:16:33-07 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -43,6 +43,9 @@
 .\" 
 .\" @Copyright@
 .\" 
+.\"
+.\" The layout of the following line is significant; see make-release.
+.\"
 .TH GPT\-WIZARD 1 2004-02-12 SDSC
 .SH NAME
 gpt\-wizard \- Build and install GPT bundles and packages
@@ -53,7 +56,7 @@ gpt\-wizard \- Build and install GPT bundles and packages
 
 .SH VERSION
 .\"
-.\" The layout of the following line is significant; see make\-release.
+.\" The layout of the following line is significant; see make-release.
 .\"
 This documentation is for release 0.7.5 of
 .IR gpt\-wizard .
@@ -411,14 +414,19 @@ Optional.  May occur multiple times.
 
 .IP INHERIT_ENV
 The name of an environment variable to be retained in the build
-environment.  Environment variables other than DISPLAY, HOME, LOGNAME,
-SHELL, and USER are deleted to avoid subtle dependencies on the
-environment in which
+environment.  Environment variables other than HOME, LOGNAME, SHELL,
+and USER are deleted to avoid subtle dependencies on the environment
+in which
 .I gpt\-wizard
-is executed.  It's usually better to use the ENV option to specify
-the value of a variable (this documents the actual value used), but
-the INHERIT_ENV option can be used if it's necessary to use whatever
-value happens to be in the invoking environment.  See also the ENV option.
+is executed.  It's usually better to use the ENV option to specify the
+value of a variable (this documents the actual value used), but the
+INHERIT_ENV option can be used if it's necessary to use whatever value
+happens to be in the invoking environment.  MPICH-G2 configuration
+sometimes requires a valid $DISPLAY for Java Swing; in this case, use
+.br
+.B "	INHERIT_ENV DISPLAY"
+.br
+See also the ENV option.
 .br
 Type: string
 .br
