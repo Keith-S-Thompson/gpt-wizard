@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.18 2003-05-19 00:27:36-07 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.19 2003-06-03 01:32:29-07 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -101,6 +101,10 @@ I highly recommend capturing the output of each
 .I gpt-wizard
 run in a log file for later perusal.
 
+The web page for the
+.I gpt-wizard
+command is
+.IR <http://www.sdsc.edu/~kst/gpt-wizard/> .
 The
 .I gpt-wizard
 command should be available at
@@ -277,7 +281,7 @@ Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
 .br
 Example:
 .br
-.B "	CONFIG_FILE_REVISION $Revision: 1.18 $"
+.B "	CONFIG_FILE_REVISION $Revision: 1.19 $"
 .br
 Type: string
 .br
@@ -315,6 +319,32 @@ Type: executable file
 Optional.  This is only necessary if some files are specified as
 URLs and the
 .I wget
+command does not appear in the
+.B PATH
+specified in the configuration file.
+
+.IP TAR
+The full path name of the
+.I tar
+command.
+.br
+Type: executable file
+.br
+Optional.  This is only necessary if the
+.I tar
+command does not appear in the
+.B PATH
+specified in the configuration file.
+
+.IP GZIP
+The full path name of the
+.I gzip
+command.
+.br
+Type: executable file
+.br
+Optional.  This is only necessary if the
+.I gzip
 command does not appear in the
 .B PATH
 specified in the configuration file.
