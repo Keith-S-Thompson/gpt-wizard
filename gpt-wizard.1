@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.26 2003-12-17 00:58:49-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.27 2004-02-12 13:21:50-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -269,24 +269,13 @@ home directory.  If there is no such user, no substitution is done
 .I ~
 by the value of $HOME is not supported.)
 
-Some variables specifying file names may also be given as URLs starting
-with "ftp://" or "http://".
-.I gpt-wizard
-uses the
-.I wget
-command for both ftp and http URLs; if the wget command does not
-appear in the
-.B PATH
-defined in the configuration file, the full path name may be specified
-(see the
-.B WGET
-configuration variable, below).  Downloaded files are automatically
-cached under the directory specified by the
-.B DOWNLOAD_DIR
-configuration variable.
-
-For security reasons, certificate and key files may not be specified
-as URLS.  They must be available as local files.
+Previous versions of
+.Ir gpt-wizard ,
+up to release 0.4 supported specification of URLs (starting with either
+"ftp://" or "http://") for some files.  This is no longer supported;
+all files must be directly visible.  (It wasn't being used, and I'm
+not certain that it worked properly.)  The DOWNLOAD_DIR and WGET
+configuration variables are no longer supported.
 
 .SH CONFIGURATION OPTIONS
 
@@ -294,16 +283,15 @@ as URLS.  They must be available as local files.
 This is a pseudo-option.  It specified a default prefix to be prepended,
 with a
 .B '/'
-character, to any following file name or URL given as a relative path
-name.  It can be used to avoid extremely long lines in configuration
-files.
+character, to any following file name given as a relative path name.
+It can be used to avoid extremely long lines in configuration files.
 
 .IP CONFIG_FILE_REVISION
 Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
 .br
 Example:
 .br
-.B "	CONFIG_FILE_REVISION $Revision: 1.26 $"
+.B "	CONFIG_FILE_REVISION $Revision: 1.27 $"
 .br
 Type: string
 .br
@@ -319,31 +307,6 @@ Type: existing directory
 .br
 Optional.  Default is "/tmp".  This must be specified as an absolute
 pathname.
-
-.IP DOWNLOAD_DIR
-Directory to be used for downloaded files.
-.br
-Type: existing directory
-.br
-Required if any files are specified as URLs; otherwise optional.
-This must be specified as an absolute pathname.  If any files are
-specified as URLs, they will be downloaded into subdirectories of
-this directory.  For any files that have already been downloaded,
-the local copy will be used.
-
-.IP WGET
-The full path name of the
-.I wget
-command, used to downloaded files specified as ftp or http URLs.
-.br
-Type: executable file
-.br
-Optional.  This is only necessary if some files are specified as
-URLs and the
-.I wget
-command does not appear in the
-.B PATH
-specified in the configuration file.
 
 .IP TAR
 The full path name of the
@@ -421,7 +384,12 @@ The location of the source tarball
 .RI ( *.tar.gz )
 file for GPT.  Binary and RPM distributions are not yet supported.
 .br
-Type: file name or URL
+As of
+.I gpt-wizard
+release 0.5, GPT 1.X is no longer supported; all current Globus releases
+include GPT 2.X or better.
+.br
+Type: file name
 .br
 Mandatory.
 
@@ -429,8 +397,11 @@ Mandatory.
 A GPT bundle or package.  It may be a source, binary, or rpm bundle.
 (In a future release,
 .I gpt-wizard
-may require a separate PACKAGE option for packages.)  Multiple bundles
-may be specified in a single config file.
+may require a separate PACKAGE option for packages.)  Multiple
+bundles may be (and typically are) specified in a single config file.
+If necessary, the same bundle may be specified multiple times with
+different attributes, for example if it's necessary to build a bundle
+with "-static" for some flavors and without "-static" for others.
 .br
 Attributes:
 .br
@@ -454,7 +425,7 @@ Multiple flavors may be specified, separated by commas, e.g.,
 Options are passed to gpt-install or gpt-build, after expanding
 commas to blanks.
 .br
-Type: file name or URL
+Type: file name
 .br
 Mandatory.  Multiple bundles may be specified.
 
@@ -463,7 +434,7 @@ A GPT update package.  This is normally a source package.
 .br
 The same attributes may be specified as for bundles.
 .br
-Type: file name or URL
+Type: file name
 .br
 Optional.  Multiple update packages may be specified.
 
@@ -546,7 +517,7 @@ The name of a file to be copied to
 This is a text file mapping Globus certificate subject names to Unix
 account names.  See the Globus documentation for more information.
 .br
-Type: file name or URL
+Type: file name
 .br
 Optional.
 
@@ -637,15 +608,16 @@ The certificate
 .RI ( *.0 )
 and policy
 .RI ( *.signing_policy )
-files
-should be at the top level of the tarball.  By default,
-only the Globus CA is recognized.  One possible value is
+files should be at the top level of the tarball.  By default, only the
+Globus CA is recognized; since the Globus CA has expired, it will be
+necessary to install one or more others.  One possible value is a local
+copy of
 .I "ftp://ftp.sdsc.edu/pub/sdsc/globus/CA/certificates.tar.gz"
 (but be sure to read the enclosed
 .I README
 file before deciding to use it).
 .br
-Type: file name or URL
+Type: file name
 .br
 Optional.
 
