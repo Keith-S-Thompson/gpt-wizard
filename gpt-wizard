@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.189 2003-03-18 00:16:09-08 kst Exp $
+# $Id: gpt-wizard,v 1.190 2003-03-19 12:10:23-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -140,6 +140,18 @@
 #     If neither inetd nor xinetd is currently running, guess based on
 #     which executable exists in /usr/sbin.
 #
+#     Don't dump manual_steps on config file error.
+#
+#     Warn if directory name contains "bundle" and package file name
+#     doesn't; mention that this may not apply to newer GPT releases.
+#
+#     In man page, clarify that "BUNDLE" can be either a bundle or a
+#     package.  Consider a new config var PACKAGE.  Add a section with
+#     an overview of gpt, particularly the distinction between bundles
+#     and packages (and mention rpms).
+#
+#     Support "~user" in file names in config file.
+#
 
 require 5.004;
 
@@ -197,7 +209,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.189 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.190 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
