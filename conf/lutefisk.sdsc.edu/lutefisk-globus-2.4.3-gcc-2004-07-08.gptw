@@ -1,7 +1,7 @@
-# $Id: lutefisk-globus-2.4.3-gcc-2004-07-08.gptw,v 1.1 2004-07-08 00:32:17-07 kst Exp $
+# $Id: lutefisk-globus-2.4.3-gcc-2004-07-08.gptw,v 1.2 2004-07-08 15:08:34-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-globus-2.4.3-gcc-2004-07-08.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin
 
@@ -66,10 +66,10 @@ BUNDLE myproxy-1.13.tar.gz                                         kind=source f
 .PREFIX ~kst/repo.teragrid.org/open/uberftp/1.5
 BUNDLE uberftp-1.5-tg-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
 
-#
-# Build APST
-#
-.PREFIX ~kst/src/apst
-BUNDLE apst-2.2.0.tar.gz kind=source flavor=gcc32dbgpthr
+## #
+## # Build APST
+## #
+## .PREFIX ~kst/src/apst
+## BUNDLE apst-2.2.0.tar.gz kind=source flavor=gcc32dbgpthr
 
 CREATE_BINARY_BUNDLE dir=~globus name=globus version=2.4.3 label=2.4.3-gcc-2004-07-08
