@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.113 2002-11-03 22:58:24-08 kst Exp $
+# $Id: gpt-wizard,v 1.114 2002-11-15 16:44:54-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -35,6 +35,10 @@
 #     by brute force.  Find out more about the implications of doing this.
 #
 #     Allow GPT to be installed from an RPM or binary package.
+#
+#     Deal with globus-host-ssl.conf.42864e48
+#               globus-user-ssl.conf.42864e48
+#               grid-security.conf.42864e48
 #
 
 use strict;
@@ -71,7 +75,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.113 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.114 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
