@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.228 2004-02-11 22:01:11-08 kst Exp $
+# $Id: gpt-wizard,v 1.229 2004-02-11 22:57:11-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -94,13 +94,7 @@
 #
 #     If GLOBUS_HOSTNAME is specified, set the $GLOBUS_HOSTNAME
 #     environment variable in inetd.conf or xinetd config files.
-#     (Is this necessary?  Probably not.)  (Yes, it is.
-#
-#     Allow references to existing environment variables in ENV options.
-#     For example:
-#         ENV   LD_LIBRARY_PATH=/foo/bar:$LD_LIBRARY_PATH
-#     On second thought, this might not be such a good idea; it allows
-#     too much dependence on the existing environment.
+#     (Is this necessary?  Probably not.)  (Yes, it is.)
 #
 #     Optionally generate a Bourne shell script to do the installation
 #     rather than actually doing the installation.  Low priority.
@@ -137,9 +131,6 @@
 #
 #     Support adding updates to an existing installation, including
 #     adding information to the $GLOBUS_LOCAITON/.gpt-wizard directory.
-#
-#     Allow a bundle to be built with different options for different
-#     flavors (e.g., use "-static" only for an mpi flavor).
 #
 #     For updates, figure out how to apply options (particularly
 #     "-static") depending on how the package was initially built.
@@ -194,7 +185,7 @@ my $Release_Revision = '1.221'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.228 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.229 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -245,14 +236,6 @@ my $gzip = undef;
 my $temp_file_serial_number = 0;
 
 my @manual_steps = ();
-
-#
-# Attributes for bundles and updates:
-#
-my %Bundle_Kind   = ();
-my %Bundle_Option = ();
-my %Bundle_Flavor = ();
-my %Is_Update     = ();
 
 Usage if scalar @ARGV != 1;
 my $Config_File = $ARGV[0];
@@ -556,7 +539,7 @@ close INFO;
 # Run gpt-install or gpt-build to install the bundles.
 ########################################
 foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
-    my $bundle_basename = File::Basename::basename $bundle;
+    my $bundle_basename = File::Basename::basename $bundle->{filename};
 
     #
     # If the file name was specified in the config file with a
@@ -580,9 +563,9 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
     # This is arguably too complicated; consider making the "kind"
     # attribute mandatory, at least for non-updates.
     #
-    my $bundle_kind = $Bundle_Kind{$bundle};
+    my $bundle_kind = ${bundle}->{kind};
     if (not defined $bundle_kind) {
-        if ($Is_Update{$bundle}) {
+        if ($bundle->{is_update}) {
             $bundle_kind = 'source';
         }
         elsif ($bundle_basename =~ /(\b|_)src(\b|_)/) {
@@ -611,25 +594,25 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         if ($GPT_Install_Only) {
             push @options, '-install-only';
         }
-        if ($Is_Update{$bundle}) {
+        if ($bundle->{is_update}) {
             push @options, '-update';
         }
-        if (defined $Bundle_Option{$bundle}) {
-            push @options, split(',', $Bundle_Option{$bundle});
+        if (defined $bundle->{options}) {
+            push @options, split(',', $bundle->{options});
         }
 
         my @flavors = ();
-        if (defined $Bundle_Flavor{$bundle}) {
-            @flavors = split /,/, $Bundle_Flavor{$bundle};
+        if (defined $bundle->{flavor}) {
+            @flavors = split /,/, $bundle->{flavor};
         }
-        elsif ($Is_Update{$bundle}) {
-            @flavors = Get_Update_Flavors $bundle;
+        elsif ($bundle->{is_update}) {
+            @flavors = Get_Update_Flavors $bundle->{filename};
         }
         else {
             push @options, '-std-flavors';
         }
         Execute @As_Installer_GPT,
-                $gpt_build_command, @options, $bundle, @flavors;
+                $gpt_build_command, @options, $bundle->{filename}, @flavors;
     }
     elsif ($bundle_kind eq 'binary' or $bundle_kind eq 'rpm') {
         #
@@ -644,12 +627,12 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         #
         if ($bundle_kind eq 'binary') {
             Execute @As_Installer_GPT,
-                    $gpt_install_command, @options, $bundle;
+                    $gpt_install_command, @options, $bundle->{filename};
         }
         else {
             $Using_RPM = 1;
             Execute @As_Root_GPT,
-                    $gpt_install_command, @options, $bundle;
+                    $gpt_install_command, @options, $bundle->{filename};
         }
     }
     else {
@@ -1324,9 +1307,9 @@ sub Get_Config($) {
         GPT_TARBALL =>
             { type => 'file', required => 1 },
         BUNDLE =>
-            { type => 'array_of_file', required => 1 },
+            { type => 'array_of_bundle', required => 1 },
         UPDATE =>
-            { type => 'array_of_file', required => 0 },
+            { type => 'array_of_bundle', required => 0 },
         PRE_POSTINSTALL =>
             { type => 'string', required => 0 },
         GPT_LOCATION =>
@@ -1387,7 +1370,7 @@ sub Get_Config($) {
             # on actual options after they're expanded.
             #
             # This expansion is performed only for options of type 'file',
-            # and 'array_of_file'.
+            # and 'array_of_bundle'.
             # 
             if ($name eq '.PREFIX') {
                 $default_prefix = $value;
@@ -1397,7 +1380,7 @@ sub Get_Config($) {
                 my $Var = $Var_Info{$name};
 
                 if ($Var->{type} eq 'file' or
-                    $Var->{type} eq 'array_of_file')
+                    $Var->{type} eq 'array_of_bundle')
                 {
                     #
                     # URLs are no longer supported
@@ -1430,7 +1413,7 @@ sub Get_Config($) {
                     # commas, e.g.:
                     #     -update,-std-flavors
                     #
-                    if ($name eq 'BUNDLE' or $name eq 'UPDATE') {
+                    if ($Var->{type} eq 'array_of_bundle') {
                         my $filename = undef;
                         my $kind     = undef;
                         my $flavor   = undef;
@@ -1490,11 +1473,12 @@ sub Get_Config($) {
                                     $filename = $field;
                                 }
                             }
-                            $value = $filename;
-                            $Bundle_Kind{$value}   = $kind   if defined $kind;
-                            $Bundle_Option{$value} = $option if defined $option;
-                            $Bundle_Flavor{$value} = $flavor if defined $flavor;
-                            $Is_Update{$value}     = 1 if $name eq 'UPDATE';
+                            $value = {};
+                            $value->{filename}  = $filename;
+                            $value->{kind}      = $kind   if defined $kind;
+                            $value->{option}    = $option if defined $option;
+                            $value->{flavor}    = $flavor if defined $flavor;
+                            $value->{is_update} = 1 if $name eq 'UPDATE';
                         }
                     }
                 }
@@ -1694,9 +1678,9 @@ sub Get_Config($) {
             }
         }
 
-        elsif ($var->{type} eq 'array_of_file') {
+        elsif ($var->{type} eq 'array_of_bundle') {
             foreach my $item (@{$var->{value}}) {
-                my $error = File_Error "-varname=$varname", $item;
+                my $error = File_Error "-varname=$varname", $item->{filename};
                 push @errors, $error if defined $error;
             }
         }
@@ -1793,17 +1777,22 @@ sub Get_Config($) {
         if (ref $value eq 'ARRAY') {
             printf "    %-20s => {\n", $key;
             foreach my $elem (@$value) {
-                my @fields = ("\"$elem\"");
-                if (defined $Bundle_Kind{$elem}) {
-                    push @fields, "kind=$Bundle_Kind{$elem}";
+                if ($key eq 'BUNDLE' or $key eq 'UPDATE') {
+                    my @fields = ("\"$elem->{filename}\"");
+                    if (defined $elem->{kind}) {
+                        push @fields, "kind=$elem->{kind}";
+                    }
+                    if (defined $elem->{option}) {
+                        push @fields, "option=$elem->{option}";
+                    }
+                    if (defined $elem->{flavor}) {
+                        push @fields, "flavor=$elem->{flavor}";
+                    }
+                    print "        @fields\n";
                 }
-                if (defined $Bundle_Option{$elem}) {
-                    push @fields, "option=$Bundle_Option{$elem}";
+                else {
+                    print "        \"$elem\"\n";
                 }
-                if (defined $Bundle_Flavor{$elem}) {
-                    push @fields, "flavor=$Bundle_Flavor{$elem}";
-                }
-                print "        @fields\n";
             }
             print "    }\n";
         }
