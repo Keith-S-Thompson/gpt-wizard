@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.285 2004-05-08 01:07:13-07 kst Exp $
+# $Id: gpt-wizard,v 1.286 2004-05-24 14:24:26-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -205,7 +205,7 @@ my $Release_Revision = '1.285'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.285 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.286 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1000,17 +1000,23 @@ if (defined $Config{JOB_MANAGER} and not $Config{IS_UPDATE}) {
 # Run setup-gsi to create /etc/grid-security
 # (but we're going to replace its contents in a moment).
 ########################################
+my $setup_gsi = "$Config{GLOBUS_LOCATION}/setup/globus/setup-gsi";
 if ($Opt{startup}) {
-    Execute @As_Root,
-            "$Config{GLOBUS_LOCATION}/setup/globus/setup-gsi";
+    if (-x $setup_gsi) {
+        print "% Can't execute $setup_gsi\n";
+    }
+    else {
+        Execute @As_Root, $setup_gsi;
+    }
 }
 else {
     push @manual_steps,
          "After setting \$GLOBUS_LOCATION to $Config{GLOBUS_LOCATION} :\n" .
-         "As root, run $Config{GLOBUS_LOCATION}/setup/globus/setup-gsi\n" .
+         "As root, run $setup_gsi\n" .
          "-- OR --\n" .
          "as $Config{INSTALLER_USER}, run " .
-         "$Config{GLOBUS_LOCATION}/setup/globus/setup-gsi -nonroot\n";
+         "$setup_gsi -nonroot\n" .
+         "(This script may not exist for Globus 3.X.)\n";
 }
 
 ########################################
