@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.164 2003-02-28 01:27:39-08 kst Exp $
+# $Id: gpt-wizard,v 1.165 2003-03-03 17:27:11-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -175,7 +175,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.164 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.165 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1114,6 +1114,7 @@ sub Get_Config($) {
     my($config_file) = @_;
     my @errors = ();
     my @urls = ();
+    my $default_prefix = undef;
 
     #
     # %Var_Info is a hash of hash references.
@@ -1150,7 +1151,7 @@ sub Get_Config($) {
             { type => 'array_of_file_or_url', required => 0 },
         PRE_POSTINSTALL =>
             { type => 'string', required => 0 },
-        GPT_LOCATION =>,
+        GPT_LOCATION =>
             { type => 'new_directory', required => 0 },
         GLOBUS_LOCATION =>
             { type => 'new_directory', required => 1 },
@@ -1186,8 +1187,8 @@ sub Get_Config($) {
         if (/^(\w+)\s+(.*)$/) {
             my ($name, $value) = ($1, $2);
             #
-            # Bundles may have additional attributes specified on the
-            # same line.  Recognized attributes are:
+            # Bundles and updates may have additional attributes specified
+            # on the same line.  Recognized attributes are:
             #     kind=binary
             #     kind=source
             #     kind=rpm
@@ -1211,7 +1212,10 @@ sub Get_Config($) {
                             push @errors, "Duplicate kind, line $.\n";
                         }
                         else {
-                            if ($1 eq 'binary' or $1 eq 'source' or $1 eq 'rpm') {
+                            if ($1 eq 'binary' or
+                                $1 eq 'source'
+                                or $1 eq 'rpm')
+                            {
                                 $kind = $1;
                             }
                             else {
@@ -1262,9 +1266,44 @@ sub Get_Config($) {
                     $Is_Update{$value}     = 1       if $name eq 'UPDATE';
                 }
             }
-            if (defined $Var_Info{$name}) {
+
+            #
+            # PREFIX is not a true configuration option.  Instead, it
+            # allows a default directory prefix to be set for options that
+            # specify file names or URLs.  The default prefix, if any, is
+            # prepended to any following file or directory specifications.
+            # It does not apply to options given as absolute file names
+            # (starting with '/') or as URLs.
+            #
+            # This is in effect a limited macro facility, intended
+            # to avoid extremely long lines in configuration files.
+            # No checking is done on the prefix; the only checking is
+            # on actual options after they're expanded.
+            #
+            # This expansion is performed only for options of type 'file',
+            # 'file_or_url', and 'array_of_file_or_url'.
+            # 
+            if ($name eq 'PREFIX') {
+                $default_prefix = $value;
+            }
+            elsif (defined $Var_Info{$name}) {
                 my $Var = $Var_Info{$name};
 
+                if ($Var->{type} eq 'file' or
+                    $Var->{type} eq 'file_or_url' or
+                    $Var->{type} eq 'array_of_file_or_url')
+                {
+                    #
+                    # Prepend the default prefix (if any) only if the
+                    # value is a relative pathname.
+                    #
+                    if (not defined URL_Protocol $value and
+                        $value !~ /^\// and
+                        defined $default_prefix)
+                    {
+                        $value = $default_prefix . $value;
+                    }
+                }
                 if ($Var->{type} =~ /^array_of/) {
                     push @{$Var->{value}}, $value;
                 }
@@ -1331,6 +1370,10 @@ sub Get_Config($) {
         # It must be readable, writable, and searchable.
         #
         elsif ($var->{type} eq 'existing_directory') {
+            if ($var->{value} !~ /^\//) {
+                push @errors, "$varname directory \"$varname\", " .
+                              "relative path not allowed\n";
+            }
             if (not (-d $var->{value} and -r _ and -w _ and -x _)) {
                 push @errors, "Bad $varname directory \"$var->{value}\"\n";
             }
@@ -1455,18 +1498,20 @@ sub Get_Config($) {
         # See File_Or_URL_Error().
         # 
         elsif ($var->{type} eq 'file_or_url') {
-            my $error = File_Or_URL_Error "-varname=$varname", "-url-ok", $var->{value};
+            my $error = File_Or_URL_Error
+                            "-varname=$varname", "-url-ok", $var->{value};
             push @errors, $error if defined $error;
-            if ($var->{value} =~ m<^(\w+)://>) {
+            if (defined URL_Protocol $var->{value}) {
                 push @urls, $var->{value};
             }
         }
 
         elsif ($var->{type} eq 'array_of_file_or_url') {
             foreach my $item (@{$var->{value}}) {
-                my $error = File_Or_URL_Error "-varname=$varname", "-url-ok", $item;
+                my $error = File_Or_URL_Error
+                                "-varname=$varname", "-url-ok", $item;
                 push @errors, $error if defined $error;
-                if ($var->{value} =~ m<^(\w+)://>) {
+                if (defined URL_Protocol $var->{value}) {
                     push @urls, $var->{value};
                 }
             }
@@ -1478,7 +1523,8 @@ sub Get_Config($) {
         }
 
         elsif ($var->{type} eq 'executable_file') {
-            my $error = File_Or_URL_Error "-varname=$varname", "-executable", $var->{value};
+            my $error = File_Or_URL_Error
+                            "-varname=$varname", "-executable", $var->{value};
             push @errors, $error if defined $error;
         }
 
@@ -1729,7 +1775,7 @@ sub Init_Download() {
 
 #
 # Returns the protocol of a URL, generally 'http' or 'ftp'.
-# If the argument is not a URL, return undef.
+# If the argument is not a URL, returns undef.
 #
 sub URL_Protocol($) {
     if ($_[0] =~ m<^(\w+)://>) {
