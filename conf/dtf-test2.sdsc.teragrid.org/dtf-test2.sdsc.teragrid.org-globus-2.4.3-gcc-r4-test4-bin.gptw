@@ -1,0 +1,34 @@
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-test4-bin.gptw,v 1.1 2004-07-02 11:39:25-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-test4-bin.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
+
+GLOBUS_LOCATION    /work/globus/apps/globus-2.4.3-gcc-r4-test4-bin
+GLOBUS_LOCAL_DIRECTORY   /var/globus/globus-2.4.3-gcc-r4-test4-bin
+
+MPI_FLAVORS_ARE_STATIC 1
+
+#
+# Use the latest beta GPT release
+#
+GPT_TARBALL /work/kst/repo.teragrid.org/open/gpt/3.1.1b5/gpt-3.1.1b5-src.tar.gz
+
+.PREFIX /work/kst/repo.teragrid.org/open/globus/2.4.3-r4
+
+#
+# Install Globus 2.4.3 from custom-built binary bundle.
+#
+BUNDLE /work/globus/globus-2.4.3-gcc-r4-test4-bundle.tar.gz
+
+#
+# Configure PBS jobmanager
+#
+JOB_MANAGER pbs -cpu-per-node 2 -remote-shell ssh
+
+## #
+## # Build and install MPICH-G2 (skip for now)
+## #
+## .PREFIX /work/kst/repo.teragrid.org/open/mpich/1.2.5.2
+## MPICH-G2 mpich-1.2.5.2-f90patch.tar.gz flavor=mpicc64dbg install=mpich-g2-1.2.5.2
