@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.50 2004-03-18 14:29:37-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.51 2004-03-19 21:53:00-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -211,8 +211,7 @@ what you're doing.
 .IP \-force\-arch
 Override the check for supported architectures.
 This option is meant for internal development.
-If you want to try gpt-wizard on an unsupported
-architecture, please contact the author.
+Not recommended unless you know what you're doing.
 
 .IP \-debugging
 Enable debugging output.
@@ -437,9 +436,10 @@ Type: file name
 Mandatory unless IS_UPDATE is specified.
 
 .IP MPI_FLAVORS_ARE_STATIC
-Use the "\-static" option when building bundles, packages, or updates
-with MPI flavors (such as mpicc32dbg).  This is a workaround for a bug
-that has shown up on the TeraGrid.
+Use the "\-static" option when building bundles, packages, or updates with
+MPI flavors (such as mpicc32dbg).  This is a workaround for a bug that has
+shown up on the TeraGrid.  Static flavors are built first so the default
+executables in the bin, sbin, and libexec directories will be non-static.
 .br
 Type: boolean
 .br
@@ -486,8 +486,12 @@ A GPT update package.  This is normally a source package.
 The same attributes may be specified as for bundles, but it's
 not usually necessary to specify flavors.
 .I gpt\-wizard
-will determine the necessary flavors by examining the existing copy of
-the specified package.
+will determine the necessary flavors by examining the existing copy
+of the specified package.  Some heuristics are applied to determine
+the best order of flavors (since the last flavor built determines the
+default executable in the bin, sbin, or libexec directory).  See the
+By_Flavors and Get_Update_Flavors functions if you're curious about
+the heuristics.
 
 .I gpt\-wizard
 cannot currently determine which flavors need to be built with
