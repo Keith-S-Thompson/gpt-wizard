@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.70 2002-08-22 14:33:20-07 kst Exp $
+# $Id: gpt-wizard,v 1.71 2002-08-22 14:49:59-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -63,7 +63,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.70 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.71 $';
 my $Help              = undef;
 my $Debugging         = undef;
 my $Cleanup           = 1;
@@ -147,10 +147,9 @@ $ENV{PATH} = $Config{PATH};
 umask oct $Config{UMASK} or die "umask $Config{UMASK}: $!\n";
 
 my $working_dir = "$Config{TEMP_DIR}/install-nmi-" . time . "-$$";
-mkdir $working_dir or die "$working_dir: $!\n";
+mkdir $working_dir, 0700 or die "$working_dir: $!\n";
 chown $installer_uid, $installer_gid, $working_dir
     or die "$working_dir: $!\n";
-chmod 0700, $working_dir or warn "$working_dir: $!\n";
 chdir $working_dir or die "$working_dir: $!\n";
 
 ########################################################################
@@ -197,7 +196,7 @@ else {
 
 $ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
 if (not -d $Config{GPT_LOCATION}) {
-    mkdir $Config{GPT_LOCATION} or die "$Config{GPT_LOCATION}: $!\n";
+    mkdir $Config{GPT_LOCATION}, 0777 or die "$Config{GPT_LOCATION}: $!\n";
     chown $installer_uid, $installer_gid, $Config{GPT_LOCATION}
         or die "$Config{GPT_LOCATION}: $!\n";
 }
@@ -266,7 +265,8 @@ if (not $using_old_gpt) {
 $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
 if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
     if (not -d $Config{GLOBUS_LOCATION}) {
-        mkdir $Config{GLOBUS_LOCATION} or die "$Config{GLOBUS_LOCATION}: $!\n";
+        mkdir $Config{GLOBUS_LOCATION}, 0777
+	    or die "$Config{GLOBUS_LOCATION}: $!\n";
         chown $installer_uid, $installer_gid, $Config{GLOBUS_LOCATION}
             or die "$Config{GLOBUS_LOCATION}: $!\n";
     }
@@ -434,7 +434,7 @@ else {
 if ($Startup) {
     my $ca_cert_dir = '/etc/grid-security/certificates';
     Backup $ca_cert_dir;
-    mkdir $ca_cert_dir or die "$ca_cert_dir: $!\n";
+    mkdir $ca_cert_dir, 0777 or die "$ca_cert_dir: $!\n";
     chdir $ca_cert_dir or die "$ca_cert_dir: $!\n";
     Execute @As_Root,
             'tar', 'zxf', $Config{CA_CERT_TARBALL};
