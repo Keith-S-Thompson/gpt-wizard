@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.136 2003-01-16 11:27:16-08 kst Exp $
+# $Id: gpt-wizard,v 1.137 2003-01-16 12:40:41-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -92,6 +92,22 @@
 #     On second thought, this might not be such a good idea; it allows
 #     too much dependence on the existing environment.
 #
+#     Download caching.  Currently a file specified with a URL (ftp://
+#     or http://) is downloaded to a temporary directory and presumably
+#     nuked later.  That's why I'm manually pre-staging tarballs to
+#     the build host rather than using ftp URLs.  Create a new config
+#     variable, DOWNLOAD_DIR, specifying a (more or less permanent)
+#     base directory for downloads.  Each downloaded file is copied to
+#     a subdirectory of DOWNLOAD_DIR, named by a checksum of the URL,
+#     along with a ".url" file containing the URL.  Before downloading,
+#     check whether the file is already there.  (No suggested mechanism
+#     for maintaining consistency; if you think the file on the ftp or
+#     web site has changed, manually delete the cached copy.)
+#
+#     It would be nice, even as an ugly special case, to automate copying
+#     files from elmak.  Since gpt-wizard runs as root, though, this
+#     may not be feasible.  Think about it some more.
+#
 
 use strict;
 
@@ -128,7 +144,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.136 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.137 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
