@@ -1,7 +1,12 @@
-$Id: Relnotes,v 1.8 2004-02-12 13:32:16-08 kst Exp $
+$Id: Relnotes,v 1.9 2004-02-12 14:53:33-08 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.5 to release 0.5.1:
+
+    Added install-gpt-wizard to release.
+    (It was left out of release 0.5 due to operator error.)
 
 Changes from release 0.4 to release 0.5:
 
