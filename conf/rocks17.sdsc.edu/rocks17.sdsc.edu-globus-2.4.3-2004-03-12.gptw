@@ -1,12 +1,12 @@
-# $Id: rocks17.sdsc.edu-globus-2.4.3-2004-03-12.gptw,v 1.1 2004-03-12 12:10:43-08 kst Exp $
+# $Id: rocks17.sdsc.edu-globus-2.4.3-2004-03-12.gptw,v 1.2 2004-03-12 12:20:40-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks17.sdsc.edu/rocks17.sdsc.edu-globus-2.4.3-2004-03-12.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin
 
 GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3-2004-03-12
-GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3-2004-03-12
+# GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3-2004-03-12
 
 .PREFIX ~kst/repo.teragrid.org/open/globus/2.4.3
 
