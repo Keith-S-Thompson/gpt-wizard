@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.6 2003-01-24 17:31:09-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.7 2003-01-27 15:54:13-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -103,8 +103,20 @@ write this Perl script to do as much of the work as possible for me
 (lazy bum that I am).
 
 .SH OPTIONS
+.I gpt-wizard
+uses Perl's
+.I Getop::Long
+module to parse its command-line arguments.
+.br
+Options may be prefixed with either "-" or "--".
+.br
+Option names may be abbreviated uniquely.
+
 .IP -help
 Display a brief help message on stdout and exit.
+
+.IP -version
+Display version information and exit.
 
 .IP -validate-only
 Validate the configuration file, display some information, and exit without
