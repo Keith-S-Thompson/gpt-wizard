@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.152 2003-02-13 15:07:08-08 kst Exp $
+# $Id: gpt-wizard,v 1.153 2003-02-14 11:00:42-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -135,6 +135,10 @@
 #     and/or add an optional config var or two to specify how to get
 #     files from CVS.
 #
+#     With "-validate-only", complain if there are "http" or "ftp" URLs
+#     and DOWNLOAD_DIR is not set.  Currently, we don't catch this until
+#     we actually start downloading.  See also the ncftpls idea, above.
+#
 
 require 5.004;
 
@@ -185,7 +189,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
                      { release => '0.1.1', revision => '1.146' } ];
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.152 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.153 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
