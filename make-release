@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: make-release,v 1.1 2003-03-31 17:34:14-08 kst Exp $
+# $Id: make-release,v 1.2 2003-04-01 17:04:48-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/make-release,v $
 
 use strict;
@@ -72,7 +72,7 @@ foreach my $file (@files) {
     system 'rcs', "-n$release_symbol:$new_revision", $file;
 }
 
-my $release_dir = "dist/gpt-wizard-$release_number";
+my $release_dir = "release/gpt-wizard-$release_number";
 mkdir $release_dir, 0777 or die "mkdir $release_dir\n";
 foreach my $file (@files) {
     print "% cp -p $file $release_dir/.\n";
