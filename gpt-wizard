@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.67 2002-08-22 10:29:18-07 kst Exp $
+# $Id: gpt-wizard,v 1.68 2002-08-22 11:13:54-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -63,7 +63,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name        = File::Basename::basename $0;
-my $Revision         = Strip_Revision_String '$Revision: 1.67 $';
+my $Revision         = Strip_Revision_String '$Revision: 1.68 $';
 my $Help             = undef;
 my $Debugging        = undef;
 my $Cleanup          = 1;
@@ -272,17 +272,25 @@ if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
 my $Installing_kx509 = 0;
 
 foreach my $bundle ( @{$Config{BUNDLES}} ) {
+    my $bundle_name = File::Basename::basename $bundle;
+
     #
     # If we're installing kx509, we'll need to supply more
     # input to gpt-postinstall.  Ick.
     #
-    my $bundle_name = File::Basename::basename $bundle;
-
     if ($bundle_name =~ /^kx509/ or $bundle_name =~ /^nmi/) {
         $Installing_kx509 = 1;
     }
 
-    if ($bundle =~ /src\.tar\.gz$/) {
+    #
+    # If the file name contains the string "src", assume it's a source
+    # bundle; "src" must be preceded and followed by either an underscore
+    # or a word boundary.
+    #
+    # If this assumption breaks, consider specifying source vs. binary
+    # in the config file (or detecting it?).
+    #
+    if ($bundle_name =~ /(\b|_)src(\b|_)/) {
         #
         # Using gpt-build to build and install a source bundle.
         #
