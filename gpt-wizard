@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.157 2003-02-27 21:56:57-08 kst Exp $
+# $Id: gpt-wizard,v 1.158 2003-02-27 21:59:47-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -171,7 +171,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.157 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.158 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -951,8 +951,12 @@ if ($Cleanup) {
 # of the log.
 ########################################################################
 my $text = join "\n", ">>> To be done manually:\n", @manual_steps;
+my $stars = '*' x 72;
 $text =~ s/^/* /gm;
-$text = '*' x 72 . "\n" . $text . '*' x 72, "\n" . Time_Image time . "\n";
+$text = "$stars\n" .
+        $text .
+        "$stars\n";
+        Time_Image time . "\n";
 
 print $text;
 open INFO, ">>$info_file";
