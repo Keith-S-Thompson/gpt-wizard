@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.297 2004-08-31 20:09:09-07 kst Exp $
+# $Id: gpt-wizard,v 1.298 2004-09-03 16:58:11-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -206,7 +206,7 @@ my $Release_Revision = '1.296'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.297 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.298 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -252,11 +252,16 @@ my $gzip = undef;
 my $temp_file_serial_number = 0;
 
 my @manual_steps = ();
-
 #
-# Delete extraneous environment variables.
+# Keep a few basic environment variables; everything else will be deleted
+# to avoid subtle dependencies on the environment in which gpt-wizard
+# is invoked.  ($DISPLAY is sometimes needed for MPICH-G2 configuration.)
 #
-Scrub_Env;
+my %Retain_Env = ( DISPLAY => 1,
+                   HOME    => 1,
+                   LOGNAME => 1,
+                   SHELL   => 1,
+                   USER    => 1);
 
 Usage if scalar @ARGV != 1;
 my $Config_File = $ARGV[0];
@@ -394,7 +399,7 @@ foreach my $env (@{$Config{ENV}}) {
         ($name, $value) = ($1, $2);
     }
     elsif ($env =~ /^[^=]*$/) {
-        die "Invalid ENV option: \"$env\"\n";
+        die "Invalid ENV argument: \"$env\"\n";
     }
     else {
         $name = $env;
@@ -402,6 +407,14 @@ foreach my $env (@{$Config{ENV}}) {
     }
     print "% setting $name=\"$value\"\n";
     $ENV{$name} = $value;
+    $Retain_Env{$name} = 1;
+}
+
+foreach my $name (@{$Config{INHERIT_ENV}}) {
+    if ($name =~ /=/) {
+        die "Invalid INHERIT_ENV option: \"$name\"\n";
+    }
+    Retain_Env{$name} = 1;
 }
 
 print "% umask $Config{UMASK}\n";
@@ -431,10 +444,17 @@ if ($Config{INTEL_WORKAROUND}) {
     close ICCCFG;
     $ENV{ICCCFG} = $filename;
     $ENV{ICPCCFG} = $filename;
+    $Retain_Env{ICCCFG} = 1;
+    $Retain_Env{ICPCCFG} = 1;
     print "% setting ICCCFG=$filename\n";
     print "% setting ICPCCFG=$filename\n";
     print "% ($filename contains \"-no-gcc\")\n";
 }
+
+#
+# Delete extraneous environment variables.
+#
+Scrub_Env();
 
 ########################################################################
 # Set the $GLOBUS_HOSTNAME environment variable if specified.
@@ -1636,6 +1656,8 @@ sub Get_Config($) {
             { type => 'path', required => 1 },
         ENV =>
             { type => 'array_of_string', required => 0 },
+        INHERIT_ENV =>
+            { type => 'array_of_string', required => 0 },
         INSTALLER_USER =>
             { type => 'user_name', required => 0, default => $Default_User },
         INSTALLER_GROUP =>
@@ -2418,13 +2440,16 @@ sub Get_Config($) {
 # ----------------------------------------------------------------------
 
 #
-# Delete all environment variables not in a specified list.
+# Delete all extraneous environment variables.
+# Variables in a short predefined list (see the initialization of
+# %Retain_Env, above), variables specified by the ENV or INHERIT_ENV
+# configuration option, and variables expliclitly set internally by
+# gpt-wizard are left alone.
 #
 sub Scrub_Env() {
-    my %keep = map { $_ => 1 } qw( HOME LOGNAME SHELL USER );
     my @env_vars = keys %ENV;
     foreach my $var (@env_vars) {
-        delete $ENV{$var} unless $keep{$var};
+        delete $ENV{$var} unless $Retain_Env{$var};
     }
 } # Scrub_Env
 
