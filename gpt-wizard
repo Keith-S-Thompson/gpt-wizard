@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.259 2004-03-09 16:40:58-08 kst Exp $
+# $Id: gpt-wizard,v 1.260 2004-03-09 16:47:02-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -186,7 +186,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.259 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.260 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -373,7 +373,7 @@ foreach my $env (@{$Config{ENV}}) {
 print "% umask $Config{UMASK}\n";
 umask oct $Config{UMASK} or die "umask $Config{UMASK}: $!\n";
 
-my $working_dir = "$Config{TEMP_DIR}/gpt-wizard-$Start_Time-$$";
+my $working_dir = "$Temp_Dir/gpt-wizard-$Start_Time-$$";
 print "% mkdir $working_dir\n";
 mkdir $working_dir, 0700 or die "$working_dir: $!\n";
 if ($Running_As_Root) {
