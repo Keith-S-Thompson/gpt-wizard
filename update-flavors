@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: update-flavors,v 1.2 2004-03-11 17:35:35-08 kst Exp $
+# $Id: update-flavors,v 1.3 2004-03-19 21:53:31-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/update-flavors,v $
 
 use strict;
@@ -12,17 +12,47 @@ sub Get_Update_Flavors($);
 die "Usage: package ...\n" if not @ARGV;
 foreach my $arg (@ARGV) {
     print "${arg}:\n";
-    my ($nonstatic, $static) = Get_Update_Flavors $arg;
-    print "    nonstatic: ( @$nonstatic )\n";
-    print "    static:    ( @$static )\n";
+    my @flavors = Get_Update_Flavors $arg;
+    print "    @flavors\n";
 }
 
 ########################################################################
 
 #
-# Returns a list of two array references.
-# The first is a list of flavors to be built without "-static".
-# The second is a list of flavors to be built with "-static".
+# This is a comparison function that implements a heuristic for the
+# preferred order of flavors for update packages (since the last flavor
+# specified determines the default executable).
+#
+# Non-MPI flavors are preferred over MPI flavors.
+# Non-threaded flavors are preferred over threaded flavors
+# Debug flavors are preferred over non-debug flavors.
+# If equal, sort alphabetically.
+#
+sub By_Flavor {
+    my $a_score = 0;
+    my $b_score = 0;
+
+    $a_score += 4 if $a !~ /mpi/;
+    $a_score += 2 if $a !~ /pthr|solthr|sproc/;
+    $a_score += 1 if $a !~ /dbg/;
+    $b_score += 4 if $b !~ /mpi/;
+    $b_score += 2 if $b !~ /pthr|solthr|sproc/;
+    $b_score += 1 if $a !~ /dbg/;
+
+    return $a_score <=> $b_score || $a cmp $b;
+} # By_Flavor
+
+# ----------------------------------------------------------------------
+
+#
+# Returns a list of flavors for the specified update package,
+# determined by examining the output of gpt-query.
+#
+# A previous version of this function (see gpt-wizard revision 1.261)
+# returned a list of two array references, one for nonstatic flavors
+# and one for static flavors.  I've temporarily backed out this
+# feature, since gpt-query doesn't always give sufficient information
+# to determine this.
 #
 # See <https://bugzilla.ncsa.uiuc.edu/show_bug.cgi?id=46>.
 #
@@ -35,8 +65,7 @@ sub Get_Update_Flavors($) {
     #
     $module_name =~ s/-[^-]*\.tar\.gz$//;
 
-    my %flavor = ();
-    my %is_static = ();
+    my %is_flavor = ();
 
     open PIPE, "$ENV{GLOBUS_LOCATION}/sbin/gpt-query $module_name |";
     while (<PIPE>) {
@@ -57,33 +86,19 @@ sub Get_Update_Flavors($) {
         #
         my @fields = split /-/, $_;
         if (scalar @fields >= 2) {
-            my $new_flavor = $fields[$#fields - 1];
-            $flavor{$new_flavor} = 1;
-            if (/_static$/) {
-                $is_static{$new_flavor} = 1;
+            my $flavor = $fields[$#fields - 1];
+            if ($flavor ne 'noflavor') {
+                $is_flavor{$flavor} = 1;
             }
         }
     }
     close PIPE;
 
-    my @nonstatic_flavors = ();
-    my @static_flavors = ();
-    foreach my $flavor (sort keys %flavor) {
-    if ($flavor eq 'noflavor') {
-        next;
-    }
-    elsif ($is_static{$flavor}) {
-        push @static_flavors, $flavor;
+    my @flavors = sort By_Flavor keys %is_flavor;
+    if (@flavors) {
+        return @flavors;
     }
     else {
-        push @nonstatic_flavors, $flavor;
-    }
-    }
-
-    if (scalar @nonstatic_flavors == 0 and scalar @static_flavors == 0) {
         die "Unable to determine flavors for $filename\n";
-    }
-    else {
-        return ( \@nonstatic_flavors, \@static_flavors );
     }
 } # Get_Update_Flavors
