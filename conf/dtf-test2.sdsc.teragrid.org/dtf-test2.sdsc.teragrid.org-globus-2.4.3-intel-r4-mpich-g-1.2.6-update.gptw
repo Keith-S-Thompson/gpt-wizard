@@ -1,0 +1,19 @@
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-r4-mpich-g-1.2.6-update.gptw,v 1.1 2004-08-12 18:50:22-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-r4-mpich-g-1.2.6-update.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+IS_UPDATE 1
+
+PATH /usr/bin:/bin:/usr/local/apps/intel/compiler8/bin:/opt/torque/bin:/usr/local/apps/mpich/intel8-r2/bin
+ENV INTEL_LICENSE_FILE=/usr/local/apps/intel/compiler8/licenses
+ENV LD_LIBRARY_PATH=/usr/local/apps/intel/compiler8/lib
+INTEL_WORKAROUND 1
+
+GLOBUS_LOCATION  /work/globus/apps/globus-2.4.3-intel-r4
+
+#
+# Build and install MPICH-G2
+#
+.PREFIX /work/kst/repo.teragrid.org/open/mpich/1.2.6
+MPICH-G2 mpich-1.2.6.tar.gz flavor=mpicc64dbg install=mpich-g2-1.2.6
