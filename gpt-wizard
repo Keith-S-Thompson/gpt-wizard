@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.291 2004-07-02 17:06:04-07 kst Exp $
+# $Id: gpt-wizard,v 1.292 2004-07-02 17:29:03-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -205,7 +205,7 @@ my $Release_Revision = '1.285'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.291 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.292 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -2194,8 +2194,9 @@ sub Get_Config($) {
             # all mandatory.  dir must refer to an existing directory,
             # 
             #
+            my $value = $var->{value};
             foreach my $attr (qw(name version label dir)) {
-                if (not defined $var->{$attr}) {
+                if (not defined $value->{$attr}) {
                     &$ERROR("$varname missing attribute $attr\n");
                 }
             }
@@ -2203,22 +2204,22 @@ sub Get_Config($) {
             # dir can use ~ notation; after any expansion, it must be
             # an absolute pathname.
             #
-            $var->{dir} =~ s/^~[\w-]+/Expand_Tilde $&/e;
-            if ($var->{dir} =~ /^~([\w-]+)/) {
+            $value->{dir} =~ s/^~[\w-]+/Expand_Tilde $&/e;
+            if ($value->{dir} =~ /^~([\w-]+)/) {
                 &$ERROR("Error expanding \"~$1\", line $.\n");
             }
-            elsif ($var->{dir} =~ /^~/) {
+            elsif ($value->{dir} =~ /^~/) {
                 &$ERROR("Standalone \"~\" not expanded, line $.\n");
             }
-            if ($var->{dir} !~ /^\//) {
-                &$ERROR("${varname}: $var->{value}->{dir} is not an " .
+            if ($value->{dir} !~ /^\//) {
+                &$ERROR("${varname}: $value->{dir} is not an " .
                         "absolute pathname\n");
             }
-            elsif (not -d $var->{dir}) {
-                &$ERROR("${varname}: no directory $var->{value}->{dir}\n");
+            elsif (not -d $value->{dir}) {
+                &$ERROR("${varname}: no directory $value->{dir}\n");
             }
-            elsif (not -w $var->{dir}) {
-                &$ERROR("${varname}: directory $var->{value}->{dir} " .
+            elsif (not -w $value->{dir}) {
+                &$ERROR("${varname}: directory $value->{dir} " .
                         "is not writable\n");
             }
         }
