@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.221 2003-12-17 00:58:48-08 kst Exp $
+# $Id: gpt-wizard,v 1.222 2004-02-02 17:24:20-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -148,6 +148,29 @@
 #     For updates, figure out how to apply options (particularly
 #     "-static") depending on how the package was initially built.
 #
+#     For a binary installation, we need to do the following:
+#         gpt-build -nosrc <flavors>
+#     to create globus_config.h file(s).  This is necessary for
+#     all flavors used for sdk packages (details?).
+#     The command for GPT 1 is
+#         globus-build -install-only globus_core-99.tar.gz <flavors>
+#     It's probably not worth supporting that.
+#     Possible approach:
+#         The configuration information returned by Get_Config should be
+#         enough to get a list of all the flavors being built.  (Currently
+#         some of that information is stored in separate hashes; I want
+#         to change that anyway).  Before invoking gpt-postinstall, run
+#         "gpt-build -nosrc <flavors>", where <flavors> is the list of
+#         flavors for which
+#             $GLOBUS_LOCATION/include/globus_config.h
+#         doesn't exist.
+#     See <http://www-fp.globus.org/gt2.4/install.html>.
+#
+#     Drop support for GPT 1.X.
+#
+#     Take another look for the scripts on which Fix_Setup_Script
+#     is invoked.  Drop any that are no longer relevant.
+#
 
 require 5.004;
 
@@ -198,7 +221,7 @@ my $Release_Revision = '1.221'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.221 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.222 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
