@@ -1,0 +1,64 @@
+# $Id: uptown.sdsc.edu-globus-3.2.1.gptw,v 1.1 2004-08-26 19:06:40-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uptown.sdsc.edu/uptown.sdsc.edu-globus-3.2.1.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION       /scratch/slocal/globus/apps/globus-3.2.1
+GLOBUS_LOCAL_DIRECTORY /scratch/slocal/globus/var/globus-3.2.1
+
+.PREFIX /projects/globus/kst/Globus/3.2.1/gpt
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+#
+# Build Globus 3.2.1 from source.
+#
+.PREFIX /projects/globus/kst/Globus/3.2.1/bundles/src
+
+BUNDLE globus-information-services-client-3.2.1-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-sdk-3.2.1-src_bundle.tar.gz    kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-server-3.2.1-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+
+BUNDLE globus-data-management-client-3.2.1-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-sdk-3.2.1-src_bundle.tar.gz         kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-server-3.2.1-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+
+BUNDLE globus-resource-management-client-3.2.1-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-sdk-3.2.1-src_bundle.tar.gz     kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-server-3.2.1-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+
+#
+# Updates
+#
+.PREFIX /projects/globus/kst/Globus/3.2.1/updates/src
+UPDATE globus_ftp_client-2.9.tar.gz
+UPDATE globus_gram_client_tools-4.3.tar.gz
+UPDATE globus_io-5.5.tar.gz
+UPDATE globus_nexus-6.5.tar.gz
+
+#
+# Skip globus-gram-reporter and PBS support for now.
+#
+
+#
+# Skip Condor-G for now.
+#
+
+#
+# Build MyProxy 1.14
+#
+.PREFIX  /projects/globus/kst/repo.teragrid.org/open/myproxy/1.14
+BUNDLE myproxy-1.14.tar.gz kind=source flavor=gcc32dbg
+
+#
+# Build uberftp 1.10
+#
+#
+.PREFIX /projects/globus/kst/repo.teragrid.org/open/uberftp/1.10
+BUNDLE uberftp-client-1.10.tar.gz kind=source flavor=gcc32dbg
+
+#
+# No jobmanager configuration
+# No MPICH-G2
+#
