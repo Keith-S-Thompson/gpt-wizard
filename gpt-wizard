@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.294 2004-08-29 21:41:43-07 kst Exp $
+# $Id: gpt-wizard,v 1.295 2004-08-29 22:23:58-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -205,7 +205,7 @@ my $Release_Revision = '1.285'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.294 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.295 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1658,8 +1658,8 @@ sub Get_Config($) {
             { type => 'new_directory', required => 0 },
         GLOBUS_HOSTNAME =>
             { type => 'string', required => 0 },
-        CREATE_BINARY_BUNDLE =>
-            { type => 'new_binary_bundle', required => 0 },
+#       CREATE_BINARY_BUNDLE =>
+#           { type => 'new_binary_bundle', required => 0 },
         GRID_MAPFILE =>
             { type => 'file', required => 0 },
         HOST_CERT =>
