@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: get-files,v 1.1 2002-12-17 13:54:17-08 kst Exp $
+# $Id: get-files,v 1.2 2002-12-17 13:56:36-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/get-files,v $
 
 use strict;
@@ -64,4 +64,5 @@ foreach my $file (@files) {
 sub Usage(@) {
     print @_ if @_;
     print "Usage: $0 list-file elmak-base-directory local-base-directory\n";
+    exit 1;
 } # Usage
