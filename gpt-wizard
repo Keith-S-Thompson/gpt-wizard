@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.255 2004-03-08 22:04:32-08 kst Exp $
+# $Id: gpt-wizard,v 1.256 2004-03-09 01:45:28-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -133,6 +133,16 @@
 #     (Actually, you can do it now with "option=-installdir=...")
 #     [later] I tried this with myproxy, and it failed.
 #
+#     Replace the "-update" command-line option with a configuration
+#     variable.  Watch out for confusion between this and the existing
+#     UPDATE variable; clarify in man page.
+#
+#     Rename "-aix-kludge" option to something sensible, or perhaps
+#     do it all in the config file.
+#
+#     Consider replacing TEMP_DIR config variable with a command-line
+#     option, or allowing a command-line option to override it.
+#
 
 require 5.004;
 
@@ -183,7 +193,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.255 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.256 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
