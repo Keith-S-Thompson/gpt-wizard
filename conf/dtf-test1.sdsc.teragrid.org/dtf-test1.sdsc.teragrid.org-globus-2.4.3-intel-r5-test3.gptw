@@ -1,0 +1,109 @@
+# $Id: dtf-test1.sdsc.teragrid.org-globus-2.4.3-intel-r5-test3.gptw,v 1.1 2004-08-30 19:47:46-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test1.sdsc.teragrid.org/dtf-test1.sdsc.teragrid.org-globus-2.4.3-intel-r5-test3.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+#
+# Parameters to be configured for each site.
+#
+.PARAM PBS_BIN_DIR       /opt/torque/bin
+.PARAM MPI_BIN_DIR       /usr/local/apps/mpich/intel8-r2/bin
+.PARAM JAVA_BIN_DIR      /usr/lib/java/bin
+.PARAM APPS_DIR          /work/globus/apps
+.PARAM VAR_DIR           /var/globus
+.PARAM GLOBUS_DIR        globus-2.4.3-intel-r5-test3
+.PARAM COMPILER          vendorcc
+.PARAM BITS              64
+.PARAM UNTHREADED_FLAVOR ${COMPILER}${BITS}dbg
+.PARAM THREADED_FLAVOR   ${COMPILER}${BITS}dbgpthr
+.PARAM MPI_FLAVOR        mpicc${BITS}dbg
+.PARAM REPO              /work/kst/repo.teragrid.org
+.PARAM INTEL_DIR         /usr/local/apps/intel/compiler8
+
+PATH /usr/bin:/bin:$INTEL_DIR/bin:$JAVA_BIN_DIR:$PBS_BIN_DIR:$MPI_BIN_DIR
+ENV INTEL_LICENSE_FILE=$INTEL_DIR/licenses
+ENV LD_LIBRARY_PATH=$INTEL_DIR/lib
+INTEL_WORKAROUND 1
+
+GLOBUS_LOCATION        $APPS_DIR/$GLOBUS_DIR
+GLOBUS_LOCAL_DIRECTORY $VAR_DIR/$GLOBUS_DIR
+
+MPI_FLAVORS_ARE_STATIC 1
+
+#
+# Use the latest beta GPT release
+#
+GPT_TARBALL $REPO/open/gpt/3.1.1b5/gpt-3.1.1b5-src.tar.gz
+
+.PREFIX $REPO/open/globus/2.4.3-r4
+
+#
+# Build Globus 2.4.3 from source.
+# Use customized bundles with all updates pre-applied.
+# The information-services bundles use the IA-64 version of the
+# globus_openldap package.
+#
+# There is no change in the core Globus bundles from 2.4.3-r4 to 2.4.3-r5.
+#
+BUNDLE ia64/globus-information-services-client-2.4.3-r4-src_bundle.tar.gz kind=source flavor=$THREADED_FLAVOR
+BUNDLE ia64/globus-information-services-sdk-2.4.3-r4-src_bundle.tar.gz    kind=source flavor=$THREADED_FLAVOR
+BUNDLE ia64/globus-information-services-server-2.4.3-r4-src_bundle.tar.gz kind=source flavor=$THREADED_FLAVOR
+
+BUNDLE globus-data-management-client-2.4.3-r4-src_bundle.tar.gz           kind=source flavor=$UNTHREADED_FLAVOR
+BUNDLE globus-data-management-sdk-2.4.3-r4-src_bundle.tar.gz              kind=source flavor=$UNTHREADED_FLAVOR
+BUNDLE globus-data-management-server-2.4.3-r4-src_bundle.tar.gz           kind=source flavor=$UNTHREADED_FLAVOR
+
+BUNDLE globus-resource-management-client-2.4.3-r4-src_bundle.tar.gz       kind=source flavor=$UNTHREADED_FLAVOR
+BUNDLE globus-resource-management-sdk-2.4.3-r4-src_bundle.tar.gz          kind=source flavor=$MPI_FLAVOR,$UNTHREADED_FLAVOR
+BUNDLE globus-resource-management-server-2.4.3-r4-src_bundle.tar.gz       kind=source flavor=$UNTHREADED_FLAVOR
+
+#
+# Updates have been pre-applied.
+#
+
+#
+# globus_gram_reporter and PBS support
+# No changes from 2.4.3 to 2.4.3-r4 or 2.4.3-r5
+# (except for the new TG-specific PBS jobmanager package),
+# so use the 2.4.3 directory.
+#
+.PREFIX $REPO/open/globus/2.4.3
+BUNDLE globus_gram_job_manager_setup_pbs_tg-1.5.tar.gz             kind=source flavor=$UNTHREADED_FLAVOR
+BUNDLE globus_gram_reporter-2.0.tar.gz                             kind=source flavor=$UNTHREADED_FLAVOR
+BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz                  kind=source flavor=$UNTHREADED_FLAVOR
+BUNDLE globus_gram_reporter_setup_pbs-1.0.tar.gz                   kind=source flavor=$UNTHREADED_FLAVOR
+
+#
+# Install individual Condor-G packages extracted from NMI 3.2 binary bundle
+#
+.PREFIX $REPO/open/condor-g/packages-NMI-3.2
+BUNDLE condor_base-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz         kind=binary
+BUNDLE condor_base_libs-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz    kind=binary
+BUNDLE condor_base_setup-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz   kind=binary
+BUNDLE condor_config-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=binary
+BUNDLE condor_dagman-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=binary
+BUNDLE condor_submit-0.6-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=binary
+
+#
+# Build myproxy
+#
+.PREFIX $REPO/open/myproxy/1.14
+BUNDLE myproxy-1.14.tar.gz                                         kind=source flavor=$UNTHREADED_FLAVOR
+
+#
+# Build uberftp
+# Use the single source package, not the bundle.
+#
+.PREFIX $REPO/open/uberftp/1.10
+BUNDLE uberftp-client-1.10.tar.gz kind=source flavor=$UNTHREADED_FLAVOR
+
+#
+# Configure PBS jobmanager
+#
+JOB_MANAGER pbs -cpu-per-node 2 -remote-shell ssh
+
+#
+# Build and install MPICH-G2
+#
+.PREFIX $REPO/open/mpich/1.2.6
+MPICH-G2 mpich-1.2.6.tar.gz flavor=mpicc64dbg install=mpich-g2-1.2.6
