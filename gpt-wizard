@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.209 2003-07-01 11:51:45-07 kst Exp $
+# $Id: gpt-wizard,v 1.210 2003-08-12 20:05:59-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -194,7 +194,7 @@ my $Release_Revision = '1.209'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.209 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.210 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -789,7 +789,6 @@ else {
 my @localized_etc_files = qw( globus-job-manager.conf
                               grid-info-resource-ldif.conf
                               grid-info-resource-register.conf
-                              grid-info.conf
                               grid-info-site-policy.conf
                               grid-info-slapd.conf );
 if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
