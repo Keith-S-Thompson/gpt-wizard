@@ -1,7 +1,7 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-03-23.gptw,v 1.2 2004-03-23 12:13:29-08 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-03-23.gptw,v 1.3 2004-03-23 13:22:18-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-03-23.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.2 $
+CONFIG_FILE_REVISION    $Revision: 1.3 $
 
 PATH /usr/bin:/bin:/usr/local/apps/intel/compiler8/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/intel8-r1/bin
 ENV INTEL_LICENSE_FILE=/usr/local/apps/intel/compiler8/licenses
@@ -22,26 +22,17 @@ GPT_TARBALL /work/kst/repo.teragrid.org/open/gpt/3.1b4/gpt-3.1.1b4-src.tar.gz
 #
 # Build Globus 2.4.3 from source
 #
-BUNDLE globus-information-services-client-2.4.3-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr \
-	option=-coresrc=/work/kst/repo.teragrid.org/open/gpt/3.1b4/___/gpt-3.1.1b4/packaging_tools/etc/globus_core-src.tar.gz
-BUNDLE globus-information-services-sdk-2.4.3-src_bundle.tar.gz    kind=source flavor=vendorcc64dbgpthr \
-	option=-coresrc=/work/kst/repo.teragrid.org/open/gpt/3.1b4/___/gpt-3.1.1b4/packaging_tools/etc/globus_core-src.tar.gz
-BUNDLE globus-information-services-server-2.4.3-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr \
-	option=-coresrc=/work/kst/repo.teragrid.org/open/gpt/3.1b4/___/gpt-3.1.1b4/packaging_tools/etc/globus_core-src.tar.gz
+BUNDLE KLUDGE/globus-information-services-client-2.4.3-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
+BUNDLE KLUDGE/globus-information-services-sdk-2.4.3-src_bundle.tar.gz    kind=source flavor=vendorcc64dbgpthr
+BUNDLE KLUDGE/globus-information-services-server-2.4.3-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
 
-BUNDLE globus-data-management-client-2.4.3-src_bundle.tar.gz      kind=source flavor=vendorcc64dbg \
-	option=-coresrc=/work/kst/repo.teragrid.org/open/gpt/3.1b4/___/gpt-3.1.1b4/packaging_tools/etc/globus_core-src.tar.gz
-BUNDLE globus-data-management-sdk-2.4.3-src_bundle.tar.gz         kind=source flavor=vendorcc64dbg \
-	option=-coresrc=/work/kst/repo.teragrid.org/open/gpt/3.1b4/___/gpt-3.1.1b4/packaging_tools/etc/globus_core-src.tar.gz
-BUNDLE globus-data-management-server-2.4.3-src_bundle.tar.gz      kind=source flavor=vendorcc64dbg \
-	option=-coresrc=/work/kst/repo.teragrid.org/open/gpt/3.1b4/___/gpt-3.1.1b4/packaging_tools/etc/globus_core-src.tar.gz
+BUNDLE KLUDGE/globus-data-management-client-2.4.3-src_bundle.tar.gz      kind=source flavor=vendorcc64dbg
+BUNDLE KLUDGE/globus-data-management-sdk-2.4.3-src_bundle.tar.gz         kind=source flavor=vendorcc64dbg
+BUNDLE KLUDGE/globus-data-management-server-2.4.3-src_bundle.tar.gz      kind=source flavor=vendorcc64dbg
 
-BUNDLE globus-resource-management-client-2.4.3-src_bundle.tar.gz  kind=source flavor=vendorcc64dbg \
-	option=-coresrc=/work/kst/repo.teragrid.org/open/gpt/3.1b4/___/gpt-3.1.1b4/packaging_tools/etc/globus_core-src.tar.gz
-BUNDLE globus-resource-management-sdk-2.4.3-src_bundle.tar.gz     kind=source flavor=mpicc64dbg,vendorcc64dbg \
-	option=-coresrc=/work/kst/repo.teragrid.org/open/gpt/3.1b4/___/gpt-3.1.1b4/packaging_tools/etc/globus_core-src.tar.gz
-BUNDLE globus-resource-management-server-2.4.3-src_bundle.tar.gz  kind=source flavor=vendorcc64dbg \
-	option=-coresrc=/work/kst/repo.teragrid.org/open/gpt/3.1b4/___/gpt-3.1.1b4/packaging_tools/etc/globus_core-src.tar.gz
+BUNDLE KLUDGE/globus-resource-management-client-2.4.3-src_bundle.tar.gz  kind=source flavor=vendorcc64dbg
+BUNDLE KLUDGE/globus-resource-management-sdk-2.4.3-src_bundle.tar.gz     kind=source flavor=mpicc64dbg,vendorcc64dbg
+BUNDLE KLUDGE/globus-resource-management-server-2.4.3-src_bundle.tar.gz  kind=source flavor=vendorcc64dbg
 
 #
 # Apply all currently available updates
@@ -83,8 +74,7 @@ BUNDLE myproxy-1.11.tar.gz                                         kind=source f
 # Build uberftp
 #
 .PREFIX /work/kst/repo.teragrid.org/open/uberftp
-BUNDLE uberftp-1.3-src_bundle.tar.gz           			   kind=source flavor=vendorcc64dbgpthr \
-	option=-coresrc=/work/kst/repo.teragrid.org/open/gpt/3.1b4/___/gpt-3.1.1b4/packaging_tools/etc/globus_core-src.tar.gz
+BUNDLE KLUDGE/uberftp-1.3-src_bundle.tar.gz           			   kind=source flavor=vendorcc64dbgpthr
 
 #
 # Configure PBS jobmanager
