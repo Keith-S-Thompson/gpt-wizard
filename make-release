@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: make-release,v 1.11 2004-02-14 16:41:12-08 kst Exp $
+# $Id: make-release,v 1.12 2004-03-15 17:47:38-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/make-release,v $
 
 use strict;
@@ -11,6 +11,8 @@ sub Edit_File($);
 sub Usage(@);
 
 $| = 1;
+
+my $Editor = exists $ENV{EDITOR} ? $ENV{EDITOR} : 'vi';
 
 my $release_number = undef;
 if (scalar @ARGV == 1 and $ARGV[0] =~ /^\d[\d.]*\d$/) {
@@ -191,8 +193,7 @@ sub Edit_File($) {
     my($file) = @_;
 
     if ($file eq 'Relnotes') {
-        my $editor = exists $ENV{EDITOR} ? $ENV{EDITOR} : 'vi';
-        system $editor, $file;
+        system $Editor, $file;
     }
     else {
         my $release_revision = $Info->{$file}->{next_revision};
@@ -244,7 +245,9 @@ sub Usage(@) {
     print @_ if @_;
     print <<"EOF";
 Usage: $0 release-number
-Don't forget to update Relnotes first.
+This will invoke
+    $Editor Relnotes
+before checking in the appropriate files.
 EOF
     exit 1;
 } # Usage
