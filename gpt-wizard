@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.117 2002-11-20 08:47:44-08 kst Exp $
+# $Id: gpt-wizard,v 1.118 2002-11-20 14:50:43-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -120,7 +120,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.117 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.118 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -866,6 +866,8 @@ sub Get_Config($) {
             { type => 'user_name', required => 0, default => 'globus' },
         INSTALLER_GROUP =>
             { type => 'group_name', required => 0, default => 'globus' },
+        USE_SDSC_SU =>
+            { type => 'boolean', required => 0, default => 0 },
         UMASK =>
             { type => 'umask', required => 0, default => '022' },
         CC =>
@@ -1692,7 +1694,7 @@ sub Execute(@) {
     }
 
     Debug "   args = @args\n";
-    if (defined $User) {
+    if (defined $User and not $Config{USE_SDSC_SU}) {
         my @pw = getpwnam $User;
         die "${User}: No such user\n" if not @pw;
         my @gr;
@@ -1787,7 +1789,15 @@ sub Execute(@) {
     if (defined $Min_Time) {
         @before = POSIX::times;
     }
-    $system_result = system @args;
+    if (defined $User and $Config{USE_SDSC_SU}) {
+        #
+        # Note: This ignores INSTALLER_GROUP
+        #
+        $system_result = system 'su', $User, '-c', "@args";
+    }
+    else {
+        $system_result = system @args;
+    }
     Debug "system_result = $system_result\n";
     if (defined $Min_Time) {
         @after = POSIX::times();
@@ -1831,7 +1841,7 @@ sub Execute(@) {
     if ($Background) {
         exit;
     }
-    elsif (defined $User) {
+    elsif (defined $User and not $Config{USE_SDSC_SU}) {
         #
         # This is the child process; bail out and let the parent handle
         # the consequences.  Try to arrange for $? after the parent's
