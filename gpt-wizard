@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.187 2003-03-16 23:13:08-08 kst Exp $
+# $Id: gpt-wizard,v 1.188 2003-03-17 16:19:58-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -197,7 +197,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.187 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.188 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1657,6 +1657,9 @@ sub Get_Config($) {
                 if ($key ne 'urls') {
                     if (defined $Bundle_Kind{$elem}) {
                         push @fields, "kind=$Bundle_Kind{$elem}";
+                    }
+                    if (defined $Bundle_Option{$elem}) {
+                        push @fields, "option=$Bundle_Option{$elem}";
                     }
                     if (defined $Bundle_Flavor{$elem}) {
                         push @fields, "flavor=$Bundle_Flavor{$elem}";
