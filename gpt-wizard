@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.18 2002-08-12 19:33:37-07 kst Exp $
+# $Id: gpt-wizard,v 1.19 2002-08-12 19:40:43-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -27,8 +27,8 @@ sub Debug(@);
 sub Usage(@);
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = '$Revision: 1.18 $';
-if ($Revision =~ /^\$Revision: 1.18 $$/) {
+my $Revision = '$Revision: 1.19 $';
+if ($Revision =~ /^\$Revision: 1.19 $$/) {
     $Revision = $1;
 }
 my $Help = undef;
@@ -199,34 +199,34 @@ sub Get_Config($) {
     my($config_file) = @_;
     print "Getting configuration from $config_file\n";
 
-    my %options = ( FILE_REVISION     => 0,
+    my %options = ( CONFIG_FILE_REVISION => 0,
 
-                    OS                => 0,
+                    OS                   => 0,
 
-                    TEMP_DIR          => 0,
-                    PATH              => 0,
-                    INSTALLER_USER    => 0,
-                    INSTALLER_GROUP   => 0,
-                    UMASK             => 0,
+                    TEMP_DIR             => 0,
+                    PATH                 => 0,
+                    INSTALLER_USER       => 0,
+                    INSTALLER_GROUP      => 0,
+                    UMASK                => 0,
 
-                    GPT_TARBALL       => 0,
-                    GPT_SRC_DIR       => 0,
-                    NMI_CLIENT_BUNDLE => 0,
-                    NMI_SERVER_BUNDLE => 0,
+                    GPT_TARBALL          => 0,
+                    GPT_SRC_DIR          => 0,
+                    NMI_CLIENT_BUNDLE    => 0,
+                    NMI_SERVER_BUNDLE    => 0,
 
-                    GPT_LOCATION      => 0,
-                    GLOBUS_LOCATION   => 0,
+                    GPT_LOCATION         => 0,
+                    GLOBUS_LOCATION      => 0,
 
-                    GRID_MAPFILE      => 0,
-                    HOST_CERT         => 0,
-                    HOST_KEY          => 0,
-                    LDAP_CERT         => 0,
-                    LDAP_KEY          => 0,
+                    GRID_MAPFILE         => 0,
+                    HOST_CERT            => 0,
+                    HOST_KEY             => 0,
+                    LDAP_CERT            => 0,
+                    LDAP_KEY             => 0,
 
-                    CA_CERT_TARBALL   => 0,
+                    CA_CERT_TARBALL      => 0,
 
-                    INET_DAEMON       => 0,
-                    INET_DIR          => 0 );
+                    INET_DAEMON          => 0,
+                    INET_DIR             => 0 );
 
     open CONFIG, $config_file or die "$config_file: $!\n";
     while (<CONFIG>) {
@@ -272,7 +272,7 @@ sub Get_Config($) {
         die @errors;
     }
 
-    if ($Result{FILE_REVISION} =~ /^\$Revision: 1.18 $$/) {
+    if ($Result{FILE_REVISION} =~ /^\$Revision: 1.19 $$/) {
         $Result{FILE_REVISION} = $1;
     }
 
