@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: make-release,v 1.13 2004-05-07 23:11:32-07 kst Exp $
+# $Id: make-release,v 1.14 2004-09-03 17:15:36-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/make-release,v $
 
 use strict;
@@ -222,7 +222,7 @@ sub Edit_File($) {
             }
 
             elsif ($file eq 'gpt-wizard.1') {
-                if (/^(\.TH GPT-WIZARD 1) \d\d\d\d-\d\d-\d\d (.*)$/) {
+                if (/^(\.TH GPT\\-WIZARD 1) \d\d\d\d-\d\d-\d\d (.*)$/) {
                     $_ = "$1 $today $2\n";
                 }
                 elsif (/^(This documentation is for release) .* (of.*)$/) {
