@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.237 2004-02-17 03:54:52-08 kst Exp $
+# $Id: gpt-wizard,v 1.238 2004-02-17 04:27:01-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -138,6 +138,11 @@
 #     Take another look for the scripts on which Fix_Setup_Script
 #     is invoked.  Drop any that are no longer relevant.
 #
+#     Killing gpt-wizard can leave subprocesses running.
+#     Modify Execute() to keep track of all subprocesses (there should
+#     only be one, since we don't actually use "-background"); modify
+#     Signal_Handler() to kill them.
+#
 
 require 5.004;
 
@@ -185,7 +190,7 @@ my $Release_Revision = '1.236'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.237 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.238 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
