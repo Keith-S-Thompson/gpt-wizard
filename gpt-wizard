@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.84 2002-10-09 18:49:37-07 kst Exp $
+# $Id: gpt-wizard,v 1.85 2002-10-09 18:57:42-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -64,7 +64,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.84 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.85 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -145,8 +145,13 @@ if ($< != 0) {
 ########################################################################
 
 print Time_Image time, "\n";
-print "$Prog_Name revision $Revision processing ",
-      "$Config_File $Config{CONFIG_FILE_REVISION}\n";
+print "$Prog_Name revision $Revision processing $Config_File";
+if (defined $Config{CONFIG_FILE_REVISION}) {
+    print " $Config{CONFIG_FILE_REVISION}\n";
+}
+else {
+    print ", no CONFIG_FILE_REVISION specified\n";
+}
 
 my @installer_pw = getpwnam $Config{INSTALLER_USER};
 die ">>> No user $Config{INSTALLER_USER}\n" unless $#installer_pw >= 2;
