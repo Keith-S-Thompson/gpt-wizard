@@ -1,0 +1,16 @@
+# $Id: lutefisk-globus-3.2.0-2004-07-09-bin.gptw,v 1.1 2004-07-09 18:14:46-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-globus-3.2.0-2004-07-09-bin.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-3.2.0-2004-07-09-bin
+GLOBUS_LOCAL_DIRECTORY /var/globus/globus-3.2.0-2004-07-09-bin
+
+GPT_TARBALL ~kst/Globus/3.2.0/gpt/gpt-3.0.1-src.tar.gz
+
+#
+# Build Globus 3.2.0 from single binary bundle
+#
+BUNDLE ~globus/globus-3.2.0-2004-07-09-i686-pc-linux-gnu-bin.tar.gz
