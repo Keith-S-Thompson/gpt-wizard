@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.165 2003-03-03 17:27:11-08 kst Exp $
+# $Id: gpt-wizard,v 1.166 2003-03-03 18:18:14-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -118,9 +118,7 @@
 #     and/or add an optional config var or two to specify how to get
 #     files from CVS.
 #
-#     Provide a DIR pseudo-variable in the config file.  If set, any
-#     relative filename references following it have the value of DIR
-#     prepended to them.
+#     Provide a '/' when prepending PREFIX (need to decide on details).
 #
 
 require 5.004;
@@ -175,7 +173,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.165 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.166 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
