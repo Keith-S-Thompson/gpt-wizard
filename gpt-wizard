@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.241 2004-02-18 21:24:19-08 kst Exp $
+# $Id: gpt-wizard,v 1.242 2004-02-19 02:28:37-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -147,6 +147,14 @@
 #     go insane when I feed it a multi-megabyte log file rather than a
 #     config file).
 #
+#     Optionally build and install mpich-g2.
+#
+#     gpt-build has an option:
+#         -installdir=path_to_installation  Override $GLOBUS_LOCATION
+#     gpt-install has the same thing.
+#     Add support for this.
+#     (Actually, you can do it now with "option=-installdir=...")
+#
 
 require 5.004;
 
@@ -194,7 +202,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.241 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.242 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -2697,13 +2705,15 @@ EOF
     }
     elsif ("$daemon/$service" eq 'inetd/gsigatekeeper') {
         return "gsigatekeeper   stream tcp nowait root " .
-               "/usr/bin/env env LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib" .
+               "/usr/bin/env env " .
+                   "LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib " .
                "$Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper " .
                "-conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf\n";
     }
     elsif ("$daemon/$service" eq 'inetd/gsiftp') {
         return "gsiftp          stream tcp nowait root " .
-               "/usr/bin/env env LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib" .
+               "/usr/bin/env env " .
+                   "LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib " .
                "$Config{GLOBUS_LOCATION}/sbin/in.ftpd " .
                "-l -a -G $Config{GLOBUS_LOCATION}\n";
     }
