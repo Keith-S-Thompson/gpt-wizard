@@ -1,17 +1,11 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.16 2002-08-10 17:35:20-07 kst Exp $
+# $Id: gpt-wizard,v 1.17 2002-08-12 19:21:42-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
 # To do:
-#     Install LDAP certificates.
 #     Start other services (optional?).
-#     When running as "globus", set groupid as well (set $( and $)).
-#     Let config file specify (non-root) installation user and group
-#         (currently hardwired to "globus").
-#     Handle inetd as well as xinetd.
-#         Probably want to update /etc/inetd.conf manually.
 #
 
 use strict;
@@ -21,12 +15,14 @@ use Getopt::Long ();
 use POSIX ();
 
 sub Get_Config($);
+sub Check_Config_Vars();
 sub Substitute($);
 sub Elapsed_Time_Image($);
 sub Time_Image($);
 sub Make_Temp_File($);
 sub Get_Result($$);
 sub Execute(@);
+sub Check_Etc_Services();
 sub Debug(@);
 sub Usage(@);
 
@@ -44,9 +40,11 @@ my $temp_file_serial_number = 0;
 
 Usage if scalar @ARGV != 1;
 my %Config = Get_Config $ARGV[0];
+Check_Config_Vars();
 
-my @As_Globus = qw(-time -verbose -check -user=globus);
-my @As_Root   = qw(-time -verbose -check);
+my @As_Root      = qw(-time -verbose -check);
+my @As_Installer = (qw(-time -verbose -check),
+                   "-user=$Config{INSTALLER_USER}.$Config{INSTALLER_GROUP}");
 
 my $CLK_TCK;
 eval { $CLK_TCK = &POSIX::CLK_TCK };
@@ -61,18 +59,15 @@ if ($< != 0) {
 
 $| = 1;
 
-if ($Config{OS} ne 'linux') {
-    die "Unsupported OS: $Config{OS}\n";
-}
 
-my @globus_pw = getpwnam 'globus';
-die ">>> No user globus\n" unless $#globus_pw >= 2;
-my @globus_gr = getgrnam 'globus';
-die ">>> No group globus\n" unless $#globus_gr >= 2;
-my $globus_uid = $globus_pw[2];
-my $globus_gid = $globus_gr[2];
-die ">>> globus_uid = $globus_uid\n" unless $globus_uid > 0;
-die ">>> globus_gid = $globus_gid\n" unless $globus_gid > 0;
+my @installer_pw = getpwnam $Config{INSTALLER_USER};
+die ">>> No user $Config{INSTALLER_USER}\n" unless $#installer_pw >= 2;
+my @installer_gr = getgrnam $Config{INSTALLER_GROUP};
+die ">>> No group $Config{INSTALLER_GROUP}\n" unless $#installer_gr >= 2;
+my $installer_uid = $installer_pw[2];
+my $installer_gid = $installer_gr[2];
+die ">>> installer_uid = $installer_uid\n" unless $installer_uid > 0;
+# die ">>> installer_gid = $installer_gid\n" unless $installer_gid > 0;
 
 my $bundle_dir        = '/home/kst/src/NMI/linux/gpt-bundles';
 my $nmi_client_bundle = "$bundle_dir/nmi-client-NMI-1.0.0-i686.gpt.tar.gz";
@@ -81,24 +76,25 @@ my $nmi_server_bundle = "$bundle_dir/nmi-server-NMI-1.0.0-i686.gpt.tar.gz";
 print Time_Image time, "\n";
 
 $ENV{PATH} = $Config{PATH};
+umask oct $Config{UMASK} or die "umask $Config{UMASK}: $!\n";
 
 my $tmp_dir = "$Config{TEMP_DIR}/install-nmi-" . time . "-$$";
 mkdir $tmp_dir or die "$tmp_dir: $!\n";
-chown $globus_uid, $globus_gid, $tmp_dir or die "$tmp_dir: $!\n";
+chown $Config{INSTALLER_USER}, $Config{INSTALLER_GROUP}, $tmp_dir
+    or die "$tmp_dir: $!\n";
 chmod 0700, $tmp_dir or warn "$tmp_dir: $!\n";
 chdir $tmp_dir or die "$tmp_dir: $!\n";
 
 #
 # Install GPT
 #
-Execute @As_Globus, 'tar', 'zxf', $Config{GPT_TARBALL};
+Execute @As_Installer, 'tar', 'zxf', $Config{GPT_TARBALL};
 chdir $Config{GPT_SRC_DIR} or die "$Config{GPT_SRC_DIR}: $!\n";
 $ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
 mkdir $ENV{GPT_LOCATION} or die "$ENV{GPT_LOCATION}: $!\n";
-chown $globus_uid, $globus_gid, $ENV{GPT_LOCATION}
+chown $Config{INSTALLER_USER}, $Config{INSTALLER_GROUP}, $ENV{GPT_LOCATION}
     or die "$ENV{GPT_LOCATION}: $!\n";
-chmod 0755, $ENV{GPT_LOCATION} or die "$ENV{GPT_LOCATION}: $!\n";
-Execute @As_Globus, './build_gpt';
+Execute @As_Installer, './build_gpt';
 
 #
 # <http://www.nsf-middleware.org/documentation/GPT/index.htm>
@@ -117,30 +113,30 @@ if (@files_to_delete) {
 #
 # Confirm GPT installation
 #
-Execute @As_Globus, "$ENV{GPT_LOCATION}/sbin/gpt-install", '-version';
+Execute @As_Installer, "$ENV{GPT_LOCATION}/sbin/gpt-install", '-version';
 
 $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
 mkdir $ENV{GLOBUS_LOCATION} or die "$ENV{GLOBUS_LOCATION}: $!\n";
-chown $globus_uid, $globus_gid, $ENV{GLOBUS_LOCATION}
+chown $Config{INSTALLER_USER}, $Config{INSTALLER_GROUP}, $ENV{GLOBUS_LOCATION}
     or die "$ENV{GLOBUS_LOCATION}: $!\n";
 
 foreach my $bundle ( $Config{NMI_CLIENT_BUNDLE},
                      $Config{NMI_SERVER_BUNDLE})
 {
-    Execute @As_Globus, "$ENV{GPT_LOCATION}/sbin/gpt-install", $bundle;
+    Execute @As_Installer, "$ENV{GPT_LOCATION}/sbin/gpt-install", $bundle;
 }
 
-Execute @As_Globus, "-input=0\n0\nn\n\n",
+Execute @As_Installer, "-input=0\n0\nn\n\n",
         "$ENV{GPT_LOCATION}/sbin/gpt-postinstall";
 
 Execute @As_Root, "-input=y\nq\n",
         "$ENV{GLOBUS_LOCATION}/setup/globus/setup-gsi";
 
-Execute qw(-verbose -check),
+Execute @As_Root,
         'cp', $Config{GRID_MAPFILE}, '/etc/grid-security/grid-mapfile';
-Execute qw(-verbose -check),
+Execute @As_Root,
         'cp', $Config{HOST_CERT},    '/etc/grid-security/hostcert.pem';
-Execute qw(-verbose -check),
+Execute @As_Root,
         'cp', $Config{HOST_KEY},     '/etc/grid-security/hostkey.pem';
 
 chmod 0444, '/etc/grid-security/grid-mapfile';
@@ -149,8 +145,14 @@ chmod 0400, '/etc/grid-security/hostkey.pem';
 
 chdir '/etc/grid-security' or die "/etc/grid-security: $!\n";
 rename 'certificates', 'certificates.orig';
-Execute qw(-verbose -check),
+Execute @As_Root,
         'tar', 'zxf', $Config{CA_CERT_TARBALL};
+
+Execute @As_Installer,
+        'cp', $Config{LDAP_CERT}, "$ENV{Globus_Location}/etc/server.cert";
+Execute @As_Installer,
+        'cp', $Config{LDAP_KEY}, "$ENV{Globus_Location}/etc/server.key";
+chmod 0400, "$ENV{Globus_Location}/etc/server.key";
 
 opendir DIR, $Config{XINETD_DIR} or die "$Config{XINETD_DIR}: $!\n";
 my @files = grep { $_ ne '.' and $_ ne '..' } sort readdir DIR;
@@ -170,14 +172,14 @@ foreach my $file (@files) {
     close OUT;
 }
 
-Execute qw(-verbose -check), qw(/etc/init.d/xinetd reload);
+Execute @As_Root, qw(/etc/init.d/xinetd reload);
 
-Execute qw(-verbose -check -user=globus),
+Execute @As_Installer,
         "$ENV{GLOBUS_LOCATION}/sbin/SXXgris", 'start';
 
 chdir $ENV{HOME};
 if ($Cleanup) {
-    Execute '-verbose', 'rm', '-rf', $tmp_dir;
+    Execute @As_Root, 'rm', '-rf', $tmp_dir;
 }
 
 ########################################################################
@@ -192,19 +194,31 @@ sub Get_Config($) {
     print "Getting configuration from $config_file\n";
 
     my %options = ( OS                => 0,
+
                     TEMP_DIR          => 0,
                     PATH              => 0,
+                    INSTALLER_USER    => 0,
+                    INSTALLER_GROUP   => 0,
+                    UMASK             => 0,
+
                     GPT_TARBALL       => 0,
                     GPT_SRC_DIR       => 0,
                     NMI_CLIENT_BUNDLE => 0,
                     NMI_SERVER_BUNDLE => 0,
+
                     GPT_LOCATION      => 0,
                     GLOBUS_LOCATION   => 0,
+
                     GRID_MAPFILE      => 0,
                     HOST_CERT         => 0,
                     HOST_KEY          => 0,
+                    LDAP_CERT         => 0,
+                    LDAP_KEY          => 0,
+
                     CA_CERT_TARBALL   => 0,
-                    XINETD_DIR        => 0 );
+
+                    INET_DAEMON       => 0,
+                    INET_DIR          => 0 );
 
     open CONFIG, $config_file or die "$config_file: $!\n";
     while (<CONFIG>) {
@@ -362,6 +376,7 @@ sub Execute(@) {
     my $Background = 0;
     my $Check = 0;
     my $User = undef;
+    my $Group = undef;
     my $Stdin = undef;
     my $Stdin_Is_Temporary = undef;
     my @before;
@@ -390,6 +405,10 @@ sub Execute(@) {
         }
         elsif ($arg =~ /^-user=(.+)$/) {
             $User = $1;
+            if ($User =~ /^(.*)[.:](.*)$/) {
+                $User = $1;
+                $Group = $2;
+            }
         }
         elsif ($arg =~ /^-stdin=(.+)$/) {
             $Stdin = $1;
@@ -410,16 +429,26 @@ sub Execute(@) {
     if (defined $User) {
         my @pw = getpwnam $User;
         die "${User}: No such user\n" if not @pw;
+        my @gr;
+        if (defined $Group) {
+            @gr = getgrnam $Group;
+            die "${Group}: No such group\n" if not @gr;
+        }
         my $uid = $pw[2];
+        my $gid = defined $Group ? $gr[2] : undef;
         my $pid;
         if (($pid = fork) == 0) {
             #
             # This is the child process.
-            # Set the real and effective user id, and contine to handle
-            # the call.
+            # Set the real and effective user (and group) id,
+            # and continue to handle the call.
             #
             $< = $uid;
             $> = $uid;
+            if (defined $gid) {
+                $( = $gid;
+                $) = $gid;
+            }
         }
         else {
             #
@@ -514,6 +543,64 @@ sub Execute(@) {
 
     return Get_Result $system_result, $Check;
 } # Execute
+
+# ----------------------------------------------------------------------
+
+sub Check_Config_Vars() {
+    my @errors = ();
+
+    if ($Config{OS} ne 'linux') {
+        push @errors, "Unsupported OS \"$Config{OS}\"\n";
+    }
+
+    if ($Config{INET_DAEMON} ne 'xinetd' and
+        $Config{INET_DAEMON} ne 'inetd')
+    {
+        push @errors, "INET_DAEMON must be either \"xinetd\" or \"inetd\"\n";
+    }
+
+    foreach my $key (qw(TEMP_DIR INET_DIR)) {
+        if (not (-d $Config{$key} and -w _)) {
+            push @errors, "Bad $key directory \"$Config{$key}\n";
+        }
+    }
+
+    foreach my $key (qw(GPT_TARBALL NMI_CLIENT_BUNDLE NMI_SERVER_BUNDLE
+                        GRID_MAPFILE
+                        HOST_CERT HOST_KEY
+                        LDAP_CERT LDAP_KEY
+                        CA_CERT_TARBALL))
+    {
+        if (not (-f $Config{$key} and -r _)) {
+            push @errors, "Can't read $key file \"$Config{$key}\"\n";
+        }
+    }
+
+    foreach my $key (qw(GPT_LOCATION GLOBUS_LOCATION)) {
+        if (-e $Config{$key}) {
+            push @errors, "$key \"$Config{$key}\" already exists\n";
+        }
+    }
+} # Check_Config_Vars
+
+# ----------------------------------------------------------------------
+
+sub Check_Etc_Services() {
+    my %expected_name = ( 2119 => 'gsigatekeeper',
+                          2135 => 'gris',
+                          2811 => 'gsiftp' );
+    foreach my $port (sort keys %expected_name) {
+        my @serv = getservbyport $port, $expected_name{$port};
+        if (not @serv) {
+            print ">>> No service on port $port ",
+                  "(expected $expected_name{$port})\n";
+        }
+        elsif ($serv[0] ne $expected_name{$port}) {
+            print ">>> Service on port $port is \"$serv[0]\", ",
+                  "should be \"$expected_name{$port}\"\n";
+        }
+    }
+} # Check_Etc_Services
 
 # ----------------------------------------------------------------------
 
