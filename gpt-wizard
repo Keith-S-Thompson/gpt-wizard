@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.65 2002-08-22 10:09:08-07 kst Exp $
+# $Id: gpt-wizard,v 1.66 2002-08-22 10:22:33-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -63,7 +63,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name        = File::Basename::basename $0;
-my $Revision         = Strip_Revision_String '$Revision: 1.65 $';
+my $Revision         = Strip_Revision_String '$Revision: 1.66 $';
 my $Help             = undef;
 my $Debugging        = undef;
 my $Cleanup          = 1;
@@ -221,25 +221,22 @@ unlink '/etc/profile.d/gpt.sh',
 # are called globus-build and globus-install.
 #
 my $gpt_install_command = undef;
-foreach my $cmd (qw(gpt-install globus-install)) {
-    if (-x "$Config{GPT_LOCATION}/sbin/$cmd") {
-        $gpt_install_command = "$Config{GPT_LOCATION}/sbin/$cmd";
-    }
-}
-if (not defined $gpt_install_command) {
-    die "Can't find gpt-install or globus-install in " .
-        "$Config{GPT_LOCATION}/sbin\n";
-}
+my $gpt_build_command   = undef;
+my $sbin_dir = "$Config{GPT_LOCATION}/sbin";
+my $using_old_gpt;
 
-my $gpt_build_command = undef;
-foreach my $cmd (qw(gpt-build globus-build)) {
-    if (-x "$Config{GPT_LOCATION}/sbin/$cmd") {
-        $gpt_build_command = "$Config{GPT_LOCATION}/sbin/$cmd";
-    }
+if (-x "$sbin_dir/gpt-install" and -x "$sbin_dir/gpt-build") {
+    $gpt_install_command = "$sbin_dir/gpt-install";
+    $gpt_build_command   = "$sbin_dir/gpt-build";
+    $using_old_gpt = 0;
 }
-if (not defined $gpt_build_command) {
-    die "Can't find gpt-build or globus-build in " .
-        "$Config{GPT_LOCATION}/sbin\n";
+elsif (-x "$sbin_dir/globus-install" and -x "$sbin_dir/globus-build") {
+    $gpt_install_command = "$sbin_dir/globus--install";
+    $gpt_build_command   = "$sbin_dir/globus--build";
+    $using_old_gpt = 1;
+}
+else {
+    die "Can't find install and build commands in $sbin_dir\n";
 }
 
 #
@@ -248,7 +245,7 @@ if (not defined $gpt_build_command) {
 # In older releases, globus-install doesn't support the "-version"
 # option; we've already checked that the command exists.
 #
-if ($gpt_install_command =~ /\/gpt-install$/) {
+if (not $using_old_gpt) {
     Execute @As_Installer, $gpt_install_command, '-version';
 }
 
@@ -325,7 +322,7 @@ foreach my $bundle ( @{$Config{BUNDLES}} ) {
         # Using gpt-install to install a binary bundle.
         #
         my @options = ();
-        if ($GPT_Verbose) {
+        if ($GPT_Verbose and not $using_old_gpt) {
             push @options, '-verbose';
         }
         #
