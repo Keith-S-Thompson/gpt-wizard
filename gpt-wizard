@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.277 2004-03-19 22:15:21-08 kst Exp $
+# $Id: gpt-wizard,v 1.278 2004-03-19 22:22:07-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -205,7 +205,7 @@ my $Release_Revision = '1.273'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.277 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.278 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -2472,10 +2472,10 @@ sub By_Flavor {
 
     $a_score += 4 if $a !~ /mpi/;
     $a_score += 2 if $a !~ /pthr|solthr|sproc/;
-    $a_score += 1 if $a !~ /dbg/;
+    $a_score += 1 if $a =~ /dbg/;
     $b_score += 4 if $b !~ /mpi/;
     $b_score += 2 if $b !~ /pthr|solthr|sproc/;
-    $b_score += 1 if $a !~ /dbg/;
+    $b_score += 1 if $b =~ /dbg/;
 
     return $a_score <=> $b_score || $a cmp $b;
 } # By_Flavor
