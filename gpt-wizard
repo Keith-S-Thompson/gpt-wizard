@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.194 2003-03-27 10:59:20-08 kst Exp $
+# $Id: gpt-wizard,v 1.195 2003-03-31 00:25:16-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -196,7 +196,7 @@ my $Release_Revision = '1.174'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.194 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.195 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -2704,28 +2704,6 @@ sub Image($) {
 sub Debug(@) {
     print @_ if $Debugging;
 } # Debug
-
-# ----------------------------------------------------------------------
-
-sub Compare_Version($$) {
-    my @a = split /\./, $_[0];
-    my @b = split /\./, $_[1];
-    my $last;
-    if ($#a < $#b) {
-        $last = $#a;
-    }
-    else {
-        $last = $#b;
-    }
-    for (my $i = 0; $i <= $last; $i ++) {
-        my $cmp = ($a[$i] <=> $b[$i]);
-        if ($cmp != 0) {
-            return $cmp;
-        }
-    }
-
-    return 0;
-} # Compare_Version
 
 # ----------------------------------------------------------------------
 
