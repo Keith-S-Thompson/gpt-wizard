@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.122 2002-11-27 11:30:34-08 kst Exp $
+# $Id: gpt-wizard,v 1.123 2002-11-27 23:46:00-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -106,6 +106,7 @@ sub Check_Services();
 sub Die_Handler($);
 sub Timestamp_Of($);
 sub Backup($);
+sub Is_Empty_Dir($);
 sub Fix_Setup_Script($);
 sub Inet_Config_Text($$);
 sub Image($);
@@ -120,7 +121,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.122 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.123 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -394,7 +395,9 @@ if (not $using_old_gpt) {
 ########################################
 print "% Setting GLOBUS_LOCATION=$Config{GLOBUS_LOCATION}\n";
 $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
-if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
+if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION} and
+    not -e $Config{GLOBUS_LOCATION})
+{
     print "% mkdir $Config{GLOBUS_LOCATION}\n";
     mkdir $Config{GLOBUS_LOCATION}, 0777
         or die "$Config{GLOBUS_LOCATION}: $!\n";
@@ -1072,7 +1075,7 @@ sub Get_Config($) {
 
         #
         # A directory to be created.
-        # It must not exist.
+        # If it already exists, it must be empty.
         #
         elsif ($var->{type} eq 'new_directory') {
             my $dir = $var->{value};
@@ -1085,8 +1088,19 @@ sub Get_Config($) {
                 # Ok for directory to exist.
             }
             else {
-                if (-e $dir) {
-                    push @errors, "$varname \"$dir\" already exists\n";
+                if (not -e $dir) {
+                    # ok
+                }
+                elsif (-d $dir) {
+                    if (Is_Empty_Dir $dir) {
+                        # ok
+                    }
+                    else {
+                        push @errors, "$varname \"$dir\" is not empty\n";
+                    }
+                }
+                else {
+                    push @errors, "$varname \"$dir\" is not a directory\n";
                 }
             }
         }
@@ -1954,6 +1968,24 @@ sub Backup($) {
     rename $filename, $backup_name or die "$backup_name: $!\n";
     return $backup_name;
 } # Backup
+
+# ----------------------------------------------------------------------
+
+#
+# Returns true iff the argument is an empty directory.
+#
+sub Is_Empty_Dir($) {
+    my($dir) = @_;
+    if (-d $dir) {
+        opendir DIR, $dir or die "${dir}: $!\n";
+        my @files = grep { $_ ne '.' and $_ ne '..' } readdir DIR;
+        closedir DIR;
+        if (@files) { return 0; } else { return 1; }
+    }
+    else {
+        return 0;
+    }
+} # Is_Empty_Dir
 
 # ----------------------------------------------------------------------
 
