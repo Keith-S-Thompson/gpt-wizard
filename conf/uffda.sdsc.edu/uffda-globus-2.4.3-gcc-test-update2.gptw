@@ -1,0 +1,35 @@
+# $Id: uffda-globus-2.4.3-gcc-test-update2.gptw,v 1.1 2004-03-08 16:59:26-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-globus-2.4.3-gcc-test-update2.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3-gcc-test
+GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3-gcc-test
+
+.PREFIX ~kst/repo.teragrid.org/open/globus/2.4.3
+
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+#
+# uberftp
+#
+BUNDLE ~kst/src/uberftp/uberftp-1.3-src_bundle.tar.gz              kind=source flavor=gcc32dbgpthr
+
+#
+# Install individual Condor-G packages extracted from NMI 3.2 binary bundle
+#
+.PREFIX ~kst/repo.teragrid.org/open/condor-g/packages-NMI-3.2
+BUNDLE condor_base-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz         kind=binary
+BUNDLE condor_base_libs-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz    kind=binary
+BUNDLE condor_base_setup-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz   kind=binary
+BUNDLE condor_config-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=binary
+BUNDLE condor_dagman-0.2-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=binary
+BUNDLE condor_submit-0.6-ia64-unknown-linux-gnu-noflavor-pgm.tar.gz       kind=binary
+
+#
+# Build myproxy
+#
+.PREFIX ~kst/repo.teragrid.org/open/myproxy/1.11
+BUNDLE myproxy-1.11.tar.gz                                         kind=source flavor=gcc32dbg
