@@ -1,0 +1,21 @@
+# $Id: dtf-test2.sdsc.teragrid.org-globus-3.2.0-mpicc-test.gptw,v 1.1 2004-06-18 18:45:39-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-3.2.0-mpicc-test.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
+
+GLOBUS_LOCATION    /work/globus/apps/globus-3.2.0-mpicc-test
+
+.PREFIX /work/kst/Globus/3.2.0/gpt
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+#
+# Build Globus 3.2.0 from source.
+# For this test build, one bundle only.
+#
+
+MPI_FLAVORS_ARE_STATIC 1
+
+.PREFIX /work/kst/Globus/3.2.0/bundles/src
+BUNDLE globus-resource-management-sdk-3.2-src_bundle.tar.gz kind=source flavor=mpicc64dbg,gcc64dbg
