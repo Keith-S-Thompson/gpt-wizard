@@ -1,0 +1,17 @@
+# $Id: elmak-myproxy-1.14.gptw,v 1.1 2004-08-31 18:11:34-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/elmak.sdsc.edu/elmak-myproxy-1.14.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/usr/ccs/bin:/usr/local/bin
+
+GLOBUS_LOCATION /projects/globus/globus/apps/sparc-sun-solaris2.8/myproxy-1.14
+
+.PREFIX /projects/globus/kst/Globus/3.2.1/gpt
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+.PREFIX /projects/globus/kst/Globus/3.2.1/bundles/src
+BUNDLE globus-resource-management-client-3.2.1-src_bundle.tar.gz kind=source flavor=gcc32dbg
+
+.PREFIX /projects/globus/kst/repo.teragrid.org/open/myproxy/1.14
+BUNDLE myproxy-1.14.tar.gz kind=source flavor=gcc32dbg
