@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: get-files,v 1.6 2002-12-20 16:35:20-08 kst Exp $
+# $Id: get-files,v 1.7 2003-01-09 18:45:32-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/get-files,v $
 
 use strict;
@@ -18,6 +18,7 @@ my $Program_Name    = File::Basename::basename $0;
 my $Source_Host     = 'elmak.sdsc.edu';
 my $Remote_Base_Dir = '/projects/globus/kst';
 my $Local_Base_Dir  = '/home/kst';
+my $Use_Config_File = undef;
 my $Force           = undef;
 my $Dryrun          = undef;
 my $Help            = undef;
@@ -26,6 +27,7 @@ my $List_File       = undef;
 my @Opts = ( 'source-host=s'     => \$Source_Host,
              'remote-base-dir=s' => \$Remote_Base_Dir,
              'local-base-dir=s'  => \$Local_Base_Dir,
+             'config-file!'      => \$Use_Config_File,
              'force!'            => \$Force,
              'dryrun!'           => \$Dryrun,
              'help!'             => \$Help,
@@ -35,10 +37,24 @@ Usage if $Help;
 Usage if scalar @ARGV != 1;
 $List_File = $ARGV[0];
 
+my @files = ();
+
 open LIST, $List_File or die "$List_File: $!\n";
-my @files = <LIST>;
+while (<LIST>) {
+    chomp;
+    if ($Use_Config_File) {
+        if (/^(GPT_TARBALL|BUNDLE|UPDATE)\s+(\/\S+)/) {
+            push @files, $1;
+        }
+        else {
+            next;
+        }
+    }
+    else {
+        push @files, $_;
+    }
+}
 close LIST;
-chomp @files;
 
 foreach my $file (@files) {
     if ($file !~ /^\Q$Local_Base_Dir\E/) {
