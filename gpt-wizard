@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.155 2003-02-27 17:50:54-08 kst Exp $
+# $Id: gpt-wizard,v 1.156 2003-02-27 21:39:56-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -102,11 +102,6 @@
 #     On second thought, this might not be such a good idea; it allows
 #     too much dependence on the existing environment.
 #
-#     It would be nice, even as an ugly special case, to automate copying
-#     files from elmak.  Since gpt-wizard runs as root, though, this
-#     may not be feasible.  Think about it some more.  Maybe set up an
-#     anonymous ftp server on uffda?  (I've now done that.)
-#
 #     Optionally generate a Bourne shell script to do the installation
 #     rather than actually doing the installation.
 #
@@ -119,22 +114,9 @@
 #     See Globus Bugzilla #660,
 #     <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=660>.
 #     
-#     With the "-validate-only" option, we currently check for the
-#     existence of any local files, but not for ftp and http URLs.  Add a
-#     check for ftp URLs using "ncftpls".  Think about how to check for
-#     http URLs.  Note that we want to do this check first regardless
-#     of whether we're in "-validate-only" mode -- find errors as early
-#     as possible.
-#
-#     Fall back to wget for ftp URLs if ncftpget doesn't exist.
-#
 #     Specify CVS files somehow -- perhaps via a fake "cvs://" URL (ick)
 #     and/or add an optional config var or two to specify how to get
 #     files from CVS.
-#
-#     With "-validate-only", complain if there are "http" or "ftp" URLs
-#     and DOWNLOAD_DIR is not set.  Currently, we don't catch this until
-#     we actually start downloading.  See also the ncftpls idea, above.
 #
 #     Create a file, $GLOBUS_LOCATION/.build-info, with information
 #     about the build, including at least the version of gpt-wizard and
@@ -152,6 +134,8 @@ use POSIX ();
 sub Strip_Revision_String($);
 sub Get_Config($);
 sub Get_System_Information();
+sub URL_Protocol($);
+sub Check_URLs(@);
 sub Download_Files(@);
 sub Elapsed_Time_Image($);
 sub Time_Image($);
@@ -184,13 +168,13 @@ $| = 1;
 # new release.  It's intended to map release numbers to RCS revisions,
 # which should should correspond to RCS symbolic names.  (Automatating
 # this is theoretically possible, but probably more effort than it's
-# worth.
+# worth.)
 #
 my $Release_Info = [ { release => '0.1',   revision => '1.144' },
                      { release => '0.1.1', revision => '1.146' } ];
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.155 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.156 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -237,8 +221,9 @@ $SIG{__DIE__} = \&Die_Handler;
 # A hash mapping URLs (ftp or http) to cached local files.
 #
 my $Download_Initialized = undef;
-my %Downloaded_File = ();
+my %Local_File = ();
 my $download_index = 0;
+my $wget = undef;
 
 my $temp_file_serial_number = 0;
 my @manual_steps = ();
@@ -262,8 +247,6 @@ my %Sys = Get_System_Information;
 # gpt-postinstall as root.
 #
 my $Using_RPM = 0;
-
-exit 0 if $Validate_Only;
 
 if ($Sys{LC_OSNAME} eq 'linux') {
     # ok
@@ -296,6 +279,13 @@ my $CLK_TCK = POSIX::sysconf(&POSIX::_SC_CLK_TCK);
 if ($< != 0) {
     die ">>> $Prog_Name must be run as root\n";
 }
+
+if (exists $Config{urls}) {
+    die "No DOWNLOAD_DIR specified\n" if not defined $Config{DOWNLOAD_DIR};
+    Check_URLs @{$Config{urls}};
+}
+
+exit 0 if $Validate_Only;
 
 ########################################################################
 # Create a temporary working directory and set some variables.
@@ -360,20 +350,20 @@ if (not $Cleanup) {
 # Download any files specified by ftp:// or http:// URLs
 # For security reasons, certificates and keys may not be downloaded.
 ########################################################################
-my @file_refs = ();
+my @file_names = ();
 
 foreach my $var (qw(GPT_TARBALL GRID_MAPFILE CA_CERT_TARBALL)) {
-    push @file_refs, \$Config{$var} if defined $Config{$var};
+    push @file_names, $Config{$var} if defined $Config{$var};
 }
 
 for (my $i = 0; $i <= $#{$Config{BUNDLE}}; $i ++) {
-    push @file_refs, \$Config{BUNDLE}->[$i];
+    push @file_names, $Config{BUNDLE}->[$i];
 }
 for (my $i = 0; $i <= $#{$Config{UPDATE}}; $i ++) {
-    push @file_refs, \$Config{UPDATE}->[$i];
+    push @file_names, $Config{UPDATE}->[$i];
 }
 
-Download_Files @file_refs;
+Download_Files @file_names;
 
 ########################################################################
 # Set the $GLOBUS_LOCATION environment variable if specified.
@@ -400,9 +390,9 @@ if (not $AIX_Kludge) {
     closedir DIR;
     my %already_existed = map { $_ => 1 } @files_before;
 
-    # Execute @As_Installer, 'tar', 'zxf', $Config{GPT_TARBALL};
+    # Execute @As_Installer, 'tar', 'zxf', $Local_File{$Config{GPT_TARBALL}};
     Execute @As_Installer, 'sh', '-c',
-            "gzip -d < $Config{GPT_TARBALL} | tar xf -";
+            "gzip -d < $Local_File{$Config{GPT_TARBALL}} | tar xf -";
 
     opendir DIR, '.' or die ".: $!\n";
     my @files_after = readdir DIR;
@@ -601,7 +591,7 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
             push @options, '-std-flavors';
         }
         Execute @As_Installer_GPT,
-                $gpt_build_command, @options, $bundle, @flavors;
+                $gpt_build_command, @options, $Local_File{$bundle}, @flavors;
     }
     elsif ($bundle_kind eq 'binary' or $bundle_kind eq 'rpm') {
         #
@@ -616,16 +606,20 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         #
         if ($bundle_kind eq 'binary') {
             Execute @As_Installer_GPT,
-                    $gpt_install_command, @options, $bundle;
+                    $gpt_install_command, @options, $Local_File{$bundle};
         }
         else {
             $Using_RPM = 1;
             Execute @As_Root_GPT,
-                    $gpt_install_command, @options, $bundle;
+                    $gpt_install_command, @options, $Local_File{$bundle};
         }
     }
     else {
-        die "Internal error, \$bundle_kind = \"$bundle_kind\"\n";
+        #
+        # The missing "\n" in the error message is deliberate.  It causes
+        # Perl to print more information about the location of the error.
+        #
+        die "Internal error, \$bundle_kind = \"$bundle_kind\"";
     }
 }
 
@@ -732,7 +726,7 @@ if ($Startup) {
     if (defined $Config{GRID_MAPFILE}) {
         Backup '/etc/grid-security/grid-mapfile';
         Execute @As_Root,
-                'cp', $Config{GRID_MAPFILE},
+                'cp', $Local_File{$Config{GRID_MAPFILE}},
                       '/etc/grid-security/grid-mapfile';
         chmod 0444, '/etc/grid-security/grid-mapfile';
     }
@@ -836,7 +830,7 @@ if ($Startup and defined $Config{CA_CERT_TARBALL}) {
     mkdir $ca_cert_dir, 0777 or die "$ca_cert_dir: $!\n";
     print "% cd $ca_cert_dir\n";
     chdir $ca_cert_dir or die "$ca_cert_dir: $!\n";
-    Execute @As_Root, 'tar', 'zxf', $Config{CA_CERT_TARBALL};
+    Execute @As_Root, 'tar', 'zxf', $Local_File{$Config{CA_CERT_TARBALL}};
 }
 else {
     push @manual_steps,
@@ -972,37 +966,67 @@ sub Strip_Revision_String($) {
 # Return an error message for a given filename or URL.
 # Return undef if there's no problem.
 #
-sub File_Or_URL_Error($$$) {
-    my ($varname, $value, $url_ok) = @_;
+sub File_Or_URL_Error(@) {
+    my $varname = undef;
+    my $url_ok = undef;
+    my $executable = undef;
+    my $name = undef;
 
-    if ($value =~ m<^(\w+)://>) {
+    foreach my $arg (@_) {
+        if ($arg =~ /^-varname=(.*)$/) {
+            $varname = $1;
+        }
+        elsif ($arg eq '-url-ok') {
+            $url_ok = 1;
+        }
+        elsif ($arg eq '-executable') {
+            $executable = 1;
+        }
+        elsif ($arg =~ /^-/) {
+            die "Internal error, File_Or_URL_Error, arg \"$arg\"\n";
+        }
+        else {
+            $name = $arg;
+        }
+    }
+
+    my $protocol = URL_Protocol $name;
+    if (defined $protocol) {
         if ($url_ok) {
-            if ($1 eq 'http' or $1 eq 'ftp') {
+            if ($protocol eq 'http' or $protocol eq 'ftp') {
+                #
+                # This will be checked via Check_URLs after Get_Config
+                # is finished (to guarantee that we know where the "wget"
+                # command is).
+                #
                 return undef;
             }
             else {
-                return "$varname URL \"$value\", unsupported protocol\n";
+                return "$varname URL \"$name\", unsupported protocol\n";
             }
         }
         else {
-            return "$varname file \"$value\", URL not allowed\n";
+            return "$varname file \"$name\", URL not allowed\n";
         }
     }
     else {
-        if ($value !~ /^\//) {
-            return "$varname file \"$value\", relative path not allowed\n";
+        if ($name !~ /^\//) {
+            return "$varname file \"$name\", relative path not allowed\n";
         }
-        elsif (not -e $value) {
-            return "$varname file \"$value\" does not exist\n";
+        elsif (not -e $name) {
+            return "$varname file \"$name\" does not exist\n";
         }
         elsif (not -f _) {
-            return "$varname file \"$value\" is not an ordinary file\n";
+            return "$varname file \"$name\" is not an ordinary file\n";
         }
-        elsif (not -r _) {
-            return "Can't read $varname file \"$value\"\n";
+        elsif (not $executable and not -r _) {
+            return "Can't read $varname file \"$name\"\n";
         }
         elsif (-z _) {
-            return "$varname file \"$value\" is empty\n";
+            return "$varname file \"$name\" is empty\n";
+        }
+        elsif ($executable and not -x _) {
+            return "$varname file \"$name\" is not executable\n";
         }
         else {
             return undef;
@@ -1016,9 +1040,13 @@ sub File_Or_URL_Error($$$) {
 # Read and parse the config file (name given on the command line) and
 # return the results as a hash (to be assigned to the global %Config).
 #
+# An additional hash entry, 'urls', is a reference to an array of any
+# URLs specified in the config file.
+#
 sub Get_Config($) {
     my($config_file) = @_;
     my @errors = ();
+    my @urls = ();
 
     #
     # %Var_Info is a hash of hash references.
@@ -1033,6 +1061,8 @@ sub Get_Config($) {
             { type => 'existing_directory', required => 0, default => '/tmp' },
         DOWNLOAD_DIR =>
             { type => 'existing_directory', required => 0 },
+        WGET =>
+            { type => 'executable_file', required => 0 },
         PATH =>
             { type => 'path', required => 1 },
         ENV =>
@@ -1367,19 +1397,30 @@ sub Get_Config($) {
         # See File_Or_URL_Error().
         # 
         elsif ($var->{type} eq 'file_or_url') {
-            my $error = File_Or_URL_Error $varname, $var->{value}, 1;
+            my $error = File_Or_URL_Error "-varname=$varname", "-url-ok", $var->{value};
             push @errors, $error if defined $error;
+            if ($var->{value} =~ m<^(\w+)://>) {
+                push @urls, $var->{value};
+            }
         }
 
         elsif ($var->{type} eq 'array_of_file_or_url') {
             foreach my $item (@{$var->{value}}) {
-                my $error = File_Or_URL_Error $varname, $item, 1;
+                my $error = File_Or_URL_Error "-varname=$varname", "-url-ok", $item;
                 push @errors, $error if defined $error;
+                if ($var->{value} =~ m<^(\w+)://>) {
+                    push @urls, $var->{value};
+                }
             }
         }
 
         elsif ($var->{type} eq 'file') {
-            my $error = File_Or_URL_Error $varname, $var->{value}, 0;
+            my $error = File_Or_URL_Error "-varname=$varname", $var->{value};
+            push @errors, $error if defined $error;
+        }
+
+        elsif ($var->{type} eq 'executable_file') {
+            my $error = File_Or_URL_Error "-varname=$varname", "-executable", $var->{value};
             push @errors, $error if defined $error;
         }
 
@@ -1447,6 +1488,9 @@ sub Get_Config($) {
     foreach my $varname (keys %Var_Info) {
         $Result{$varname} = $Var_Info{$varname}->{value};
     }
+    if (@urls) {
+        $Result{urls} = \@urls;
+    }
 
     foreach my $key (sort keys %Result) {
         my $value = $Result{$key};
@@ -1454,11 +1498,13 @@ sub Get_Config($) {
             printf "    %-20s => {\n", $key;
             foreach my $elem (@$value) {
                 my @fields = ("\"$elem\"");
-                if (defined $Bundle_Kind{$elem}) {
-                    push @fields, "kind=$Bundle_Kind{$elem}";
-                }
-                if (defined $Bundle_Flavor{$elem}) {
-                    push @fields, "flavor=$Bundle_Flavor{$elem}";
+                if ($key ne 'urls') {
+                    if (defined $Bundle_Kind{$elem}) {
+                        push @fields, "kind=$Bundle_Kind{$elem}";
+                    }
+                    if (defined $Bundle_Flavor{$elem}) {
+                        push @fields, "flavor=$Bundle_Flavor{$elem}";
+                    }
                 }
                 print "        @fields\n";
             }
@@ -1585,6 +1631,23 @@ sub Init_Download() {
 
     die "No DOWNLOAD_DIR specified\n" if not defined $Config{DOWNLOAD_DIR};
 
+    if (not defined $wget) {
+        if (defined $Config{WGET}) {
+            $wget = $Config{WGET};
+        }
+        else {
+            DIR:
+            foreach my $dir (split /:/, $ENV{PATH}) {
+                if (-x "$dir/wget") {
+                    $wget = "$dir/wget";
+                    last DIR;
+                }
+            }
+        }
+    }
+
+    die "No wget command found\n" if not defined $wget;
+
     my @subdirs = ();
 
     opendir DIR, $Config{DOWNLOAD_DIR} or die "$Config{DOWNLOAD_DIR}: $!\n";
@@ -1596,8 +1659,8 @@ sub Init_Download() {
         my $url = <URL>;
         close URL;
         chomp $url;
-        $Downloaded_File{$url} = "$Config{DOWNLOAD_DIR}/$subdir/" .
-                                 File::Basename::basename $url;
+        $Local_File{$url} = "$Config{DOWNLOAD_DIR}/$subdir/" .
+                            File::Basename::basename $url;
     }
     closedir DIR;
 
@@ -1607,32 +1670,74 @@ sub Init_Download() {
 # ----------------------------------------------------------------------
 
 #
-# Download any files specified by an "http://" or "ftp://" URL.
-# Update $Config entries to point to downloaded files.
+# Returns the protocol of a URL, generally 'http' or 'ftp'.
+# If the argument is not a URL, return undef.
 #
-# Arguments are references to file names.
+sub URL_Protocol($) {
+    if ($_[0] =~ m<^(\w+)://>) {
+        return $1;
+    }
+    else {
+        return undef;
+    }
+} # URL_Protocol
+
+# ----------------------------------------------------------------------
+
+#
+# Given a list of URLs, verify that each one exists.
+# Uses "wget --spider".
+#
+sub Check_URLs(@) {
+    die "No wget command found or specified\n" if not defined $wget;
+    my @bad_urls = ();
+
+    foreach my $url (@_) {
+        my $result = system $wget, '--spider', '-o', '/dev/null', $url;
+        if ($result != 0) {
+            push @bad_urls, $url;
+        }
+    }
+
+    if (@bad_urls) {
+        my $message;
+        if (scalar @bad_urls == 1) {
+            $message = ">>> The following URL does not exist:\n";
+        }
+        else {
+            $message = ">>> The following URLs do not exist:\n";
+        }
+        foreach my $url (@bad_urls) {
+            $message .= "    $url\n";
+        }
+        die $message;
+    }
+} # Check_URLs
+
+# ----------------------------------------------------------------------
+
+#
+# Download any files specified by an "http://" or "ftp://" URL.
+# Update %Local_File entries to point to downloaded files.
+#
+# Arguments are file names or URLs.
 #
 sub Download_Files(@) {
-    my @refs = @_;
+    my @names = @_;
     my $changed_dir = 0;
 
-    foreach my $ref (@refs) {
-        if ($$ref =~ m<^(ftp|http)://>) {
-            my $method = $1;
-
+    foreach my $name (@names) {
+        if (defined URL_Protocol $name) {
             Init_Download;
 
             my $target_file;
 
-            if (defined $Downloaded_File{$$ref}) {
-                $target_file = $Downloaded_File{$$ref};
-            }
-            else {
+            if (not defined $Local_File{$name}) {
                 my $target_dir = sprintf "%s/%03d",
                                          $Config{DOWNLOAD_DIR},
                                          $download_index++;
                 $target_file = "$target_dir/" .
-                               File::Basename::basename $$ref;
+                               File::Basename::basename $name;
 
                 print "% mkdir $target_dir\n";
                 mkdir $target_dir, 0777 or die "$target_dir: $!\n";
@@ -1643,14 +1748,8 @@ sub Download_Files(@) {
                 chdir $target_dir or die "$target_dir: $!\n";
                 $changed_dir = 1;
 
-                if ($method eq 'ftp') {
-                    $changed_dir = 1;
-                    Execute @As_Installer, 'ncftpget', '-V', $$ref;
-                }
-                elsif ($method eq 'http') {
-                    Execute @As_Installer,
-                            'wget', '-o', '/dev/null', $$ref;
-                }
+                Execute @As_Installer,
+                        'wget', '-o', '/dev/null', $name;
                 if (not -e $target_file) {
                     die "Download failed for $target_file (no file)\n";
                 }
@@ -1658,24 +1757,12 @@ sub Download_Files(@) {
                     die "Download failed for $target_file (empty file)\n";
                 }
                 open URL, ">$target_dir/.url" or die "$target_dir/.url: $!\n";
-                print URL "$$ref\n";
+                print URL "$name\n";
                 close URL;
             }
-
-            if (defined $Bundle_Kind{$$ref}) {
-                $Bundle_Kind{$target_file} = $Bundle_Kind{$$ref};
-            }
-            if (defined $Bundle_Option{$$ref}) {
-                $Bundle_Option{$target_file} = $Bundle_Option{$$ref};
-            }
-            if (defined $Bundle_Flavor{$$ref}) {
-                $Bundle_Flavor{$target_file} = $Bundle_Flavor{$$ref};
-            }
-            if (defined $Is_Update{$$ref}) {
-                $Is_Update{$target_file} = $Is_Update{$$ref};
-            }
-
-            $$ref = $target_file;
+        }
+        else {
+            $Local_File{$name} = $name;
         }
     }
 
