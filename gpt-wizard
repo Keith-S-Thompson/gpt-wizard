@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.144 2003-01-24 20:04:49-08 kst Exp $
+# $Id: gpt-wizard,v 1.145 2003-01-27 15:49:59-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -128,6 +128,7 @@ sub Is_Empty_Dir($);
 sub Fix_Setup_Script($);
 sub Inet_Config_Text($$);
 sub Image($);
+sub Show_Version();
 sub Debug(@);
 sub Usage(@);
 
@@ -139,8 +140,10 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.144 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.145 $';
+my $Release           = '0.1+';
 my $Help              = undef;
+my $Show_Version      = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
 my $Cleanup           = 1;
@@ -152,18 +155,20 @@ my $GPT_Install_Only  = undef;
 my $GPT_Ignore_Errors = undef;
 my $AIX_Kludge        = undef;
 my @Opts = ( 'help!'              => \$Help,
-             'validate-only'      => \$Validate_Only,
+             'version!'           => \$Show_Version,
+             'validate-only!'     => \$Validate_Only,
              'debugging!'         => \$Debugging,
              'cleanup!'           => \$Cleanup,
              'postinstall!'       => \$Postinstall,
              'startup!'           => \$Startup,
              'gpt-verbose!'       => \$GPT_Verbose,
-             'gpt-log!'           => \$GPT_Log,
+           # 'gpt-log!'           => \$GPT_Log,
              'gpt-install-only!'  => \$GPT_Install_Only,
              'gpt-ignore-errors!' => \$GPT_Ignore_Errors,
              'aix-kludge!'        => \$AIX_Kludge );
 Getopt::Long::GetOptions @Opts or Usage;
 Usage if $Help;
+Show_Version if $Show_Version;
 
 die "-gpt-log option is disabled\n" if $GPT_Log;
 
@@ -2303,21 +2308,27 @@ sub Debug(@) {
 
 # ----------------------------------------------------------------------
 
+sub Show_Version() {
+    print "$Prog_Name release $Release (revision $Revision)\n";
+    exit 1;
+} # Show_Version
+
+# ----------------------------------------------------------------------
+
 sub Usage(@) {
     print @_ if @_;
     print <<"EOF";
 Usage: $Prog_Name [options] config_file
+$Prog_Name uses Perl's Getopt::Long module to parse options.
+Options may be prefixed with either "-" or "--".
+Option names may be abbreviated uniquely.
     -help               Display this message and exit.
+    -version            Display version information and exit.
     -validate-only      Validate the configuration file and exit.
     -cleanup            Delete temporary directory on completion (default).
     -postinstall        Run gpt-postinstall (default).
     -startup            Update system files and start services (default).
     -gpt-verbose        Pass -verbose option to gpt-install and/or gpt-build.
-    -gpt-log            DISABLED.
-                        Pass -log=... option to gpt-build.
-                        Implies -nocleanup, since logs are written to the
-                        temporary directory.
-                        Doesn't affect binary installations (gpt-install).
     -gpt-install-only   Pass -install-only option to gpt-build.
                         Doesn't affect binary installations (gpt-install).
     -gpt-ignore-errors  Ignore errors from gpt-install and gpt-build.
@@ -2327,4 +2338,11 @@ Most options can be negated by prepending "no".
 For example, "-nocleanup" inhibits cleanup.
 EOF
     exit 1;
+#
+# Disabled option:
+#   -gpt-log            Pass -log=... option to gpt-build.
+#                       Implies -nocleanup, since logs are written to the
+#                       temporary directory.
+#                       Doesn't affect binary installations (gpt-install).
+#
 } # Usage
