@@ -1,18 +1,24 @@
-# $Id: ocisp3.unizh.ch.edu-nmi-5.1-bin-test1.gptw,v 1.5 2004-09-21 10:08:11-07 kst Exp $
+# $Id: ocisp3.unizh.ch.edu-nmi-5.1-bin-test1.gptw,v 1.6 2004-09-21 19:44:50-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ocisp3.unizh.ch/ocisp3.unizh.ch.edu-nmi-5.1-bin-test1.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.5 $
+CONFIG_FILE_REVISION    $Revision: 1.6 $
 
-.PARAM NMI ~kst/NMI/5.1
+.PARAM NMI_DIR /u/kst/NMI/5.1
+.PARAM APPS_DIR /u/kst/apps/powerpc-ibm-aix5.2.0.0
+.PARAM JAVA_DIR /usr/java131
+.PARAM ANT_DIR $APPS_DIR/apache-ant-1.6.2
+.PARAM VAR_DIR /u/kst/var
+.PARAM GLOBUS_SUBDIR nmi-5.1-bin-test1
 
-PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
+PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin:$JAVA_DIR/bin:$ANT_DIR/bin
+ENV JAVA_HOME=$JAVA_DIR
+ENV ANT_HOME=$ANT_DIR
 
-TEMP_DIR ~kst/tmpdir     # not enough room in /tmp
-ENV TMPDIR=/u/kst/tmpdir # not enough room in /tmp
+TEMP_DIR /u/kst/tmpdir     # not enough room in /tmp
 
-GLOBUS_LOCATION    ~kst/apps/powerpc-ibm-aix5.2.0.0/nmi-5.1-bin-test1
-GLOBUS_LOCAL_DIRECTORY ~kst/var/nmi-5.1-bin-test1
+GLOBUS_LOCATION       $APPS_DIR/$GLOBUS_SUBDIR
+GLOBUS_LOCAL_DIRECTORY $VAR_DIR/$GLOBUS_SUBDIR
 
-GPT_TARBALL $NMI/tools/gpt-3.2-src.tar.gz
+GPT_TARBALL $NMI_DIR/tools/gpt-3.2-src.tar.gz
 
-BUNDLE $NMI/aix-52/gpt-bundles/nmi-all-NMI-5.1-aix-powerpc-5.2-bin.tar.gz kind=binary
+BUNDLE $NMI_DIR/aix-52/gpt-bundles/nmi-all-NMI-5.1-aix-powerpc-5.2-bin.tar.gz kind=binary
