@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.127 2002-12-10 15:52:58-08 kst Exp $
+# $Id: gpt-wizard,v 1.128 2002-12-12 01:38:15-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -83,8 +83,8 @@
 #               globus-user-ssl.conf.42864e48
 #               grid-security.conf.42864e48
 #
-#     Optionally post-edit config files with correct FQDN (see build-gt2)
-#     or find a better way to handle this (set $GLOBUS_HOSTNAME, maybe?).
+#     If GLOBUS_LOCATION is specified, set $GLOBUS_LOCATION
+#     environment variable in inetd.conf or xinetd config files.
 #
 
 use strict;
@@ -122,7 +122,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.127 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.128 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -265,6 +265,15 @@ for (my $i = 0; $i <= $#{$Config{BUNDLE}}; $i ++) {
 }
 
 Download_Files @file_refs;
+
+########################################################################
+# Set the $GLOBUS_LOCATION environment variable if specified.
+# This is necessary if the system hostname doesn't match the
+# externally visible network name (e.g., on a typical Rocks cluster).
+########################################################################
+if (defined $Config{GLOBUS_LOCATION}) {
+    $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
+}
 
 ########################################################################
 # Install GPT
@@ -914,6 +923,8 @@ sub Get_Config($) {
             { type => 'new_directory', required => 1 },
         GLOBUS_VAR_DIRECTORY =>
             { type => 'new_directory', required => 0 },
+        GLOBUS_HOSTNAME =>
+            { type => 'string', required => 0 },
         GRID_MAPFILE =>
             { type => 'file_or_url', required => 0 },
         HOST_CERT =>
