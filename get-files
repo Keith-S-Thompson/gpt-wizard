@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: get-files,v 1.8 2003-01-09 18:49:45-08 kst Exp $
+# $Id: get-files,v 1.9 2003-03-05 18:22:09-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/get-files,v $
 
 use strict;
@@ -11,13 +11,14 @@ use Getopt::Long ();
 sub Usage(@);
 sub Debug(@);
 sub Execute(@);
+sub Default_Local_Base_Dir();
 
 $| = 1;
 
 my $Program_Name    = File::Basename::basename $0;
 my $Source_Host     = 'elmak.sdsc.edu';
 my $Remote_Base_Dir = '/projects/globus/kst';
-my $Local_Base_Dir  = '/home/kst';
+my $Local_Base_Dir  = Default_Local_Base_Dir;
 my $Use_Config_File = undef;
 my $Force           = undef;
 my $Dryrun          = undef;
@@ -35,6 +36,9 @@ my @Opts = ( 'source-host=s'     => \$Source_Host,
 Getopt::Long::GetOptions @Opts or Usage;
 Usage if $Help;
 Usage if scalar @ARGV != 1;
+Usage "Can't determine home directory for user \"kst\".\n" .
+      "Use \"-local-base-dir\" option\n"
+    if not defined $Local_Base_Dir;
 $List_File = $ARGV[0];
 
 my @files = ();
@@ -96,6 +100,18 @@ foreach my $file (@files) {
 
 ########################################################################
 
+sub Default_Local_Base_Dir() {
+    my @pw = getpwnam 'kst';
+    if (@pw) {
+        return $pw[7];
+    }
+    else {
+        return undef;
+    }
+} # Default_Local_Base_Dir
+
+# ----------------------------------------------------------------------
+
 sub Usage(@) {
     print @_ if @_;
     print <<"EOF";
@@ -105,7 +121,7 @@ Usage: $Program_Name [options] list-file
     -remote-base-dir dir    : Base directory on remote host.
                               Default is /projects/globus/kst
     -local-base-dir dir     : Base directory on local host.
-                              Default is /home/kst
+                              Default is ~kst
     -force                  : Copy files even if they already exist.
     -dryrun                 : Show commands that would be executed.
     -help                   : Display this message and exit.
