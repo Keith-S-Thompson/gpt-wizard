@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.53 2002-08-19 11:13:24-07 kst Exp $
+# $Id: gpt-wizard,v 1.54 2002-08-20 10:38:14-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -59,7 +59,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.53 $';
+my $Revision = Strip_Revision_String '$Revision: 1.54 $';
 my $Help      = undef;
 my $Debugging = undef;
 my $Cleanup   = 1;
@@ -797,8 +797,6 @@ sub Execute(@) {
     my @before;
     my @after;
     my $system_result;
-    my $initial_uid = $>;
-    my $initial_gid = $);
 
     Debug "Execute, scalar \@args = ", scalar @args, "\n";
     my @caller = caller;
@@ -806,7 +804,6 @@ sub Execute(@) {
     #
     # Process arguments
     #
-    Test_File_Creation if $Debugging;
     while ( scalar @args > 0 && $args[0] =~ /^-/) {
         my $arg = shift @args;
         if ($arg eq '-verbose') {
@@ -855,15 +852,46 @@ sub Execute(@) {
         my $uid = $pw[2];
         my $gid = defined $Group ? $gr[2] : undef;
         my $pid;
-
-        if (defined $gid) {
-            Debug "setting \$) = $gid\n";
-            $) = $gid;
+        if (($pid = fork) == 0) {
+            #
+            # This is the child process.
+            # Set the real and effective user (and group) id,
+            # and continue to handle the call.
+            #
+            # To be honest, I don't quite understand the distinction
+            # between "real" and "effective" user and group ids, so I
+            # set both just to be sure.
+            #
+            # Probably a better approach would be to temporarily set
+            # the effective(?) user and group ids, run the command,
+            # and set them back, without forking a child process; some
+            # day I'll figure out how to do this.
+            #
+            # Setting the group id(s) turns out not to be as simple
+            # as setting the user id(s).  For whatever reason, just
+            # assigning to $( and $) doesn't work.  The following seems
+            # to work, though it may be overkill.  I *think* I need to
+            # call POSIX::setgid *before* setting $< and $>; otherwise
+            # I no longer have root privileges.
+            #
+            if (defined $gid) {
+                POSIX::setgid $gid;
+            }
+            $< = $uid;
+            $> = $uid;
+            if (defined $gid) {
+                $( = $gid;
+                $) = $gid;
+            }
         }
-        Debug "setting \$> = $uid\n";
-        $> = $uid;
-
-        Test_File_Creation if $Debugging;
+        else {
+            #
+            # This is the parent process.
+            # Wait for the child to finish.  
+            #
+            waitpid $pid, 0;
+            return Get_Result $?, $Check;
+        }
     }
 
     if ($Verbose) {
@@ -939,24 +967,13 @@ sub Execute(@) {
                Elapsed_Time_Image $elapsed_seconds,
                $percent_usage;
     }
-    if ($Background) {
+    if ($Background or defined $User) {
         #
         # This is the child process; bail out and let the parent handle
         # the consequences.
         #
         exit(($system_result & 0xff00) >> 8);
     }
-
-    if (defined $Group) {
-        Debug "setting \$) = $initial_gid\n";
-        $) = $initial_gid;
-    }
-    if (defined $User) {
-        Debug "setting \$> = $initial_uid\n";
-        $> = $initial_uid;
-    }
-
-    Test_File_Creation if $Debugging;
 
     return Get_Result $system_result, $Check;
 } # Execute
