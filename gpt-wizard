@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.57 2002-08-20 14:25:50-07 kst Exp $
+# $Id: gpt-wizard,v 1.58 2002-08-20 16:12:15-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
-# To do:
+# TO DO:
 #
 #     Start services other than GRIS (make it configurable).
 #
@@ -26,6 +26,14 @@
 #
 #     Smarter handling of flavors for source installations,
 #     particularly for vendorcc; see build-gt2.
+#
+#     The required input for gpt-postinstall will depend on which bundles
+#     have been installed and the order in which the postinstallation
+#     actions are performed.  How the heck do I deal with that?
+#     Possibilities:
+#         Put input string in config file.
+#         Associate an input string with each bundle (how?) and run
+#         gpt-postinstall for each bundle.
 #
 
 use strict;
@@ -59,7 +67,7 @@ sub Usage(@);
 $SIG{__WARN__} = sub { die @_ };
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = Strip_Revision_String '$Revision: 1.57 $';
+my $Revision = Strip_Revision_String '$Revision: 1.58 $';
 my $Help      = undef;
 my $Debugging = undef;
 my $Cleanup   = 1;
