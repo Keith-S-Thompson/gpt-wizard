@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.258 2004-03-09 15:57:46-08 kst Exp $
+# $Id: gpt-wizard,v 1.259 2004-03-09 16:40:58-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -186,7 +186,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.258 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.259 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1796,12 +1796,15 @@ sub Get_Config($) {
 
         #
         # A directory to be created.
-        # If it already exists, it must be empty, readable, writable,
-        # and searchable.
+        # If this is an update:
+        #     The directory must exist and have stuff in it.
+        # Otherwise:
+        #     If it already exists, it must be empty, readable, writable,
+        #     and searchable.
         #
         elsif ($var->{type} eq 'new_directory') {
             my $dir = $var->{value};
-            if ($Config{IS_UPDATE}) {
+            if ($Var_Info{IS_UPDATE}->{value}) {
                 #
                 # Directory must exist and have stuff in it.
                 #
@@ -2004,16 +2007,23 @@ sub Get_Config($) {
     #
     # If this is an update to an existing installation (IS_UPDATE), do
     # not require any bundles (could be just updates or just MPICH-G2),
-    # but disallow GPT_TARBALL.
+    # but disallow GPT_TARBALL and GLOBUS_LOCAL_DIRECTORY.
     #
-    if ($Config{IS_UPDATE}) {
-        if (defined $Config{GPT_TARBALL}) {
+    if ($Var_Info{IS_UPDATE}->{value}) {
+        if (defined $Var_Info{GPT_TARBALL}->{value}) {
             &$ERROR("GPT_TARBALL may not be defined with IS_UPDATE\n");
+        }
+        if (defined $Var_Info{GLOBUS_LOCAL_DIRECTORY}->{value}) {
+            &$ERROR("GLOBUS_LOCAL_DIRECTORY may not be " .
+                    "defined with IS_UPDATE\n");
         }
     }
     else {
-        if (not defined $Config{BUNDLE}) {
+        if (not defined $Var_Info{BUNDLE}->{value}) {
             &$ERROR("No BUNDLEs were specified\n");
+        }
+        if (not defined $Var_Info{GPT_TARBALL}->{value}) {
+            &$ERROR("No GPT_TARBALL was specified\n");
         }
     }
 
