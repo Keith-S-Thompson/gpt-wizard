@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.182 2003-03-16 01:41:45-08 kst Exp $
+# $Id: gpt-wizard,v 1.183 2003-03-16 02:05:38-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -192,7 +192,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.182 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.183 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -2409,10 +2409,12 @@ sub Die_Handler($) {
                   "    has not been cleaned up.\n";
         }
     }
-    push @manual_steps,
-         "$Program_Name terminated abnormally\n" .
-         "Figure out what went wrong before performing these steps\n";
-    print Manual_Steps_Text @manual_steps;
+    if (@manual_steps) {
+        push @manual_steps,
+             "$Program_Name terminated abnormally\n" .
+             "Figure out what went wrong before performing these steps\n";
+        print Manual_Steps_Text @manual_steps;
+    }
 } # Die_Handler
 
 # ----------------------------------------------------------------------
@@ -2600,7 +2602,7 @@ sub Manual_Steps_Text(@) {
     my $stars = '*' x 72;
     $result =~ s/^/* /gm;
     $result = "$stars\n" .
-              $text .
+              $result .
               "$stars\n" .
               Time_Image(time) . "\n";
     return $result;
