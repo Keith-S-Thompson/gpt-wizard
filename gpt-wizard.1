@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.24 2003-12-16 22:05:20-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.25 2003-12-17 00:53:46-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -303,7 +303,7 @@ Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
 .br
 Example:
 .br
-.B "	CONFIG_FILE_REVISION $Revision: 1.24 $"
+.B "	CONFIG_FILE_REVISION $Revision: 1.25 $"
 .br
 Type: string
 .br
@@ -611,6 +611,21 @@ additional package, making this option obsolete.
 .br
 Type: string
 .br
+Optional.
+
+.IP JOB_MANAGER
+For Globus 2.X releases starting with 2.2, specify a job manager.
+The first argument is the name of the batch system; other arguments
+are passed to the setup script.
+.br
+This option is newly implemented; use with caution.
+.br
+Example:
+.br
+.B "	JOB_MANAGER pbs -cpu-per-node 2 -remote-shell ssh"
+.br
+Type: job_manager
+\.br
 Optional.
 
 .IP CA_CERT_TARBALL
