@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.131 2003-01-09 11:13:41-08 kst Exp $
+# $Id: gpt-wizard,v 1.132 2003-01-09 17:31:20-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -86,9 +86,9 @@
 #     If GLOBUS_LOCATION is specified, set $GLOBUS_LOCATION
 #     environment variable in inetd.conf or xinetd config files.
 #
-#     Add an "env" configuration option to set environment variables.
-#     (This is a generalization of PATH -- which should still be specified
-#     separately, since we always want to set $PATH explicitly.)
+#     Allow references to existing environment variables in ENV options.
+#     For example:
+#         ENV   LD_LIBRARY_PATH=/foo/bar:$LD_LIBRARY_PATH
 #
 
 use strict;
@@ -126,7 +126,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.131 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.132 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -238,6 +238,23 @@ die ">>> installer_uid = $installer_uid\n" unless $installer_uid > 0;
 
 print "% setting PATH=$Config{PATH}\n";
 $ENV{PATH} = $Config{PATH};
+
+foreach my $env (@{$Config{ENV}}) {
+    my($name, $value);
+    if ($env =~ /^([^=]+)=(.*)$/) {
+        ($name, $value) = ($1, $2);
+    }
+    elsif ($env =~ /^[^=]*$/) {
+        die "Invalid ENV option: \"$env\"\n";
+    }
+    else {
+        $name = $env;
+        $value = '';
+    }
+    print "% setting $name=\"$value\"\n";
+    $ENV{$name} = $value;
+}
+
 print "% umask $Config{UMASK}\n";
 umask oct $Config{UMASK} or die "umask $Config{UMASK}: $!\n";
 
@@ -896,6 +913,8 @@ sub Get_Config($) {
             { type => 'existing_directory', required => 0, default => '/tmp' },
         PATH =>
             { type => 'path', required => 1 },
+        ENV =>
+            { type => 'array_of_string', required => 0 },
         INSTALLER_USER =>
             { type => 'user_name', required => 0, default => 'globus' },
         INSTALLER_GROUP =>
@@ -1085,6 +1104,15 @@ sub Get_Config($) {
         # An arbitrary string.
         #
         if ($var->{type} eq 'string') {
+            #
+            # Nothing to validate
+            #
+        }
+
+        #
+        # An array of arbitrary strings.
+        #
+        elsif ($var->{type} eq 'array_of_string') {
             #
             # Nothing to validate
             #
