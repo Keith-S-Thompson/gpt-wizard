@@ -1,7 +1,7 @@
-# $Id: elmak-globus-2.4.3-gcc-2004-03-06.gptw,v 1.1 2004-03-06 13:50:27-08 kst Exp $
+# $Id: elmak-globus-2.4.3-gcc-2004-03-06.gptw,v 1.2 2004-03-06 20:49:11-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/elmak.sdsc.edu/elmak-globus-2.4.3-gcc-2004-03-06.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/usr/ccs/bin:/usr/local/bin
 
@@ -47,7 +47,7 @@ BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz                  kind=source f
 # gsi-openssh
 #
 .PREFIX /projects/globus/kst/src/gsi-openssh/3.0
-BUNDLE gsi_openssh_bundle-3.0-src.tar.gz                           kind=source flavor=gcc32dbg
+BUNDLE gsi_openssh_bundle-3.0-src-patched.tar.gz                   kind=source flavor=gcc32dbg
 
 #
 # uberftp (replaces gsincftp)
