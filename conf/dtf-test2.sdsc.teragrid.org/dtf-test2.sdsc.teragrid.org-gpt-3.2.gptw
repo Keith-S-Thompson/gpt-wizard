@@ -1,0 +1,10 @@
+# $Id: dtf-test2.sdsc.teragrid.org-gpt-3.2.gptw,v 1.1 2004-07-01 17:23:04-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-gpt-3.2.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION  /work/globus/apps/gpt-3.2
+
+GPT_TARBALL ~kst/src/gpt/gpt-3.2-src.tar.gz
