@@ -1,6 +1,6 @@
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.2 2003-01-17 19:44:15-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.3 2003-01-22 18:51:27-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -58,18 +58,22 @@ by a simple ASCII configuration file.
 .SH OPTIONS
 .IP -help
 Display a brief help message on stdout and exits.
+
 .IP -validate-only
 Validate the configuration file, display some information, and exit without
 building anything.  Useful to detect errors in a configuration file.
+
 .IP -cleanup
 Delete the temporary directory on completion.  This is the default
 behavior.  Use "-nocleanup" to keep the temporary directory.
+
 .IP -postinstall
 Run the
 .I gpt-postinstall
 command.  This is the default behavior; use "-nogpt-postinstall" if
 you don't want to run
 .IR gpt-postinstall .
+
 .IP -startup
 Update system files and start services.  This is the default behavior;
 use "-nostartup" if you don't want to do this.
@@ -77,6 +81,7 @@ use "-nostartup" if you don't want to do this.
 .B NOTE:
 This is currently implemented only on Linux systems.  On Solaris and AIX,
 the "-nostartup" option is mandatory.
+
 .IP -gpt-verbose
 Pass the "-verbose" option to
 .I gpt-install
@@ -84,6 +89,7 @@ and/or
 .IR gpt-build .
 This will produce voluminous output, especially when building source
 bundles.
+
 .IP -gpt-install-only
 Pass the "-install-only" option to
 .IR gpt-build .
@@ -98,17 +104,51 @@ Ignore errors from
 and
 .IR gpt-build .
 Not recommended.
--aix-kludge
+
+.IP -aix-kludge
 Use an existing GPT installation.  This was implemented to work around
 some obscure problems on an AIX system.  Not recommended unless you know
 what you're doing.
 -debugging
 Enable debugging output.
 
+.SH CONFIGURATION FILE
+The
+.I gpt-wizard
+command requires a configuration file to be specified on the
+command line.  The name of the file is irrelevant.  I typically use
+something like
+
+.B <machine-name>-globus-<version>-<kind>.conf
+
+for example,
+
+.B tf005i-globus-2.2.3-src.conf
+
+but if you want to call it
+.B foobar.baz
+I won't complain.
+
+The configuration file is a plain text file with a simple syntax.
+Everything from a
+.B '#'
+character to the end of the line is treated as a comment and ignored.
+Leading whitespace, trailing whitespace, and empty lines are also
+ignored.
+
+Each line consists of a variable name, followed by whitespace,
+followed by the value of the variable.  All variable names must
+be specified in upper case.  The value is generally an arbitrary
+string, which may include embedded blanks; there may be restrictions
+depending on the type of the variable (see below).  Some variables
+are optional, some are mandatory, and some may appear multiple times.
+Certain variables may also have attributes associated with them;
+these are given in the form "name=value" on the same line.
+
 .SH CONFIGURATION OPTIONS
 
 .IP CONFIG_FILE_REVISION
-Usually an RCS or CVS "$Revision: 1.2 $" tag.
+Usually an RCS or CVS "$Revision: 1.3 $" tag.
 .br
 Type: string
 .br
@@ -130,6 +170,9 @@ Directory to be used for downloaded files.
 Type: existing directory
 .br
 Required if any files are specified as URLs; otherwise optional.
+If any files are specified as URLs, they will be downloaded into
+subdirectories of this directory.  For any files that have already
+been downloaded, the local copy will be used.
 
 .IP PATH
 The value for the $PATH environment variable.
@@ -144,12 +187,12 @@ Type: string
 Optional.  May occur multiple times.
 
 .IP INSTALLER_USER
-The name of the Unix account to use for the  installation.
+The name of the Unix account to use for the installation.
 .br
 Optional.  Default is "globus".
 
 .IP INSTALLER_GROUP
-The name of the Unix group to use for the  installation.
+The name of the Unix group to use for the installation.
 .br
 Optional.  Default is "globus".
 
@@ -161,15 +204,101 @@ Type: boolean
 .br
 Optional.  Default is 0.
 
+.IP UMASK
+Specify an octal umask for the installation.  The default value is almost
+always best.
+.br
+Type: string (must be a valid octal number)
+.br
+Optional.  Default is 022.
+
 .IP GPT_TARBALL
-The location of the source tarball (*.tar.gz) file for GPT.
+The location of the source tarball (*.tar.gz) file for GPT.  Binary and
+RPM distributions are not yet supported.
+.br
+Type: file or URL
+.br
+Mandatory.
 
 .IP BUNDLE
 A GPT bundle or package.  It may be a source, binary, or rpm bundle.
 Multiple bundles may be specified.
+.br
+Attributes:
+.br
+    kind=binary
+.I or
+kind=source
+.I or
+kind=rpm
+.br
+    flavor=<flavor>
+.br
+    option=<option>
+.br
+If a kind is not specified,
+.I gpt-wizard
+attempts to guess based on the file name.
+.br
+Multiple flavors may be specified, separated by commas, e.g.,
+"flavor=gcc32dbg,gcc32".
+.br
+Options are passed to gpt-install or gpt-build.
+.br
+Type: file or URL
+.br
+Mandatory.  Multiple bundles may be specified.
 
-.IP YADDA
-yadda yadda.
+.IP UPDATE
+A GPT update package.  This is normally a source package.
+.br
+The same attributes may be specified as for bundles.
+.br
+Type: file or URL
+.br
+Optional.  Multiple updates may be specified.
+
+.IP PRE_POSTINSTALL
+Specify a command to be executed before running gpt-postinstall.
+So far, I have only used this on AIX to run mds-aix-relink.sh, which
+works around some AIX-specific libtool problems.  Any occurrence of
+the string BUILD_DIR is replaced with the name of the build directory.
+.br
+Not recommended unless you know what you're doing.
+.br
+Type: string (must be a valid command).
+.br
+Optional.
+
+.IP GPT_LOCATION
+The location in which to install the GPT, the Grid Packaging Toolkit.
+.br
+Type: new directory (must be empty if it already exists).
+.br
+Mandatory.
+
+.IP GLOBUS_LOCATION
+The location in which to install the Globus and other components.
+This will typically be the same as GPT_LOCATION.
+.br
+Type: new directory (must be empty if it already exists).
+.br
+Mandatory.
+
+.IP GLOBUS_VAR_DIRECTORY
+A local directory in which to install the "var" directory.
+If GLOBUS_LOCATION is on an NFS-mounted file system, the gatekeeper
+(which runs as root) will often not be able to write to its log file,
+$GLOBUS_LOCATION/var/globus-gatekeeper.log.  If GLOBUS_VAR_DIRECTORY
+is specified (normally on a local filesystem), $GLOBUS_LOCATION/var
+will be created as a symbolic link to it.
+.br
+Type: new directory (must be empty if it already exists).
+.br
+Optional.
+
+.IP GLOBUS_HOSTNAME
+...
 
 .SH AUTHOR
 Keith Thompson, San Diego Supercomputer Center, kst@sdsc.edu
