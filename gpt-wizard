@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.180 2003-03-16 00:52:09-08 kst Exp $
+# $Id: gpt-wizard,v 1.181 2003-03-16 01:04:47-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -94,7 +94,7 @@
 #
 #     If GLOBUS_HOSTNAME is specified, set the $GLOBUS_HOSTNAME
 #     environment variable in inetd.conf or xinetd config files.
-#     (Is this necessary?)
+#     (Is this necessary?  Probably not.)
 #
 #     Allow references to existing environment variables in ENV options.
 #     For example:
@@ -191,7 +191,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.180 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.181 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -394,12 +394,13 @@ for (my $i = 0; $i <= $#{$Config{UPDATE}}; $i ++) {
 Download_Files @file_names;
 
 ########################################################################
-# Set the $GLOBUS_LOCATION environment variable if specified.
+# Set the $GLOBUS_HOSTNAME environment variable if specified.
 # This is necessary if the system hostname doesn't match the
 # externally visible network name (e.g., on a typical Rocks cluster).
 ########################################################################
-if (defined $Config{GLOBUS_LOCATION}) {
-    $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
+if (defined $Config{GLOBUS_HOSTNAME}) {
+    print "% Setting GLOBUS_HOSTNAME=$Config{GLOBUS_HOSTNAME}\n";
+    $ENV{GLOBUS_HOSTNAME} = $Config{GLOBUS_HOSTNAME};
 }
 
 ########################################################################
