@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.51 2004-03-19 21:53:00-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.52 2004-03-19 22:19:21-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -683,10 +683,14 @@ The name of a tarball file
 .RI ( *.tar.gz )
 containing sources for MPICH, used to build and install MPICH\-G2.
 .br
+A
+.I .globus_location
+file will be created in the MPICH\-G2 installation directory, containing
+the full path for $GLOBUS_LOCATION.
+.br
 This option is newly implemented; use with caution.  See
 .I <http://www3.niu.edu/mpi/>
 for more information on MPICH\-G2.
-.br
 Attributes:
 .br
 	flavor=<flavor>
