@@ -1,0 +1,18 @@
+# $Id: tg-viz-login1.uc.teragrid.org-globus-3.2.1-gcc-test4-minimal-static.gptw,v 1.1 2004-08-07 12:05:28-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/tg-viz-login1.uc.teragrid.org/tg-viz-login1.uc.teragrid.org-globus-3.2.1-gcc-test4-minimal-static.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin:/soft/mpich-gm-1.2.5..10-intel-r3/bin
+
+GLOBUS_LOCATION /scratch/pvfs/kst/apps/globus-3.2.1-gcc-test4-min
+
+.PREFIX ~kst/repo.teragrid.org/open/gpt/3.2
+GPT_TARBALL gpt-3.2-src.tar.gz
+
+#
+# Build Globus 3.2.1 from source
+# For this test, build only one bundle.
+#
+.PREFIX ~kst/Globus/3.2.1/bundles/src
+BUNDLE globus-resource-management-sdk-3.2.1-src_bundle.tar.gz kind=source flavor=mpicc32dbg option=-static
