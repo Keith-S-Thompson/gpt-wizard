@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.143 2003-01-24 19:26:03-08 kst Exp $
+# $Id: gpt-wizard,v 1.144 2003-01-24 20:04:49-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -139,7 +139,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.143 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.144 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -717,6 +717,10 @@ if ($Startup) {
         if (not -d $ldap_dir) {
             print "% mkdir $ldap_dir\n";
             mkdir $ldap_dir, 0777 or die "$ldap_dir: $!\n";
+            print "% chown $Config{INSTALLER_USER}:$Config{INSTALLER_GROUP} " .
+                   "$ldap_dir\n";
+            chown $installer_uid, $installer_gid, $ldap_dir
+                or die "$ldap_dir: $!\n";
         }
         Backup "$ldap_dir/ldapcert.pem";
         Execute @As_Installer,
@@ -732,8 +736,16 @@ if ($Startup) {
 
     if (defined $Config{LDAP_KEY}) {
         if (not -d $ldap_dir) {
+            #
+            # This is duplicated code (see above).  A bad idea, but I
+            # haven't had time to restructure it yet.
+            #
             print "% mkdir $ldap_dir\n";
             mkdir $ldap_dir, 0777 or die "$ldap_dir: $!\n";
+            print "% chown $Config{INSTALLER_USER}:$Config{INSTALLER_GROUP} " .
+                   "$ldap_dir\n";
+            chown $installer_uid, $installer_gid, $ldap_dir
+                or die "$ldap_dir: $!\n";
         }
         Backup "$ldap_dir/ldapkey.pem";
         Execute @As_Installer,
