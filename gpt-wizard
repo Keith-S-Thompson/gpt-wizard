@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.240 2004-02-17 16:24:55-08 kst Exp $
+# $Id: gpt-wizard,v 1.241 2004-02-18 21:24:19-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -194,7 +194,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.240 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.241 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -882,10 +882,21 @@ if (defined $Config{JOB_MANAGER}) {
     # setup-globus-job-manager-FOO.pl invokes "./find-FOO-tools"
     # (for FOO = pbs, lsf, etc.)  Argh!
     #
-    chdir $setup_dir or die "$setup_dir: $!\n";
-    Execute $Using_RPM ? @As_Root : @As_Installer,
-        "$setup_dir/setup-globus-job-manager-$jobmanager",
-        @args;
+    if ($Postinstall) {
+        chdir $setup_dir or die "$setup_dir: $!\n";
+        Execute $Using_RPM ? @As_Root : @As_Installer,
+            "$setup_dir/setup-globus-job-manager-$jobmanager",
+            @args;
+    }
+    else {
+        push @manual_steps,
+             "After running gpt-postinstall, cd to\n" .
+             "$setup_dir\n" .
+             "and configure the $jobmanager jobmanager " .
+             "by running the following command:\n" .
+             "    ./globus-job-manager-$jobmanager @args\n" .
+             "(You must be in the directory to run the command.)\n";
+    }
 }
 
 ########################################
