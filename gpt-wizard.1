@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.38 2004-03-04 16:34:31-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.39 2004-03-07 19:36:09-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -300,7 +300,7 @@ Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
 .br
 Example:
 .br
-.B "	CONFIG_FILE_REVISION $Revision: 1.38 $"
+.B "	CONFIG_FILE_REVISION $Revision: 1.39 $"
 .br
 Type: string
 .br
@@ -622,15 +622,59 @@ For Globus 2.X releases starting with 2.2, specify a job manager.
 The first argument is the name of the batch system; other arguments
 are passed to the setup script.
 .br
-This option is newly implemented; use with caution.
-.br
 Example:
 .br
 .B "	JOB_MANAGER pbs \-cpu\-per\-node 2 \-remote\-shell ssh"
 .br
 Type: job_manager
-\.br
+.br
 Optional.
+
+.IP MPICH\-G2
+The name of a tarball file
+.RI ( *.tar.gz )
+containing sources for MPICH, used to build and install MPICH-G2.
+.br
+This option is newly implemented; use with caution.  See
+.I <http://www3.niu.edu/mpi/>
+for more information on MPICH-G2.
+.br
+Attributes:
+.br
+	flavor=<flavor>
+.br
+	install=<installation-directory>
+.br
+	arch=<arch>
+.br
+The mandatory "flavor" attribute specifies the Globus flavor to be used
+to build MPICH-G2.
+.br
+The mandatory "install" attribute specifies the installation directory
+for MPICH-G2.  If this is a relative path, it specifies a subdirectory
+of $GLOBUS_LOCATION.
+.br
+The optional "arch" attribute specifies the architecture, to be passed
+to the MPICH "configure" script; this is usually not necessary.
+
+For example, the following line:
+.br
+	MPICH\-G2 mpich-1.2.5.2.tar.gz \\
+.br
+		flavor=mpicc32dbg \\
+.br
+		install=mpich-g2-1.2.5.2
+.br
+causes the MPICH "configure" script to be invoked as follows:
+.br
+	\./configure -device=globus2:-flavor=mpicc32dbg \\
+.br
+		-prefix=$GLOBUS_LOCATION/mpich-g2-1.2.5.2
+.br
+Type: mpich\-g2
+.br
+Optional.
+
 
 .IP CA_CERT_TARBALL
 The name of a tarball file
