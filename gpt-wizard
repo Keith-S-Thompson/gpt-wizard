@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.292 2004-07-02 17:29:03-07 kst Exp $
+# $Id: gpt-wizard,v 1.293 2004-08-28 18:23:27-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -205,7 +205,7 @@ my $Release_Revision = '1.285'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.292 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.293 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1559,6 +1559,25 @@ sub Next_Line($) {
 # ----------------------------------------------------------------------
 
 #
+# Given a string of the form '$FOO' or '${FOO}, if FOO is defined as
+# a parameter, returns the value of the parameter FOO.  For any other
+# form, or if FOO is not defined as a parameter, returns the unmodified
+# argument.
+#
+sub Expand_Param($\%) {
+    my($arg, $Param) = @_;
+    if ($arg =~ /^\$(\w+)$/ or $arg =~ /^\$\{(\w+)\}$/) {
+        my $var = $1;
+        if (defined $Param->{$var}) {
+            return $Param->{$var};
+        }
+    }
+    return $arg;
+} # Expand_Param
+
+# ----------------------------------------------------------------------
+
+#
 # Read and parse the config file (name given on the command line) and
 # return the results as a hash (to be assigned to the global %Config).
 #
@@ -1566,6 +1585,7 @@ sub Get_Config($) {
     my($config_file) = @_;
     my @errors = ();
     my $default_prefix = undef;
+    my %Param = ();
 
     #
     # What we really want to do is create a nested subroutine ERROR
@@ -1685,6 +1705,12 @@ sub Get_Config($) {
             }
 
             #
+            # Expand any parameters previously defined in .PARAM directives
+            #
+            $value =~ s/\$\w+/Expand_Param($&, %Param)/eg;
+            $value =~ s/\$\{\w+\}/Expand_Param($&, %Param)/eg;
+
+            #
             # .PREFIX is not a true configuration option.  Instead, it
             # allows a default directory prefix to be set for options
             # that specify file names.  The default prefix, if any, is
@@ -1702,6 +1728,19 @@ sub Get_Config($) {
             # 
             if ($name eq '.PREFIX') {
                 $default_prefix = $value;
+            }
+
+            #
+            # Similarly to .PREFIX, .PARAM is not a true configuration
+            # option.  It allows for simple macro expansion.  References
+            # are of the form $NAME or ${NAME}.
+            #
+            elsif ($name eq '.PARAM') {
+                my($param_name, $param_value) = ($value =~ /^(\S+)\s+(.*)$/);
+                if ($param_name !~ /^\w+$/) {
+                    &$ERROR("Invalid PARAM name \"$param_name\", line $.\n");
+                }
+                $Param{$param_name} = $param_value;
             }
 
             elsif (defined $Var_Info{$name}) {
