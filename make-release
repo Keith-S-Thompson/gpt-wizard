@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: make-release,v 1.10 2004-02-12 14:52:41-08 kst Exp $
+# $Id: make-release,v 1.11 2004-02-14 16:41:12-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/make-release,v $
 
 use strict;
@@ -80,6 +80,8 @@ foreach my $file (@files) {
     }
     print "% cvs tag $release_symbol $file\n";
     system 'cvs', 'tag', $release_symbol, $file;
+    print "% cvs tag -F 'release' $file\n";
+    system 'cvs', 'tag', '-F', 'release', $file;
 }
 
 if (not -d 'release') {
