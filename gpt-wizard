@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.186 2003-03-16 15:14:08-08 kst Exp $
+# $Id: gpt-wizard,v 1.187 2003-03-16 23:13:08-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -135,11 +135,7 @@
 #     The NCSA CA bundle has an interactive postinstall.  Consider
 #     editing it to make it non-interactive.  In the documentation, warn
 #     about the possibility of other interactive postinstall scripts --
-#     and discourage writing them.
-#
-#     We now print the manual_steps on abnormal termination (in
-#     Die_Handler), but not if gpt-wizard is killed by a signal.
-#     Add handlers for common signals (at least control-C).
+#     and discourage developers from writing them.
 #
 #     If neither inetd nor xinetd is currently running, guess based on
 #     which executable exists in /usr/sbin.
@@ -166,7 +162,9 @@ sub Get_Result($$);
 sub Get_Update_Flavors($);
 sub Execute(@);
 sub Check_Services();
+sub Cleanup();
 sub Die_Handler($);
+sub Signal_Handler($);
 sub Timestamp_Of($);
 sub Backup($);
 sub Is_Empty_Dir($);
@@ -199,7 +197,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.186 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.187 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -241,6 +239,8 @@ if ($Startup and not $Postinstall) {
 }
 
 $SIG{__DIE__} = \&Die_Handler;
+$SIG{INT}     = \&Signal_Handler;
+$SIG{TERM}    = \&Signal_Handler;
 
 #
 # A hash mapping URLs (ftp or http) to cached local files.
@@ -2395,11 +2395,7 @@ sub Check_Services() {
 
 # ----------------------------------------------------------------------
 
-#
-# Calls to die() cause this function to be called before exiting.
-# Clean up temporary directory.
-#
-sub Die_Handler($) {
+sub Cleanup() {
     if (defined $working_dir) {
         if ($Cleanup) {
             print ">>> Cleaning up\n";
@@ -2416,12 +2412,40 @@ sub Die_Handler($) {
         }
     }
     if (@manual_steps) {
-        push @manual_steps,
-             "$Program_Name terminated abnormally\n" .
-             "Figure out what went wrong before performing these steps\n";
         print Manual_Steps_Text @manual_steps;
     }
-} # Die_Handler
+} # Cleanup
+
+# ----------------------------------------------------------------------
+
+#
+# Calls to die() cause this function to be called before exiting.
+# Clean up temporary directory.
+#
+sub Die_Handler($) {
+    push @manual_steps,
+         "$Program_Name terminated abnormally\n" .
+         "Figure out what went wrong before performing these steps\n";
+    Cleanup();
+    #
+    # Perl will now print the message and terminate.
+    #
+}
+
+# ----------------------------------------------------------------------
+
+sub Signal_Handler($) {
+    my $signal = $_[0];
+    push @manual_steps,
+         "$Program_Name terminated by SIG$signal\n" .
+         "Figure out what went wrong before performing these steps\n";
+    Cleanup();
+    #
+    # For a signal handler, Perl returns to the previous execution.
+    # If we want to bail out, we need to do so explicitly.
+    #
+    exit 1;
+}
 
 # ----------------------------------------------------------------------
 
