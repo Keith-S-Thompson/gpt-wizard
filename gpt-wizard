@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.196 2003-04-01 10:12:36-08 kst Exp $
+# $Id: gpt-wizard,v 1.197 2003-04-01 12:31:10-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -191,7 +191,7 @@ my $Release_Revision = '1.174'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.196 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.197 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -705,7 +705,7 @@ if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
             Execute @As_Root, 'rm', '-rf', $global_dir;
         }
         else {
-            print "% mkdir $local_dir";
+            print "% mkdir $local_dir\n";
             mkdir $local_dir, 0777 or die "$local_dir: $!\n";
             chown $installer_uid, $installer_gid, $local_dir
                 or die "$local_dir: $!\n";
@@ -716,7 +716,10 @@ if (defined $Config{GLOBUS_LOCAL_DIRECTORY}) {
     my $global_etc = "$Config{GLOBUS_LOCATION}/etc";
     my $local_etc  = "$Config{GLOBUS_LOCAL_DIRECTORY}/etc";
 
+    print "% mkdir $local_etc\n";
     mkdir $local_etc, 0777 or die "$local_etc: $!\n";
+    chown $installer_uid, $installer_gid, $local_etc
+        or die "$local_etc: $!\n";
     foreach my $file ( qw( globus-job-manager.conf
                            grid-info-resource-ldif.conf
                            grid-info-resource-register.conf
