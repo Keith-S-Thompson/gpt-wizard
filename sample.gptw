@@ -1,15 +1,28 @@
-# $Id: sample.gptw,v 1.1 2004-05-07 19:18:48-07 kst Exp $
+# $Id: sample.gptw,v 1.2 2004-08-29 21:48:54-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/sample.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
+
+#
+# Parameters can be modified to specify similar installations on
+# different systems.
+#
+.PARAM APPS_DIR          /usr/local/apps
+.PARAM VAR_DIR           /var/globus
+.PARAM GLOBUS_DIR        ~kst/Globus/2.4.3
+.PARAM MYPROXY_DIR       ~kst/MyProxy
+.PARAM COMPILER          gcc
+.PARAM BITS              32
+.PARAM UNTHREADED_FLAVOR ${COMPILER}${BITS}dbg
+.PARAM THREADED_FLAVOR   ${COMPILER}${BITS}dbgpthr
 
 PATH /usr/bin:/bin
 
-GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3
-GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3
+GLOBUS_LOCATION       $APPS_DIR/globus-2.4.3
+GLOBUS_LOCAL_DIRECTORY $VAR_DIR/globus-2.4.3
 
 #
-# The directory ~kst/Globus contains a copy of the
+# The directory ~kst/Globus/2.4.3 contains a copy of the
 # Globus 2.4.3 directory tree, downloaded from
 # <ftp://ftp.globus.org/pub/gt2/2.4/2.4.3/>.
 #
@@ -17,11 +30,10 @@ GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3
 #
 # The directory ~kst/MyProxy contains a copy of the
 # latest myproxy source package, downloaded from
-# <ftp://ftp.ncsa.uiuc.edu/aces/myproxy/myproxy-1.13.tar.gz>.
+# <ftp://ftp.ncsa.uiuc.edu/aces/myproxy/myproxy-1.14.tar.gz>.
 #
 
-
-.PREFIX ~kst/Globus/2.4.3/gpt
+.PREFIX $GLOBUS_DIR/gpt
 GPT_TARBALL gpt-3.0.1-src.tar.gz
 
 #
@@ -39,40 +51,40 @@ GPT_TARBALL gpt-3.0.1-src.tar.gz
 #
 # Build Globus 2.4.3 from source
 #
-.PREFIX ~kst/Globus/2.4.3/bundles/src
-BUNDLE globus-information-services-client-2.4.3-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
-BUNDLE globus-information-services-sdk-2.4.3-src_bundle.tar.gz    kind=source flavor=gcc32dbgpthr
-BUNDLE globus-information-services-server-2.4.3-src_bundle.tar.gz kind=source flavor=gcc32dbgpthr
+.PREFIX $GLOBUS_DIR/bundles/src
+BUNDLE globus-information-services-client-2.4.3-src_bundle.tar.gz kind=source flavor=$THREADED_FLAVOR
+BUNDLE globus-information-services-sdk-2.4.3-src_bundle.tar.gz    kind=source flavor=$THREADED_FLAVOR
+BUNDLE globus-information-services-server-2.4.3-src_bundle.tar.gz kind=source flavor=$THREADED_FLAVOR
 
-BUNDLE globus-data-management-client-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
-BUNDLE globus-data-management-sdk-2.4.3-src_bundle.tar.gz         kind=source flavor=gcc32dbg
-BUNDLE globus-data-management-server-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-client-2.4.3-src_bundle.tar.gz      kind=source flavor=$UNTHREADED_FLAVOR
+BUNDLE globus-data-management-sdk-2.4.3-src_bundle.tar.gz         kind=source flavor=$UNTHREADED_FLAVOR
+BUNDLE globus-data-management-server-2.4.3-src_bundle.tar.gz      kind=source flavor=$UNTHREADED_FLAVOR
 
-BUNDLE globus-resource-management-client-2.4.3-src_bundle.tar.gz  kind=source flavor=gcc32dbg
-BUNDLE globus-resource-management-sdk-2.4.3-src_bundle.tar.gz     kind=source flavor=gcc32dbg
-BUNDLE globus-resource-management-server-2.4.3-src_bundle.tar.gz  kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-client-2.4.3-src_bundle.tar.gz  kind=source flavor=$UNTHREADED_FLAVOR
+BUNDLE globus-resource-management-sdk-2.4.3-src_bundle.tar.gz     kind=source flavor=$UNTHREADED_FLAVOR
+BUNDLE globus-resource-management-server-2.4.3-src_bundle.tar.gz  kind=source flavor=$UNTHREADED_FLAVOR
 
 #
 # Apply all currently available updates
 #
-.PREFIX ~kst/Globus/2.4.3/updates/src
+.PREFIX $GLOBUS_DIR/updates/src
 UPDATE globus_common-3.17.tar.gz
 UPDATE globus_ftp_client-1.10.tar.gz
-UPDATE globus_ftp_control-1.10.tar.gz
+UPDATE globus_ftp_control-1.11.tar.gz
 UPDATE globus_gridftp_server-1.12.tar.gz
 UPDATE globus_ldapmodules-0.14.tar.gz
-UPDATE globus_openldap-2.0.22.tar.gz
+UPDATE globus_openldap-0.9.tar.gz
 UPDATE globus_openssl-0.20.tar.gz
 
 #
 # globus_gram_reporter
 #
-.PREFIX ~kst/Globus/2.4.3/extra/src
-BUNDLE globus_gram_reporter-2.0.tar.gz               kind=source flavor=gcc32dbg
-BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz    kind=source flavor=gcc32dbg
+.PREFIX $GLOBUS_DIR/extra/src
+BUNDLE globus_gram_reporter-2.0.tar.gz               kind=source flavor=$UNTHREADED_FLAVOR
+BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz    kind=source flavor=$UNTHREADED_FLAVOR
 
 #
 # Build myproxy
 #
-.PREFIX ~kst/MyProxy
-BUNDLE myproxy-1.13.tar.gz                           kind=source flavor=gcc32dbg
+.PREFIX $MYPROXY_DIR
+BUNDLE myproxy-1.14.tar.gz                           kind=source flavor=$UNTHREADED_FLAVOR
