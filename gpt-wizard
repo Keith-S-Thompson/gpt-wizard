@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.192 2003-03-24 12:39:01-08 kst Exp $
+# $Id: gpt-wizard,v 1.193 2003-03-26 20:29:05-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -137,11 +137,6 @@
 #     about the possibility of other interactive postinstall scripts --
 #     and discourage developers from writing them.
 #
-#     If neither inetd nor xinetd is currently running, guess based on
-#     which executable exists in /usr/sbin.
-#
-#     Don't dump manual_steps on config file error.
-#
 #     Warn if directory name contains "bundle" and package file name
 #     doesn't; mention that this may not apply to newer GPT releases.
 #
@@ -209,7 +204,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.192 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.193 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -275,7 +270,9 @@ my %Is_Update     = ();
 
 Usage if scalar @ARGV != 1;
 my $Config_File = $ARGV[0];
+my $Config_File_Processed = 0;
 my %Config = Get_Config $Config_File;
+$Config_File_Processed = 1;
 
 my %Sys = Get_System_Information;
 
@@ -915,9 +912,13 @@ if (defined $Sys{NET_DAEMON} and $Sys{NET_DAEMON} eq 'xinetd') {
     my $gatekeeper_text = Inet_Config_Text 'xinetd', 'gsigatekeeper';
     my $gsiftp_text     = Inet_Config_Text 'xinetd', 'gsiftp';
     if (not -d $xinetd_dir) {
+        my $s = "You seem to be running xinetd";
+        if (not defined $Sys{NET_DAEMON_PID}) {
+            $s = "You seem to have xinetd on the system";
+        }
         push @manual_steps,
-             "You seem to be running xinetd, but there is " .
-             "no $xinetd_dir directory.\n" .
+             "$s,\n" .
+             "but there is no $xinetd_dir directory.\n" .
              "$Program_Name is confused.\n";
     }
     else {
@@ -932,9 +933,22 @@ if (defined $Sys{NET_DAEMON} and $Sys{NET_DAEMON} eq 'xinetd') {
             print FILE $gsiftp_text;
             close FILE;
 
-            Execute @As_Root, qw(/etc/init.d/xinetd reload);
+            if (defined $Sys{NET_DAEMON_PID}) {
+                Execute @As_Root, split / /, $Sys{NET_DAEMON_RELOAD};
+            }
+            else {
+                push @manual_steps,
+                     "xinetd is not running; start it\n";
+                push @manual_steps,
+                     "xinetd can be restarted by executing as root:\n" .
+                     "$Sys{NET_DAEMON_RELOAD}\n";
+            }
         }
         else {
+            if (not defined $Sys{NET_DAEMON_PID}) {
+                push @manual_steps,
+                     "xinetd is not running; start it\n";
+            }
             push @manual_steps,
                  "Set up xinetd scripts for gsigatekeeper and gsiftp:\n";
             push @manual_steps,
@@ -957,6 +971,10 @@ elsif (defined $Sys{NET_DAEMON} and $Sys{NET_DAEMON} eq 'inetd') {
     # some care about its previous contents), and some sites might
     # want to use things like tcpd, we'll let the user do this manually.
     #
+    if (not defined $Sys{NET_DAEMON_PID}) {
+        push @manual_steps, "inetd is not running; start it\n";
+    }
+
     my $update = "Update /etc/inetd.conf:\n";
 
     $update .= "gsigatekeeper:\n";
@@ -1753,6 +1771,19 @@ sub Get_System_Information() {
     if (scalar @inetd_processes == 1 and scalar @xinetd_processes == 0) {
         $Result{NET_DAEMON} = 'inetd';
         $Result{NET_DAEMON_PID} = $inetd_processes[0];
+    }
+    elsif (scalar @inetd_processes == 0 and scalar @xinetd_processes == 1) {
+        $Result{NET_DAEMON} = 'xinetd';
+        $Result{NET_DAEMON_PID} = $xinetd_processes[0];
+    }
+    elsif (-x '/usr/sbin/inetd' and not -x '/usr/sbin/xinetd') {
+        $Result{NET_DAEMON} = 'inetd';
+    }
+    elsif (-x '/usr/sbin/xinetd' and not -x '/usr/sbin/inetd') {
+        $Result{NET_DAEMON} = 'xinetd';
+    }
+
+    if (defined $Result{NET_DAEMON} and $Result{NET_DAEMON} eq 'inetd') {
         foreach my $command ( '/etc/init.d/inet',
                               '/etc/init.d/inetd',
                               '/etc/rc.d/init.d/inet',
@@ -1764,20 +1795,22 @@ sub Get_System_Information() {
             }
         }
         if (not defined $Result{NET_DAEMON_RELOAD}) {
-            $Result{NET_DAEMON_RELOAD} = "kill -HUP $Result{NET_DAEMON_PID}";
+            if (defined $Result{NET_DAEMON_PID}) {
+                $Result{NET_DAEMON_RELOAD}
+                    = "kill -HUP $Result{NET_DAEMON_PID}";
+            }
+            else {
+                $Result{NET_DAEMON_RELOAD}
+                    = "kill -HUP <inetd process>";
+            }
         }
     }
-    elsif (scalar @inetd_processes == 0 and scalar @xinetd_processes == 1) {
-        $Result{NET_DAEMON} = 'xinetd';
-        $Result{NET_DAEMON_PID} = $xinetd_processes[0];
+    elsif (defined $Result{NET_DAEMON} and $Result{NET_DAEMON} eq 'xinetd') {
         if (-x '/etc/init.d/xinetd') {
             $Result{NET_DAEMON_RELOAD} = '/etc/init.d/xinetd reload';
         }
         elsif (-x '/etc/rc.d/init.d/xinetd') {
             $Result{NET_DAEMON_RELOAD} = '/etc/rc.d/init.d/xinetd reload';
-        }
-        else {
-            $Result{NET_DAEMON_RELOAD} = '';
         }
     }
 
@@ -2419,8 +2452,8 @@ sub Cleanup() {
         if ($Cleanup) {
             print ">>> Cleaning up\n";
             #
-            # The working dir isn't necessarily under /tmp; we chdir there
-            # so we aren't in a directory that we're about to nuke.
+            # chdir to tmp to make sure we aren't in a directory that
+            # we're about to nuke.
             #
             chdir '/tmp';
             Execute @As_Root, 'rm', '-rf', $working_dir;
@@ -2430,7 +2463,12 @@ sub Cleanup() {
                   "    has not been cleaned up.\n";
         }
     }
-    if (@manual_steps and not $Validate_Only) {
+    #
+    # Print the manual steps to be performed.
+    # Don't do this if there was an error processing the config file,
+    # or if the '-validate-only' flag was specified.
+    #
+    if (@manual_steps and $Config_File_Processed and not $Validate_Only) {
         print Manual_Steps_Text @manual_steps;
     }
 } # Cleanup
