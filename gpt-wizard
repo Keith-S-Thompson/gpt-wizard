@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.242 2004-02-19 02:28:37-08 kst Exp $
+# $Id: gpt-wizard,v 1.243 2004-02-23 13:12:15-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -202,7 +202,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.242 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.243 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -341,6 +341,10 @@ if (defined $Config{CONFIG_FILE_REVISION}) {
 }
 else {
     $build_info .= ", no CONFIG_FILE_REVISION specified\n";
+}
+$build_info .= "Command-line arguments:\n";
+foreach my $arg (@ARGV) {
+    $build_info .= "    $arg\n";
 }
 print $build_info;
 
@@ -572,10 +576,6 @@ Execute @As_Installer, 'cp', '-p', $Config_File_Full_Path, "$info_dir/.";
 
 open INFO, ">$info_file" or die "$info_file: $!\n";
 print INFO $build_info;
-print INFO "Command-line arguments:\n";
-foreach my $arg (@Saved_ARGV) {
-    print INFO "    $arg\n";
-}
 close INFO;
 
 ########################################
