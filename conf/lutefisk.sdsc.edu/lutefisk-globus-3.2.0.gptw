@@ -1,7 +1,7 @@
-# $Id: lutefisk-globus-3.2.0.gptw,v 1.1 2004-05-21 02:32:24-07 kst Exp $
+# $Id: lutefisk-globus-3.2.0.gptw,v 1.2 2004-06-01 18:14:46-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-globus-3.2.0.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin
 
@@ -30,7 +30,8 @@ BUNDLE globus-resource-management-server-3.2-src_bundle.tar.gz  kind=source flav
 #
 # globus_gram_reporter
 #
-.PREFIX /home/kst/Globus/3.2.0/installers/src/___/gt3.2-preogsi-source-installer/schedulers/gram-reporters
+.PREFIX ~kst/Globus/3.2.0/schedulers/gram-reporters
+BUNDLE globus_gram_reporter-2.0.tar.gz            kind=source flavor=gcc32dbg
 BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz kind=source flavor=gcc32dbg
 
 #
@@ -42,4 +43,4 @@ UPDATE globus_core-3.11.tar.gz
 UPDATE globus_ftp_control-1.14.tar.gz
 UPDATE globus_io-5.3.tar.gz
 UPDATE globus_openssl-1.11.tar.gz
-UPDATE globus_xio-0.6.tar.gz
+UPDATE globus_xio-0.7.tar.gz
