@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.217 2003-12-09 20:13:35-08 kst Exp $
+# $Id: gpt-wizard,v 1.218 2003-12-16 16:33:19-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -140,8 +140,6 @@
 #     an overview of gpt, particularly the distinction between bundles
 #     and packages (and mention rpms).
 #
-#     Support "~user" in file names in config file.
-#
 #     Support adding updates to an existing installation.
 #
 #     Allow a bundle to be built with different options for different
@@ -200,7 +198,7 @@ my $Release_Revision = '1.211'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.217 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.218 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1170,9 +1168,9 @@ close INFO;
 ########################################################################
 
 #
-# Extract the actual revision number from an RCS revision string.
-# The code is a little convoluted to prevent RCS from stepping on
-# the search pattern.
+# Extract the actual revision number from an RCS or CVS revision string.
+# The code is a little convoluted to prevent RCS or CVS from stepping
+# on the search pattern.
 #
 sub Strip_Revision_String($) {
     my($revision) = @_;
@@ -1259,6 +1257,26 @@ sub File_Or_URL_Error(@) {
         }
     }
 } # File_Or_URL_Error
+
+# ----------------------------------------------------------------------
+
+#
+# Given a string of the form "~foo", returns user foo's home directory.
+# If there is no such user, returns the unmodified string (which will
+# probably cause an error later).
+#
+sub Expand_Tilde($) {
+    my($arg) = @_;
+    my $username = $arg;
+    $username =~ s/^~//;
+    my @pw = getpwnam $username;
+    if (@pw) {
+        return $pw[7];
+    }
+    else {
+        return $arg;
+    }
+} # Expand_Tilde
 
 # ----------------------------------------------------------------------
 
@@ -1394,11 +1412,12 @@ sub Get_Config($) {
 
             #
             # .PREFIX is not a true configuration option.  Instead, it
-            # allows a default directory prefix to be set for options that
-            # specify file names or URLs.  The default prefix, if any,
-            # is prepended, with a '/' character, to any following file
-            # or directory specifications.  It does not apply to options
-            # given as absolute file names (starting with '/') or as URLs.
+            # allows a default directory prefix to be set for options
+            # that specify file names or URLs.  The default prefix, if
+            # any, is prepended, with a '/' character, to any following
+            # file or directory specifications.  It does not apply to
+            # options given as absolute file names (starting with '/'
+            # or '~') or as URLs.
             #
             # This is in effect a limited macro facility, intended
             # to avoid extremely long lines in configuration files.
@@ -1423,7 +1442,7 @@ sub Get_Config($) {
                     # value is a relative pathname.
                     #
                     if (not defined URL_Protocol $value and
-                        $value !~ /^\// and
+                        $value !~ m<^[/~]> and
                         defined $default_prefix)
                     {
                         $value = "$default_prefix/$value";
@@ -1513,6 +1532,17 @@ sub Get_Config($) {
                         }
                     }
                 }
+
+                #
+                # Expand ~username at the beginning of the string.
+                # Assume a username consists of one or more word
+                # characters or hyphens.
+                #
+                # This substitution does not occur for URLs (since URLs
+                # can't start with '~').
+                #
+                $value =~ s/^~[\w-]+/Expand_Tilde $&/e;
+
                 if ($Var->{type} =~ /^array_of/) {
                     push @{$Var->{value}}, $value;
                 }
@@ -1579,21 +1609,31 @@ sub Get_Config($) {
         # It must be readable, writable, and searchable.
         #
         elsif ($var->{type} eq 'existing_directory') {
-            if ($var->{value} !~ /^\//) {
-                push @errors, "$varname directory \"$varname\", " .
+            my $dir = $var->{value};
+            #
+            # Expand ~username at the beginning of the string.
+            #
+            $dir =~ s/^~[\w-]+/Expand_Tilde $&/e;
+            if ($dir !~ /^\//) {
+                push @errors, "$varname directory \"$dir\", " .
                               "relative path not allowed\n";
             }
-            if (not (-d $var->{value} and -r _ and -w _ and -x _)) {
-                push @errors, "Bad $varname directory \"$var->{value}\"\n";
+            if (not (-d $dir and -r _ and -w _ and -x _)) {
+                push @errors, "Bad $varname directory \"$dir\"\n";
             }
         }
 
         #
         # A directory to be created.
-        # If it already exists, it must be empty.
+        # If it already exists, it must be empty, readable, writable,
+        # and searchable.
         #
         elsif ($var->{type} eq 'new_directory') {
             my $dir = $var->{value};
+            #
+            # Expand ~username at the beginning of the string.
+            #
+            $dir =~ s/^~[\w-]+/Expand_Tilde $&/e;
             if ( $AIX_Kludge and
                  ( ( $varname eq 'GPT_LOCATION' ) or
                    ( $varname eq 'GLOBUS_LOCATION' and 
@@ -1608,7 +1648,10 @@ sub Get_Config($) {
                 }
                 elsif (-d $dir) {
                     if (Is_Empty_Dir $dir) {
-                        # ok
+                        if (not (-r $dir and -w _ and -x _)) {
+                            push @errors,
+                                 "Bad $varname directory \"$dir\"\n";
+                        }
                     }
                     else {
                         push @errors, "$varname \"$dir\" is not empty\n";
@@ -1643,7 +1686,7 @@ sub Get_Config($) {
         }
 
         #
-        # A non-root Unix user name.
+        # A Unix user name.
         #
         elsif ($var->{type} eq 'user_name') {
             my @pw = getpwnam $var->{value};
@@ -1656,7 +1699,7 @@ sub Get_Config($) {
         }
 
         #
-        # A non-root Unix group name.
+        # A Unix group name.
         #
         elsif ($var->{type} eq 'group_name') {
             my @gr = getgrnam $var->{value};
@@ -2665,7 +2708,7 @@ sub Timestamp_Of($) {
 #
 # Note that we append a '~' character to the name of the backup file;
 # this prevents xinetd from processing backup files in the /etc/inetd.d
-# directory.
+# directory (and seems like a generally sensible convention).
 #
 sub Backup($) {
     my($filename) = @_;
