@@ -1,0 +1,13 @@
+# $Id: uffda-globus-2.4.3-ncsa_ca_tools-update.gptw,v 1.1 2004-07-26 17:03:12-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-globus-2.4.3-ncsa_ca_tools-update.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3
+
+IS_UPDATE	1
+
+.PREFIX ~kst/repo.teragrid.org/open/ncsa-ca
+BUNDLE	ncsa_ca_tools-2.1-src.tar.gz kind=source flavor=gcc32dbg
