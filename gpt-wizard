@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.92 2002-10-22 02:26:35-07 kst Exp $
+# $Id: gpt-wizard,v 1.93 2002-10-22 02:32:01-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -62,7 +62,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.92 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.93 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -209,7 +209,8 @@ my @files_before = readdir DIR;
 closedir DIR;
 my %already_existed = map { $_ => 1 } @files_before;
 
-Execute @As_Installer, 'tar', 'zxf', $Config{GPT_TARBALL};
+# Execute @As_Installer, 'tar', 'zxf', $Config{GPT_TARBALL};
+Execute @As_Installer, 'sh', '-c', "gzip -d < $Config{GPT_TARBALL} | tar xf";
 
 opendir DIR, '.' or die ".: $!\n";
 my @files_after = readdir DIR;
