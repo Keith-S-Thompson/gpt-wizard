@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.132 2003-01-09 17:31:20-08 kst Exp $
+# $Id: gpt-wizard,v 1.133 2003-01-10 16:32:00-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -89,6 +89,8 @@
 #     Allow references to existing environment variables in ENV options.
 #     For example:
 #         ENV   LD_LIBRARY_PATH=/foo/bar:$LD_LIBRARY_PATH
+#     On second thought, this might not be such a good idea; it allows
+#     too much dependence on the existing environment.
 #
 
 use strict;
@@ -126,7 +128,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.132 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.133 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -203,8 +205,10 @@ Check_Services;
 my @As_Root      =  qw(-time=5 -verbose -check);
 my @As_Installer = (qw(-time=5 -verbose -check),
                     "-user=$Config{INSTALLER_USER}.$Config{INSTALLER_GROUP}");
+my @As_Root_GPT      = @As_Root;
 my @As_Installer_GPT = @As_Installer;
 if ($GPT_Ignore_Errors) {
+    @As_Root_GPT      = grep { $_ ne '-check' } @As_Root;
     @As_Installer_GPT = grep { $_ ne '-check' } @As_Installer;
 }
 
@@ -434,7 +438,6 @@ if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION} and
 ########################################
 # Run gpt-install or gpt-build to install the bundles.
 ########################################
-
 foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
     my $bundle_basename = File::Basename::basename $bundle;
 
@@ -446,34 +449,37 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
     # If it was specified with a "kind=source" suffix, treat it as a
     # source bundle (use gpt-build).
     #
-    # If neither was specified, assume that if the file name contains the
-    # string "src", preceded and followed by either an underscore or a
-    # word boundary, it's a source bundle, otherwise it's a binary bundle.
+    # If it was specified with a "kind=rpm" suffix, treat it as an RPM
+    # bundle (use gpt-install, and run it as root).
     #
-    my $is_source = undef;
-    if (defined $Bundle_Kind{$bundle}) {
-        if ($Bundle_Kind{$bundle} eq 'source') {
-            $is_source = 1;
+    # If no "kind" attribute was specified:
+    #      If it's an update, assume it's source.
+    #      If the file name contains the word "rpm", assume it's an
+    #      RPM bundle.
+    #      Otherwise, if the file name contains the word "src" assume
+    #      it's a source bundle.
+    #      Otherwise, assume it's a binary bundle.
+    #
+    # This is arguably too complicated; consider making the "kind"
+    # attribute mandatory, at least for non-updates.
+    #
+    my $bundle_kind = $Bundle_Kind{$bundle};
+    if (not defined $bundle_kind) {
+        if ($Is_Update{$bundle}) {
+            $bundle_kind = 'source';
         }
-        elsif ($Bundle_Kind{$bundle} eq 'binary') {
-            $is_source = 0;
+        elsif ($bundle_basename =~ /(\b|_)src(\b|_)/) {
+            $bundle_kind = 'source';
+        }
+        elsif ($bundle_basename =~ /(\b|_)rpm(\b|_)/) {
+            $bundle_kind = 'rpm';
         }
         else {
-            die "Internal error, " .
-                "\$Bundle_Kind{$bundle} = \"$Bundle_Kind{$bundle}\"";
+            $bundle_kind = 'binary';
         }
     }
-    elsif ($Is_Update{$bundle}) {
-        $is_source = 1;
-    }
-    elsif ($bundle_basename =~ /(\b|_)src(\b|_)/) {
-        $is_source = 1;
-    }
-    else {
-        $is_source = 0;
-    }
 
-    if ($is_source) {
+    if ($bundle_kind eq 'source') {
         #
         # Using gpt-build to build and install a source bundle.
         #
@@ -517,9 +523,9 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         Execute @As_Installer_GPT,
                 $gpt_build_command, @options, $bundle, @flavors;
     }
-    else {
+    elsif ($bundle_kind eq 'binary' or $bundle_kind eq 'rpm') {
         #
-        # Using gpt-install to install a binary bundle.
+        # Using gpt-install to install a binary or RPM bundle.
         #
         my @options = ();
         if ($GPT_Verbose and not $using_old_gpt) {
@@ -528,8 +534,17 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         #
         # $GPT_Log and $GPT_Install_Only are inapplicable for gpt-install.
         #
-        Execute @As_Installer_GPT,
-                $gpt_install_command, @options, $bundle;
+        if ($bundle_kind eq 'binary') {
+            Execute @As_Installer_GPT,
+                    $gpt_install_command, @options, $bundle;
+        }
+        else {
+            Execute @As_Root_GPT,
+                    $gpt_install_command, @options, $bundle;
+        }
+    }
+    else {
+        die "Internal error, \$bundle_kind = \"$bundle_kind\"\n";
     }
 }
 
@@ -984,6 +999,7 @@ sub Get_Config($) {
             # same line.  Recognized attributes are:
             #     kind=binary
             #     kind=source
+            #     kind=rpm
             #     flavor=<string>
             #     option=<string>
             # Multiple flavors may be specified, separated by commas, e.g.:
@@ -1004,13 +1020,14 @@ sub Get_Config($) {
                             push @errors, "Duplicate kind, line $.\n";
                         }
                         else {
-                            if ($1 eq 'binary' or $1 eq 'source') {
+                            if ($1 eq 'binary' or $1 eq 'source' or $1 eq 'rpm') {
                                 $kind = $1;
                             }
                             else {
                                 push @errors,
                                      "Unrecognized kind, line $., " .
-                                     "should be \"binary\" or \"source\"\n";
+                                     "should be \"binary\", \"source\", " .
+                                     "or \"rpm\"\n";
                             }
                         }
                     }
