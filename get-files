@@ -1,0 +1,67 @@
+#!/usr/bin/perl -w
+
+# $Id: get-files,v 1.1 2002-12-17 13:54:17-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/get-files,v $
+
+use strict;
+
+use File::Basename ();
+
+sub Usage(@);
+
+$| = 1;
+
+Usage if scalar @ARGV != 3;
+
+my ($list_file, $elmak_base_dir, $local_base_dir) = @ARGV;
+
+my $dryrun = 1;
+
+open LIST, $list_file or die "$list_file: $!\n";
+my @files = <LIST>;
+close LIST;
+chomp @files;
+
+foreach my $file (@files) {
+    if (substr($file, 0, length $local_base_dir) ne $local_base_dir) {
+        die "${file} doesn't start with \"${local_base_dir}\"\n";
+    }
+}
+
+my %created = ();
+
+foreach my $file (@files) {
+    my $dir = File::Basename::dirname $file;
+    if (not -d $dir) {
+        if ($dryrun) {
+            if (not $created{$dir}) {
+                print "% mkdir -p $dir\n";
+                $created{$dir} = 1;
+            }
+        }
+        else {
+            print "% mkdir -p $dir\n";
+            system 'mkdir', '-p', $dir;
+            if ($? ne 0) {
+                die "\"mkdir -p $dir\" failed, \$? = $?\n";
+            }
+        }
+    }
+    my $elmak_file = $elmak_base_dir .
+                     substr($file, length $local_base_dir);
+    my @scp_command = ( 'scp', '-p', "elmak.sdsc.edu:$elmak_file", $file );
+    print "% @scp_command\n";
+    if (not $dryrun) {
+        system @scp_command;
+        if ($? ne 0) {
+            die "scp failed, \$? = $?\n";
+        }
+    }
+}
+
+########################################################################
+
+sub Usage(@) {
+    print @_ if @_;
+    print "Usage: $0 list-file elmak-base-directory local-base-directory\n";
+} # Usage
