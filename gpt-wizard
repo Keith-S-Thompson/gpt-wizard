@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.95 2002-10-23 19:08:03-07 kst Exp $
+# $Id: gpt-wizard,v 1.96 2002-10-25 01:48:48-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -69,7 +69,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.95 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.96 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -174,7 +174,9 @@ my $installer_gid = $installer_gr[2];
 die ">>> installer_uid = $installer_uid\n" unless $installer_uid > 0;
 # die ">>> installer_gid = $installer_gid\n" unless $installer_gid > 0;
 
+print "% setting PATH=$Config{PATH}\n";
 $ENV{PATH} = $Config{PATH};
+print "% umask $Config{UMASK}\n";
 umask oct $Config{UMASK} or die "umask $Config{UMASK}: $!\n";
 
 my $working_dir = "$Config{TEMP_DIR}/install-nmi-" . time . "-$$";
@@ -245,6 +247,7 @@ else {
 # (If it exists it must be empty; this is handled in Check_Config_Vars.)
 ########################################
 
+print "% Setting GPT_LOCATION=$Config{GPT_LOCATION}\n";
 $ENV{GPT_LOCATION} = $Config{GPT_LOCATION};
 if (not -d $Config{GPT_LOCATION}) {
     print "% mkdir $Config{GPT_LOCATION}\n";
@@ -316,6 +319,7 @@ if (not $using_old_gpt) {
 # (If it exists it must be an empty directory; this is handled in
 # Check_Config_Vars.)
 ########################################
+print "% Setting GLOBUS_LOCATION=$Config{GLOBUS_LOCATION}\n";
 $ENV{GLOBUS_LOCATION} = $Config{GLOBUS_LOCATION};
 if ($Config{GLOBUS_LOCATION} ne $Config{GPT_LOCATION}) {
     if (not -d $Config{GLOBUS_LOCATION}) {
