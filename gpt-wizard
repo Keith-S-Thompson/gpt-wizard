@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.133 2003-01-10 16:32:00-08 kst Exp $
+# $Id: gpt-wizard,v 1.134 2003-01-10 16:32:38-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -128,7 +128,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.133 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.134 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -508,15 +508,6 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         elsif ($Is_Update{$bundle}) {
             @flavors = Get_Update_Flavors $bundle;
         }
-#       elsif ($bundle_basename =~ /^globus/) {
-#           my $mpi = $Config{USE_MPI} ? 'mpi' : '';
-#           if ($bundle_basename =~ /^globus.information/) {
-#               push @flavors, "$Config{CC}$Sys{BITS}dbgpthr$mpi";
-#           }
-#           else {
-#               push @flavors, "$Config{CC}$Sys{BITS}dbg$mpi";
-#           }
-#       }
         else {
             push @options, '-std-flavors';
         }
@@ -938,10 +929,6 @@ sub Get_Config($) {
             { type => 'boolean', required => 0, default => 0 },
         UMASK =>
             { type => 'umask', required => 0, default => '022' },
-        CC =>
-            { type => 'cc', required => 1 },
-        USE_MPI =>
-            { type => 'boolean', required => 0, default => 0 },
         GPT_TARBALL =>
             { type => 'file_or_url', required => 1 },
         BUNDLE =>
@@ -1231,16 +1218,6 @@ sub Get_Config($) {
         elsif ($var->{type} eq 'umask') {
             if ($var->{value} !~ /^[0-7]+$/) {
                 push @errors, "Bad $varname \"$var->{value}\"\n";
-            }
-        }
-
-        #
-        # A C compiler, to be used in a GPT flavor string.
-        # Either 'gcc' or 'vendorcc'.
-        #
-        elsif ($var->{type} eq 'cc') {
-            if ($var->{value} ne 'gcc' and $var->{value} ne 'vendorcc') {
-                push @errors, "$varname must be \"gcc\" or \"vendorcc\"\n";
             }
         }
 
