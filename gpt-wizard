@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.175 2003-03-14 10:54:03-08 kst Exp $
+# $Id: gpt-wizard,v 1.176 2003-03-15 14:56:37-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -179,7 +179,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.175 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.176 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -315,7 +315,7 @@ my @installer_gr = getgrnam $Config{INSTALLER_GROUP};
 die ">>> No group $Config{INSTALLER_GROUP}\n" unless $#installer_gr >= 2;
 my $installer_uid = $installer_pw[2];
 my $installer_gid = $installer_gr[2];
-die ">>> installer_uid = $installer_uid\n" unless $installer_uid > 0;
+# die ">>> installer_uid = $installer_uid\n" unless $installer_uid > 0;
 # die ">>> installer_gid = $installer_gid\n" unless $installer_gid > 0;
 
 print "% setting PATH=$Config{PATH}\n";
