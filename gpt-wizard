@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.305 2004-09-21 11:36:09-07 kst Exp $
+# $Id: gpt-wizard,v 1.306 2004-11-11 07:50:15-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -206,7 +206,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.305 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.306 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -706,6 +706,8 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
             $bundle_kind = 'binary';
         }
     }
+
+    chdir File::Basename::dirname $bundle->{filename};
 
     if ($bundle_kind eq 'source') {
         #
