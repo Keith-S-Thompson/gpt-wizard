@@ -1,13 +1,7 @@
 #!/usr/bin/perl -w
 
-# $Id: make-release,v 1.5 2003-05-16 12:43:16-07 kst Exp $
+# $Id: make-release,v 1.6 2003-05-19 00:34:12-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/make-release,v $
-
-#
-# TO DO:
-#
-# Add Relnotes to %needs_editing; make Edit_File invoke an editor.
-#
 
 use strict;
 
@@ -37,6 +31,7 @@ my @files = qw( INSTALL
                 sample.conf );
 my %needs_editing
     = ( 'README'       => 1,
+        'Relnotes'     => 1,
         'gpt-wizard'   => 1,
         'gpt-wizard.1' => 1 );
 
@@ -202,46 +197,52 @@ sub Next_Revision($) {
 sub Edit_File($) {
     my($file) = @_;
 
-    my $release_revision = $Info->{$file}->{next_revision};
-
-    my($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst)
-        = localtime time;
-    my $today = sprintf "%04d-%02d-%02d", $year+1900, $mon+1, $mday;
-
-    open IN, "$file" or die "${file}: $!\n";
-    open OUT, ">$file.$$" or die "$file.$$: $!\n";
-    while (<IN>) {
-
-        if ($file eq 'README') {
-            if (/^(This is gpt-wizard release) .*$/) {
-                $_ = "$1 $release_number.\n";
-            }
-        }
-
-        elsif ($file eq 'gpt-wizard') {
-            if (/^(my \$Release_Number\s+=\s+').*('.*)$/) {
-                $_ = "$1$release_number$2\n";
-            }
-            elsif (/^(my \$Release_Revision\s+=\s+').*('.*)$/) {
-                $_ = "$1$release_revision$2\n";
-            }
-        }
-
-        elsif ($file eq 'gpt-wizard.1') {
-            if (/^(\.TH GPT-WIZARD 1) \d\d\d\d-\d\d-\d\d (.*)$/) {
-                $_ = "$1 $today $2\n";
-            }
-            elsif (/^(This documentation is for release) .* (of.*)$/) {
-                $_ = "$1 $release_number $2\n";
-            }
-        }
-
-        print OUT;
+    if ($file eq 'Relnotes') {
+        my $editor = exists $ENV{EDITOR} ? $ENV{EDITOR} : 'vi';
+        system $editor, $file;
     }
-    close IN;
-    close OUT;
-    unlink $file;
-    rename "$file.$$", $file;
+    else {
+        my $release_revision = $Info->{$file}->{next_revision};
+
+        my($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst)
+            = localtime time;
+        my $today = sprintf "%04d-%02d-%02d", $year+1900, $mon+1, $mday;
+
+        open IN, "$file" or die "${file}: $!\n";
+        open OUT, ">$file.$$" or die "$file.$$: $!\n";
+        while (<IN>) {
+
+            if ($file eq 'README') {
+                if (/^(This is gpt-wizard release) .*$/) {
+                    $_ = "$1 $release_number.\n";
+                }
+            }
+
+            elsif ($file eq 'gpt-wizard') {
+                if (/^(my \$Release_Number\s+=\s+').*('.*)$/) {
+                    $_ = "$1$release_number$2\n";
+                }
+                elsif (/^(my \$Release_Revision\s+=\s+').*('.*)$/) {
+                    $_ = "$1$release_revision$2\n";
+                }
+            }
+
+            elsif ($file eq 'gpt-wizard.1') {
+                if (/^(\.TH GPT-WIZARD 1) \d\d\d\d-\d\d-\d\d (.*)$/) {
+                    $_ = "$1 $today $2\n";
+                }
+                elsif (/^(This documentation is for release) .* (of.*)$/) {
+                    $_ = "$1 $release_number $2\n";
+                }
+            }
+
+            print OUT;
+        }
+        close IN;
+        close OUT;
+        unlink $file;
+        rename "$file.$$", $file;
+    }
 } # Edit_File
 
 # ----------------------------------------------------------------------
