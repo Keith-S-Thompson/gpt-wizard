@@ -1,7 +1,7 @@
-# $Id: lutefisk-globus-3.2.1-gcc-test4-minimal-static.gptw,v 1.1 2004-08-04 20:37:07-07 kst Exp $
+# $Id: lutefisk-globus-3.2.1-gcc-test4-minimal-static.gptw,v 1.2 2004-08-04 20:37:47-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-globus-3.2.1-gcc-test4-minimal-static.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin:/usr/local/apps/mpich-1.2.5.3/bin
 
@@ -15,4 +15,4 @@ GPT_TARBALL gpt-3.2-src.tar.gz
 # For this test, build only one bundle.
 #
 .PREFIX ~kst/Globus/3.2.1/bundles/src
-BUNDLE globus-resource-management-sdk-3.2.1-src_bundle.tar.gz kind=source flavor=mpicc64dbg option=-static
+BUNDLE globus-resource-management-sdk-3.2.1-src_bundle.tar.gz kind=source flavor=mpicc32dbg option=-static
