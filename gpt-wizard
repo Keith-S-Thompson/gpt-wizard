@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.146 2003-01-27 15:52:18-08 kst Exp $
+# $Id: gpt-wizard,v 1.147 2003-01-27 19:31:39-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -140,8 +140,8 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.146 $';
-my $Release           = '0.1.1';
+my $Revision          = Strip_Revision_String '$Revision: 1.147 $';
+my $Release           = '0.1.1+';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -291,7 +291,7 @@ foreach my $env (@{$Config{ENV}}) {
 print "% umask $Config{UMASK}\n";
 umask oct $Config{UMASK} or die "umask $Config{UMASK}: $!\n";
 
-my $working_dir = "$Config{TEMP_DIR}/nmi-wizard-" . time . "-$$";
+my $working_dir = "$Config{TEMP_DIR}/gpt-wizard-" . time . "-$$";
 print "% mkdir $working_dir\n";
 mkdir $working_dir, 0700 or die "$working_dir: $!\n";
 chown $installer_uid, $installer_gid, $working_dir
@@ -842,7 +842,6 @@ elsif (defined $Sys{NET_DAEMON} and $Sys{NET_DAEMON} eq 'inetd') {
                "$Config{GLOBUS_LOCATION}/sbin/in.ftpd in.ftpd -l -a\n";
 
     $update .= "Allow for any site-specific conventions for /etc/inetd.conf\n";
-    $update .= "Set \$LD_LIBRARY_PATH in /etc/inetd.conf\n";
 
     $update .= "Execute as root \"$Sys{NET_DAEMON_RELOAD}\"\n";
     push @manual_steps, $update;
@@ -2246,9 +2245,9 @@ service gsigatekeeper
     protocol        = tcp
     wait            = no
     user            = root
+    env             = LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib
     server          = $Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper
     server_args     = -conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf
-    env             = LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib
     disable         = no
 }
 EOF
@@ -2261,9 +2260,9 @@ service gsiftp
     socket_type     = stream
     wait            = no
     user            = root
-    server          = $Config{GLOBUS_LOCATION}/sbin/in.ftpd
-    server_args     = -l -a -G /usr/nmi
     env             = LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib
+    server          = $Config{GLOBUS_LOCATION}/sbin/in.ftpd
+    server_args     = -l -a -G $Config{GLOBUS_LOCATION}
     log_on_success  += DURATION USERID
     log_on_failure  += USERID
     nice            = 10
@@ -2273,13 +2272,16 @@ EOF
     }
     elsif ("$daemon/$service" eq 'inetd/gsigatekeeper') {
         return "gsigatekeeper   stream tcp nowait root " .
+               "/usr/bin/env env LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib" .
                "$Config{GLOBUS_LOCATION}/sbin/globus-gatekeeper " .
                "globus-gatekeeper " .
                "-conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf\n";
     }
     elsif ("$daemon/$service" eq 'inetd/gsiftp') {
         return "gsiftp  stream  tcp     nowait  root    " .
-               "$Config{GLOBUS_LOCATION}/sbin/in.ftpd in.ftpd -l -a\n";
+               "/usr/bin/env env LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib" .
+               "$Config{GLOBUS_LOCATION}/sbin/in.ftpd " .
+               "-l -a -G $Config{GLOBUS_LOCATION}\n";
     }
     else {
         die "Internal error, bad arguments to Inet_Config_Text()\n" .
