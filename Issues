@@ -1,4 +1,4 @@
-# $Id: Issues,v 1.3 2002-11-21 10:27:45-08 kst Exp $
+# $Id: Issues,v 1.4 2002-11-21 13:46:43-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/Issues,v $
 
 AIX: Obscure failure invoking build_gpt from install_nmi.  Somewhere in
@@ -16,9 +16,18 @@ $Config{COMPILER} is ignored as is $Config{USE_MPI} -- which is
 probably ok.)
 
 NMI 2.1 release was modified on the FTP site after it was released
-and announced.  Appropriate flamage delivered.
+and announced.  Appropriate flamage delivered in e-mail, 2002-11-20,
+"The NMI 2.1 release has been modified".
 
 With USE_SDSC_SU, the child process doesn't inherit the umask -- which
 makes me wonder what else isn't being inherited ($PATH?).  I may need
 to set the umask (and what else?) explicitly in the invoked command:
     su globus -c "umask 027 ; some_command"
+I now explicitly set the umask in the invoked command; environment
+variables, including $PATH, are inherited properly.
+
+Building all-client-NMI-2.1-src_bundle.tar.gz on AIX:
+UNPACKING /rmount/gpfs/globus/install-nmi-1037890855-201546/BUILD/kx509-1.0.tar.gz
+ERROR: Source pkgdata file not found. Are you sure this is a source package?
+ERROR: Cannot build /rmount/gpfs/globus/install-nmi-1037890855-201546/BUILD/kx509-1.0/
+
