@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.59 2004-08-29 22:35:14-07 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.60 2004-09-03 16:58:23-07 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -403,7 +403,22 @@ Mandatory.
 .IP ENV
 An environment variable setting, of the form "VAR" or "VAR=value".
 If no value is specified, the variable is set to the empty string.
-See also the GLOBUS_HOSTNAME option.
+See also the GLOBUS_HOSTNAME and INHERIT_ENV options.
+.br
+Type: string
+.br
+Optional.  May occur multiple times.
+
+.IP INHERIT_ENV
+The name of an environment variable to be retained in the build
+environment.  Environment variables other than DISPLAY, HOME, LOGNAME,
+SHELL, and USER are deleted to avoid subtle dependencies on the
+environment in which
+.I gpt\-wizard
+is executed.  It's usually better to use the ENV option to specify
+the value of a variable (this documents the actual value used), but
+the INHERIT_ENV option can be used if it's necessary to use whatever
+value happens to be in the invoking environment.  See also the ENV option.
 .br
 Type: string
 .br
