@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.142 2003-01-24 17:30:51-08 kst Exp $
+# $Id: gpt-wizard,v 1.143 2003-01-24 19:26:03-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -139,7 +139,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.142 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.143 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -716,7 +716,7 @@ if ($Startup) {
     if (defined $Config{LDAP_CERT}) {
         if (not -d $ldap_dir) {
             print "% mkdir $ldap_dir\n";
-            mkdir $ldap_dir, 0700 or die "$ldap_dir: $!\n";
+            mkdir $ldap_dir, 0777 or die "$ldap_dir: $!\n";
         }
         Backup "$ldap_dir/ldapcert.pem";
         Execute @As_Installer,
@@ -733,7 +733,7 @@ if ($Startup) {
     if (defined $Config{LDAP_KEY}) {
         if (not -d $ldap_dir) {
             print "% mkdir $ldap_dir\n";
-            mkdir $ldap_dir, 0700 or die "$ldap_dir: $!\n";
+            mkdir $ldap_dir, 0777 or die "$ldap_dir: $!\n";
         }
         Backup "$ldap_dir/ldapkey.pem";
         Execute @As_Installer,
