@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.171 2003-03-05 14:55:04-08 kst Exp $
+# $Id: gpt-wizard,v 1.172 2003-03-06 02:31:44-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -171,7 +171,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.171 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.172 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1791,6 +1791,8 @@ sub URL_Protocol($) {
 #
 # Given a list of URLs, verify that each one exists.
 # Uses "wget --spider".
+# (Note that "wget --spider" doesn't work for ftp URLs, so they
+# aren't currently checked.)
 #
 sub Check_URLs(@) {
     Init_Download;
@@ -1798,9 +1800,11 @@ sub Check_URLs(@) {
     my @bad_urls = ();
 
     foreach my $url (@_) {
-        my $result = system $wget, '--spider', '-o', '/dev/null', $url;
-        if ($result != 0) {
-            push @bad_urls, $url;
+        if (URL_Protocol $url eq 'http') {
+            my $result = system $wget, '--spider', '-o', '/dev/null', $url;
+            if ($result != 0) {
+                push @bad_urls, $url;
+            }
         }
     }
 
