@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.173 2003-03-10 22:15:23-08 kst Exp $
+# $Id: gpt-wizard,v 1.174 2003-03-11 15:18:17-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -167,11 +167,12 @@ $| = 1;
 # worth.)
 #
 my $Release_Info = [ { release => '0.1',   revision => '1.144' },
-                     { release => '0.1.1', revision => '1.146' } ];
+                     { release => '0.1.1', revision => '1.146' },
+                     { release => '0.2',   revision => '1.174' } ];
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.173 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.174 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
