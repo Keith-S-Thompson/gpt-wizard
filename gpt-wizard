@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.267 2004-03-16 23:42:24-08 kst Exp $
+# $Id: gpt-wizard,v 1.268 2004-03-16 23:47:12-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -187,7 +187,7 @@ my $Release_Revision = '1.266'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.267 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.268 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1224,8 +1224,8 @@ if (-d "$Config{GLOBUS_LOCATION}/etc/ssh") {
 ########################################
 # Build and install MPICH-G2 if specified
 ########################################
-if (defined $Config{MPICH-G2}) {
-    my $ref = $Config{MPICH-G2};
+if (defined $Config{'MPICH-G2'}) {
+    my $ref = $Config{'MPICH-G2'};
     my $filename = $ref->{filename};
     my $install_dir = $ref->{install};
     my $flavor = $ref->{flavor};
