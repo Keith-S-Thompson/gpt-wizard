@@ -1,0 +1,19 @@
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-r4-test1-update1.gptw,v 1.1 2004-05-05 18:10:29-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-r4-test1-update1.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+IS_UPDATE 1
+
+PATH /usr/bin:/bin:/usr/local/apps/intel/compiler8/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/intel8-r1/bin
+ENV INTEL_LICENSE_FILE=/usr/local/apps/intel/compiler8/licenses
+ENV LD_LIBRARY_PATH=/usr/local/apps/intel/compiler8/lib
+INTEL_WORKAROUND 1
+
+GLOBUS_LOCATION  /work/globus/apps/globus-2.4.3-intel-r4-test1
+# GLOBUS_LOCAL_DIRECTORY /var/globus/globus-2.4.3-intel-r4-test1
+
+MPI_FLAVORS_ARE_STATIC 1
+
+.PREFIX /work/kst/repo.teragrid.org/open/uberftp/1.5/__kst__
+BUNDLE uberftp-tg-1.5-src_bundle.tar.gz kind=source flavor=vendorcc64dbgpthr
