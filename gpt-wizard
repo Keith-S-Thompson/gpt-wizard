@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.266 2004-03-15 18:09:23-08 kst Exp $
+# $Id: gpt-wizard,v 1.267 2004-03-16 23:42:24-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -187,7 +187,7 @@ my $Release_Revision = '1.266'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.266 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.267 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1224,8 +1224,8 @@ if (-d "$Config{GLOBUS_LOCATION}/etc/ssh") {
 ########################################
 # Build and install MPICH-G2 if specified
 ########################################
-if (defined $Config{MPICH_G2}) {
-    my $ref = $Config{MPICH_G2};
+if (defined $Config{MPICH-G2}) {
+    my $ref = $Config{MPICH-G2};
     my $filename = $ref->{filename};
     my $install_dir = $ref->{install};
     my $flavor = $ref->{flavor};
@@ -1568,7 +1568,7 @@ sub Get_Config($) {
             # on actual options after they're expanded.
             #
             # This expansion is performed only for options of type 'file',
-            # 'array_of_bundle', and 'mpich_g2'.
+            # 'array_of_bundle', and 'mpich-g2'.
             # 
             if ($name eq '.PREFIX') {
                 $default_prefix = $value;
@@ -1579,7 +1579,7 @@ sub Get_Config($) {
 
                 if ($Var->{type} eq 'file' or
                     $Var->{type} eq 'array_of_bundle' or
-                    $Var->{type} eq 'mpich_g2')
+                    $Var->{type} eq 'mpich-g2')
                 {
                     #
                     # URLs are no longer supported
@@ -1613,14 +1613,14 @@ sub Get_Config($) {
                     #     -update,-std-flavors
                     #
                     if ($Var->{type} eq 'array_of_bundle' or
-                        $Var->{type} eq 'mpich_g2')
+                        $Var->{type} eq 'mpich-g2')
                     {
-                        my $filename = undef; # array_of_bundle and mpich_g2
+                        my $filename = undef; # array_of_bundle and mpich-g2
                         my $kind     = undef; # array_of_bundle only
-                        my $flavor   = undef; # array_of_bundle and mpich_g2
+                        my $flavor   = undef; # array_of_bundle and mpich-g2
                         my $option   = undef; # array_of_bundle only
-                        my $install  = undef; # mpich_g2 only
-                        my $arch     = undef; # mpich_g2 only
+                        my $install  = undef; # mpich-g2 only
+                        my $arch     = undef; # mpich-g2 only
 
                         foreach my $field (split /\s+/, $value) {
                             if (lc $field =~ /^kind=(.*)$/) {
