@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.306 2004-11-11 07:50:15-08 kst Exp $
+# $Id: gpt-wizard,v 1.307 2004-11-21 14:21:48-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -164,6 +164,7 @@ use strict;
 use File::Basename ();
 use Getopt::Long ();
 use POSIX ();
+use Cwd ();
 
 sub Strip_Revision_String($);
 sub Get_Config($);
@@ -206,7 +207,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.306 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.307 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -275,9 +276,7 @@ if ($Config_File =~ /^\//) {
     $Config_File_Full_Path = $Config_File;
 }
 else {
-    my $pwd = `pwd`;
-    chomp $pwd;
-    $Config_File_Full_Path = "$pwd/$Config_File";
+    $Config_File_Full_Path = Cwd::getcwd . "/$Config_File";
 }
 my $Config_File_Basename = File::Basename::basename $Config_File;
 
