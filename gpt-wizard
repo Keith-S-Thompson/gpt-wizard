@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.298 2004-09-03 16:58:11-07 kst Exp $
+# $Id: gpt-wizard,v 1.299 2004-09-03 17:16:32-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -206,7 +206,7 @@ my $Release_Revision = '1.296'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.298 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.299 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -255,10 +255,9 @@ my @manual_steps = ();
 #
 # Keep a few basic environment variables; everything else will be deleted
 # to avoid subtle dependencies on the environment in which gpt-wizard
-# is invoked.  ($DISPLAY is sometimes needed for MPICH-G2 configuration.)
+# is invoked.
 #
-my %Retain_Env = ( DISPLAY => 1,
-                   HOME    => 1,
+my %Retain_Env = ( HOME    => 1,
                    LOGNAME => 1,
                    SHELL   => 1,
                    USER    => 1);
