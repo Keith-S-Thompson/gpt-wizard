@@ -1,7 +1,7 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-test3.gptw,v 1.1 2004-05-11 18:23:02-07 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-test3.gptw,v 1.2 2004-05-11 18:50:55-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-gcc-r4-test3.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
 
@@ -23,29 +23,21 @@ GPT_TARBALL /work/kst/repo.teragrid.org/open/gpt/3.1.1b5/gpt-3.1.1b5-src.tar.gz
 # The information-services bundles use the IA-64 version of the
 # globus_openldap package.
 #
-BUNDLE ia64/globus-information-services-client-2.4.3-src_bundle.tar.gz kind=source flavor=gcc64dbgpthr
-BUNDLE ia64/globus-information-services-sdk-2.4.3-src_bundle.tar.gz    kind=source flavor=gcc64dbgpthr
-BUNDLE ia64/globus-information-services-server-2.4.3-src_bundle.tar.gz kind=source flavor=gcc64dbgpthr
+BUNDLE ia64/globus-information-services-client-2.4.3-r4-src_bundle.tar.gz kind=source flavor=gcc64dbgpthr
+BUNDLE ia64/globus-information-services-sdk-2.4.3-r4-src_bundle.tar.gz    kind=source flavor=gcc64dbgpthr
+BUNDLE ia64/globus-information-services-server-2.4.3-r4-src_bundle.tar.gz kind=source flavor=gcc64dbgpthr
 
-BUNDLE globus-data-management-client-2.4.3-src_bundle.tar.gz           kind=source flavor=gcc64dbg
-BUNDLE globus-data-management-sdk-2.4.3-src_bundle.tar.gz              kind=source flavor=gcc64dbg
-BUNDLE globus-data-management-server-2.4.3-src_bundle.tar.gz           kind=source flavor=gcc64dbg
+BUNDLE globus-data-management-client-2.4.3-r4-src_bundle.tar.gz           kind=source flavor=gcc64dbg
+BUNDLE globus-data-management-sdk-2.4.3-r4-src_bundle.tar.gz              kind=source flavor=gcc64dbg
+BUNDLE globus-data-management-server-2.4.3-r4-src_bundle.tar.gz           kind=source flavor=gcc64dbg
 
-BUNDLE globus-resource-management-client-2.4.3-src_bundle.tar.gz       kind=source flavor=gcc64dbg
-BUNDLE globus-resource-management-sdk-2.4.3-src_bundle.tar.gz          kind=source flavor=mpicc64dbg,gcc64dbg
-BUNDLE globus-resource-management-server-2.4.3-src_bundle.tar.gz       kind=source flavor=gcc64dbg
+BUNDLE globus-resource-management-client-2.4.3-r4-src_bundle.tar.gz       kind=source flavor=gcc64dbg
+BUNDLE globus-resource-management-sdk-2.4.3-r4-src_bundle.tar.gz          kind=source flavor=mpicc64dbg,gcc64dbg
+BUNDLE globus-resource-management-server-2.4.3-r4-src_bundle.tar.gz       kind=source flavor=gcc64dbg
 
-.PREFIX /work/kst/repo.teragrid.org/open/globus/2.4.3
 #
 # Updates have been pre-applied.
 #
-# UPDATE updates/globus_common-3.17.tar.gz
-# UPDATE updates/globus_ftp_client-1.10.tar.gz
-# UPDATE updates/globus_ftp_control-1.10.tar.gz
-# UPDATE updates/globus_gridftp_server-1.12.tar.gz
-# UPDATE updates/globus_ldapmodules-0.14.tar.gz
-# UPDATE updates/globus_openldap-2.0.22ia64.tar.gz
-# UPDATE updates/globus_openssl-0.20.tar.gz
 
 #
 # globus_gram_reporter and PBS support
