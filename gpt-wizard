@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.10 2002-08-10 16:05:36-07 kst Exp $
+# $Id: gpt-wizard,v 1.11 2002-08-10 16:19:33-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 use strict;
@@ -355,7 +355,9 @@ sub Execute(@) {
     my @after;
     my $system_result;
 
-    Debug "Execute @args\n";
+    Debug "Execute, scalar \@args = ", scalar @args, "\n";
+    my @caller = caller;
+    Debug "   Called from $caller[0]::$caller[1] line $caller[2]\n";
     #
     # Process arguments
     #
