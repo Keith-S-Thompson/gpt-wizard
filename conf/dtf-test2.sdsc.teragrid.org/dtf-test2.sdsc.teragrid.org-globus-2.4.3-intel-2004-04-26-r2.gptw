@@ -1,7 +1,7 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-04-26-r2.gptw,v 1.1 2004-04-26 23:12:04-07 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-04-26-r2.gptw,v 1.2 2004-04-26 23:17:26-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-2.4.3-intel-2004-04-26-r2.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin:/users/kst/intel8-r2/bin:/usr/local/pbs/ia64/bin:/usr/local/apps/mpich/intel8-r1/bin
 ENV INTEL_LICENSE_FILE=/users/kst/intel8-r2/licenses
@@ -37,15 +37,15 @@ BUNDLE globus-resource-management-server-2.4.3-src_bundle.tar.gz  kind=source fl
 .PREFIX /work/kst/repo.teragrid.org/open/globus/2.4.3
 
 #
-# Updates are pre-applied.
+# Updates (globus_openldap is pre-applied).
 #
-# UPDATE updates/globus_common-3.17.tar.gz
-# UPDATE updates/globus_ftp_client-1.10.tar.gz
-# UPDATE updates/globus_ftp_control-1.10.tar.gz
-# UPDATE updates/globus_gridftp_server-1.12.tar.gz
-# UPDATE updates/globus_ldapmodules-0.14.tar.gz
+UPDATE updates/globus_common-3.17.tar.gz
+UPDATE updates/globus_ftp_client-1.10.tar.gz
+UPDATE updates/globus_ftp_control-1.10.tar.gz
+UPDATE updates/globus_gridftp_server-1.12.tar.gz
+UPDATE updates/globus_ldapmodules-0.14.tar.gz
 # UPDATE updates/globus_openldap-2.0.22ia64.tar.gz
-# UPDATE updates/globus_openssl-0.20.tar.gz
+UPDATE updates/globus_openssl-0.20.tar.gz
 
 #
 # globus_gram_reporter and PBS support
