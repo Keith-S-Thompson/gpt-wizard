@@ -1,7 +1,7 @@
 .\"
 .\" Man page for gpt-wizard command, by Keith Thompson, kst@sdsc.edu
 .\"
-.\" $Id: gpt-wizard.1,v 1.30 2004-02-12 14:53:35-08 kst Exp $
+.\" $Id: gpt-wizard.1,v 1.31 2004-02-13 17:57:49-08 kst Exp $
 .\" $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard.1,v $
 .\"
 .\" @Copyright@
@@ -43,24 +43,24 @@
 .\" 
 .\" @Copyright@
 .\" 
-.TH GPT-WIZARD 1 2004-02-12 SDSC
+.TH GPT\-WIZARD 1 2004-02-12 SDSC
 .SH NAME
-gpt-wizard \- Build and install GPT bundles and packages
+gpt\-wizard \- Build and install GPT bundles and packages
 .SH SYNOPSIS
-.B "gpt-wizard -help"
+.B "gpt\-wizard \-help"
 .br
-.B "gpt-wizard [options] config-file"
+.B "gpt\-wizard [options] config\-file"
 
 .SH VERSION
 .\"
-.\" The layout of the following line is significant; see make-release.
+.\" The layout of the following line is significant; see make\-release.
 .\"
 This documentation is for release 0.5.1 of
-.IR gpt-wizard .
+.IR gpt\-wizard .
 
 .SH DESCRIPTION
 The
-.I gpt-wizard
+.I gpt\-wizard
 command builds and installs a specified set of GPT bundles and
 packages, driven by a simple ASCII configuration file.  (GPT is the
 .IR "Grid Packaging Toolkit" .)
@@ -69,26 +69,26 @@ installing Globus and other software components, and starting up the
 services they provide.
 
 The
-.I gpt-wizard
+.I gpt\-wizard
 command must be executed from the root account.  Most of the
-installation steps will actually be performed by a non-root account
+installation steps will actually be performed by a non\-root account
 such as "globus".
 
 Note that some things are difficult or impractical to automate.
 (For example,
-.I gpt-wizard
+.I gpt\-wizard
 doesn't attempt to automatically update the /etc/inetd.conf file;
 there are too many local conventions to worry about, and many sites
 manage it in such a way that any changes would be clobbered.)  The
-.I gpt-wizard
+.I gpt\-wizard
 command keeps track of these manual steps and prints a summary.
-This summary is printed in a single well-marked block at the end of
+This summary is printed in a single well\-marked block at the end of
 the output.
 
 The
-.I gpt-wizard
+.I gpt\-wizard
 command creates a directory called
-.I .gpt-wizard
+.I .gpt\-wizard
 under the
 .I $GLOBUS_LOCATION
 directory.  This directory will contain a copy of the configuration
@@ -98,127 +98,131 @@ which contains summary information about the build, including any
 manual steps to be executed.
 
 I highly recommend capturing the output of each
-.I gpt-wizard
+.I gpt\-wizard
 run in a log file for later perusal.
 
 The web page for the
-.I gpt-wizard
+.I gpt\-wizard
 command is
-.IR <http://www.sdsc.edu/~kst/gpt-wizard/> .
+.br
+.IR <http://www.sdsc.edu/~kst/gpt\-wizard/> .
+.br
 The
-.I gpt-wizard
+.I gpt\-wizard
 command should be available at
-.IR <ftp://ftp.sdsc.edu/pub/sdsc/globus/software/gpt-wizard/> ;
+.br
+.IR <ftp://ftp.sdsc.edu/pub/sdsc/globus/software/gpt\-wizard/> ;
+.br
 each version is in the file
-.I gpt-wizard-VERSION.tar.gz
+.I gpt\-wizard\-VERSION.tar.gz
 in that directory.
 
 .SH BACKGROUND
 This command is a Perl script which incorporates much of the
 experience I've acquired in doing multiple installations of Globus
 and NMI software.  Rather than keeping track of the various steps and
-system-specific exceptions in an error-prone checklist, I decided to
+system\-specific exceptions in an error\-prone checklist, I decided to
 write this Perl script to do as much of the work as possible for me
 (lazy bum that I am).
 
-.I gpt-wizard 
+.I gpt\-wizard 
 is not a "wizard" in the sense used in Microsoft Windows, i.e.,
 an interactive program that leads the user through a configuration
 process step by step.  It is a batch mode configuration and build program; 
-.I gpt-wizard
+.I gpt\-wizard
 was just the cool name I came up with.  (Some early unreleased versions
 were called
-.IR install-nmi .)
+.IR install\-nmi .)
 
 .SH OPTIONS
-.I gpt-wizard
+.I gpt\-wizard
 uses Perl's
 .I Getop::Long
-module to parse its command-line arguments.
+module to parse its command\-line arguments.
 .br
-Options may be prefixed with either "-" or "--".
+Options may be prefixed with either "\-" or "\-\-".
 .br
 Option names may be abbreviated uniquely.
 
-.IP -help
+.IP \-help
 Display a brief help message on stdout and exit.
 
-.IP -version
+.IP \-version
 Display version information and exit.
 
-.IP -validate-only
+.IP \-validate\-only
 Validate the configuration file, display some information, and exit without
 building anything.  Useful to detect errors in a configuration file.
 
-.IP -cleanup
+.IP \-cleanup
 Delete the temporary working directory on completion.
-This is the default behavior.  Use "-nocleanup" to keep the
+This is the default behavior.  Use "\-nocleanup" to keep the
 temporary working directory.  (Its name will be something like
-.I /tmp/gpt-wizard-1043365463-17640
+.I /tmp/gpt\-wizard\-1043365463\-17640
 or
-.IR TEMP_DIR/gpt-wizard-1043365463-17640 ;
+.IR TEMP_DIR/gpt\-wizard\-1043365463\-17640 ;
 see
 .BR "CONFIGURATION OPTIONS" ,
 below.
 
-.IP -postinstall
+.IP \-postinstall
 Run the
-.I gpt-postinstall
-command.  This is the default behavior; use "-nopostinstall" if
+.I gpt\-postinstall
+command.  This is the default behavior; use "\-nopostinstall" if
 you don't want to run
-.IR gpt-postinstall .
+.IR gpt\-postinstall .
 
-.IP -startup
-Update system files and start services.  The default is "-nostartup".
-(In previous releases, "-startup" was the default.)
+.IP \-startup
+Update system files and start services.  The default is "\-nostartup".
+(In previous releases, "\-startup" was the default.)
 .br
 .B NOTE:
 This is currently supported only on Linux systems.
 
-.IP -gpt-verbose
-Pass the "-verbose" option to
-.I gpt-install
+.IP \-gpt\-verbose
+Pass the "\-verbose" option to
+.I gpt\-install
 and/or
-.IR gpt-build .
+.IR gpt\-build .
 This will produce voluminous output, especially when building source
 bundles and packages.
 
-.IP -gpt-install-only
-Pass the "-install-only" option to
-.IR gpt-build .
+.IP \-gpt\-install\-only
+Pass the "\-install\-only" option to
+.IR gpt\-build .
 This doesn't affect binary installations
-.RI ( gpt-install ).
+.RI ( gpt\-install ).
 .B NOTE:
 This option is probably obsolete for the current version of
 .IR GPT .
 
-.IP -gpt-ignore-errors
+.IP \-gpt\-ignore\-errors
 Ignore errors from
-.I gpt-install
+.I gpt\-install
 and
-.IR gpt-build .
+.IR gpt\-build .
 Not recommended.
 
-.IP -aix-kludge
+.IP \-aix\-kludge
 Use an existing GPT installation.  This was implemented to work around
 some obscure problems on an AIX system.  Not recommended unless you know
 what you're doing.
 
-.IP -debugging
+.IP \-debugging
 Enable debugging output.
 
 .SH CONFIGURATION FILE
 The
-.I gpt-wizard
+.I gpt\-wizard
 command requires a configuration file to be specified on the
 command line.  The name of the file is irrelevant.  I typically use
 something like
 .br
-.B "	<machine-name>-globus-<version>-<kind>.conf"
+.B "	<machine\-name>\-globus\-<version>\-<kind>.conf"
 .br
 for example,
 .br
-.B "	tf005i-globus-2.2.3-src.conf"
+.B "	tf005i\-globus\-2.2.3\-src.conf"
 .br
 but if you want to call it
 .B foobar.baz
@@ -251,7 +255,7 @@ in quotation marks; any quotation marks are simply taken as part of
 the value.  For Boolean variables a false value  may be specified
 as "0", "no", or "false", and a true value may be specified as "1",
 "yes", or "true" (without the quotation marks, of course); the value
-is case-insensitive.  Some variables are optional, some are mandatory,
+is case\-insensitive.  Some variables are optional, some are mandatory,
 and some may appear multiple times.  Certain variables may also
 have attributes associated with them; these are given in the form
 "name=value" on the same line.
@@ -270,7 +274,7 @@ home directory.  If there is no such user, no substitution is done
 by the value of $HOME is not supported.)
 
 Previous versions of
-.Ir gpt-wizard ,
+.Ir gpt\-wizard ,
 up to release 0.4 supported specification of URLs (starting with either
 "ftp://" or "http://") for some files.  This is no longer supported;
 all files must be directly visible.  (It wasn't being used, and I'm
@@ -280,7 +284,7 @@ configuration variables are no longer supported.
 .SH CONFIGURATION OPTIONS
 
 .IP .PREFIX
-This is a pseudo-option.  It specified a default prefix to be prepended,
+This is a pseudo\-option.  It specified a default prefix to be prepended,
 with a
 .B '/'
 character, to any following file name given as a relative path name.
@@ -291,7 +295,7 @@ Typically an RCS or CVS "Revision" tag, but it can be any arbitrary string.
 .br
 Example:
 .br
-.B "	CONFIG_FILE_REVISION $Revision: 1.30 $"
+.B "	CONFIG_FILE_REVISION $Revision: 1.31 $"
 .br
 Type: string
 .br
@@ -299,7 +303,7 @@ Optional.
 
 .IP TEMP_DIR
 Location for
-.IR gpt-wizard 's
+.IR gpt\-wizard 's
 temporary working directory.  The temporary directory will be created
 under the specified directory.
 .br
@@ -364,7 +368,7 @@ Type: string (must be a valid group name)
 Optional.  Default is "globus".
 
 .IP USE_SDSC_SU
-Use the non-standard "su" command in use at SDSC.  Probably not useful
+Use the non\-standard "su" command in use at SDSC.  Probably not useful
 for sites other than SDSC.
 .br
 Type: boolean
@@ -385,7 +389,7 @@ The location of the source tarball
 file for GPT.  Binary and RPM distributions are not yet supported.
 .br
 As of
-.I gpt-wizard
+.I gpt\-wizard
 release 0.5, GPT 1.X is no longer supported; all current Globus releases
 include GPT 2.X or better.
 .br
@@ -396,12 +400,12 @@ Mandatory.
 .IP BUNDLE
 A GPT bundle or package.  It may be a source, binary, or rpm bundle.
 (In a future release,
-.I gpt-wizard
+.I gpt\-wizard
 may require a separate PACKAGE option for packages.)  Multiple
 bundles may be (and typically are) specified in a single config file.
 If necessary, the same bundle may be specified multiple times with
 different attributes, for example if it's necessary to build a bundle
-with "-static" for some flavors and without "-static" for others.
+with "\-static" for some flavors and without "\-static" for others.
 .br
 Attributes:
 .br
@@ -416,13 +420,13 @@ kind=rpm
         option=<option>
 .br
 If a kind is not specified,
-.I gpt-wizard
+.I gpt\-wizard
 attempts to guess based on the file name.
 .br
 Multiple flavors may be specified, separated by commas, e.g.,
 "flavor=gcc32dbg,gcc32".
 .br
-Options are passed to gpt-install or gpt-build, after expanding
+Options are passed to gpt\-install or gpt\-build, after expanding
 commas to blanks.
 .br
 Type: file name
@@ -440,8 +444,8 @@ Optional.  Multiple update packages may be specified.
 
 .IP PRE_POSTINSTALL
 An ugly kludge to specify a command to be executed before running
-gpt-postinstall.  So far, I have only used this on AIX to run
-mds-aix-relink.sh, which works around some AIX-specific libtool
+gpt\-postinstall.  So far, I have only used this on AIX to run
+mds\-aix\-relink.sh, which works around some AIX\-specific libtool
 problems.  Any occurrence of the string "BUILD_DIR" is replaced with
 the name of the temporary build directory.
 .br
@@ -471,9 +475,9 @@ Mandatory.
 A local directory in which to install the "var" and "tmp" directories and
 certain files under the "etc" directory.  If
 .B GLOBUS_LOCATION
-is on an NFS-mounted file system, the gatekeeper
+is on an NFS\-mounted file system, the gatekeeper
 (which runs as root) will often not be able to write to its log file,
-.IR $GLOBUS_LOCATION/var/globus-gatekeeper.log .
+.IR $GLOBUS_LOCATION/var/globus\-gatekeeper.log .
 Also, some files need to be unique for each system on which
 Globus services are running.  See Globus Bugzilla #660,
 .IR <http://bugzilla.globus.org/bugzilla/show_bug.cgi?id=660> .
@@ -489,7 +493,7 @@ Optional.
 .br
 Note: This replaces and generalizes the GLOBUS_VAR_DIRECTORY
 configuration variable from earlier versions of
-.IR gpt-wizard .
+.IR gpt\-wizard .
 
 .IP GLOBUS_HOSTNAME
 Set the environment variable
@@ -513,7 +517,7 @@ Optional.
 
 .IP GRID_MAPFILE
 The name of a file to be copied to
-.IR /etc/grid-security/grid-mapfile .
+.IR /etc/grid\-security/grid\-mapfile .
 This is a text file mapping Globus certificate subject names to Unix
 account names.  See the Globus documentation for more information.
 .br
@@ -524,7 +528,7 @@ Optional.
 .IP HOST_CERT
 The name of a file containing the Globus host certificate,
 also known as the gatekeeper certificate.  It will be copied to
-.IR /etc/grid-security/hostcert.pem .
+.IR /etc/grid\-security/hostcert.pem .
 .br
 Type: file name
 .br
@@ -533,7 +537,7 @@ Optional.
 .IP HOST_KEY
 The name of a file containing the Globus host private key, also known as
 the gatekeeper key.  It will be copied to
-.IR /etc/grid-security/hostkey.pem .
+.IR /etc/grid\-security/hostkey.pem .
 .br
 Type: file name
 .br
@@ -541,10 +545,10 @@ Optional.
 
 .IP LDAP_CERT
 The name of a file containing the Globus LDAP certificate, to be used
-for non-anonymous MDS queries (see the
-.I grid-info-search
+for non\-anonymous MDS queries (see the
+.I grid\-info\-search
 command).  It will be copied to
-.IR /etc/grid-security/ldap/ldapcert.pem .
+.IR /etc/grid\-security/ldap/ldapcert.pem .
 .br
 Type: file name
 .br
@@ -552,10 +556,10 @@ Optional.
 
 .IP LDAP_KEY
 The name of a file containing the Globus LDAP private key, to be used
-for non-anonymous MDS queries (see the
-.I grid-info-search
+for non\-anonymous MDS queries (see the
+.I grid\-info\-search
 command).  It will be copied to
-.IR /etc/grid-security/ldap/ldapkey.pem .
+.IR /etc/grid\-security/ldap/ldapkey.pem .
 .br
 Type: file name
 .br
@@ -593,7 +597,7 @@ This option is newly implemented; use with caution.
 .br
 Example:
 .br
-.B "	JOB_MANAGER pbs -cpu-per-node 2 -remote-shell ssh"
+.B "	JOB_MANAGER pbs \-cpu\-per\-node 2 \-remote\-shell ssh"
 .br
 Type: job_manager
 \.br
@@ -634,7 +638,7 @@ If any of these files are revealed, a malicious user could possibly
 masquerade as your system or as you.
 
 The file
-.I /etc/grid-security/grid-mapfile
+.I /etc/grid\-security/grid\-mapfile
 specifies the mapping of Globus subject names to user names.  This file
 can be publicly visible, but must be modifiable
 .B only
@@ -644,12 +648,12 @@ This section does not purport to be a complete summary of Globus
 security issues.  It may not even be entirely correct.
 
 The
-.I gpt-wizard
+.I gpt\-wizard
 command attempts to install files with the correct ownership and
 permissions, but does not otherwise deal directly with security issues.
-If you think you've found a security-related problem in
-.IR gpt-wizard ,
-please let me know as soon as possible by e-mail to
+If you think you've found a security\-related problem in
+.IR gpt\-wizard ,
+please let me know as soon as possible by e\-mail to
 .BR kst@sdsc.edu .
 
 .SH REFERENCES
@@ -669,16 +673,16 @@ See
 .IP NMI
 NMI, or NSF Middleware Infrastructure, is a project sponsored by the
 National Science Foundation.  The project packages and distributes Globus
-and other grid-related software components.
+and other grid\-related software components.
 .br
 See
-.IR <http://www.nsf-middleware.org> .
+.IR <http://www.nsf\-middleware.org> .
 
 .IP SDSC
 The San Diego Supercomputer Center,
 .IR <http://www.sdsc.edu> .
 The author of
-.I gpt-wizard
+.I gpt\-wizard
 works there.  Hi.
 
 .IP NCSA
@@ -688,13 +692,13 @@ GPT, the Grid Packaging Toolkit, was developed there.
 
 .SH EXIT STATUS
 The
-.I gpt-wizard
-command returns an exit status of zero if it succeeds, non-zero if
+.I gpt\-wizard
+command returns an exit status of zero if it succeeds, non\-zero if
 it fails.
 
 .SH BUGS
 The "TO DO" section in the
-.I gpt-wizard
+.I gpt\-wizard
 script itself includes a number of ideas for features that I intend
 to implement.  There are undoubtedly many other good ideas that I
 haven't thought of yet, and bugs that I haven't yet found.
@@ -703,7 +707,7 @@ This documentation would probably benefit from some outside review.
 If anything here is unclear, it's probably the author's fault, not
 the reader's fault.
 
-Please send any bug reports or suggestions to the author by e-mail.
+Please send any bug reports or suggestions to the author by e\-mail.
 
 .SH AUTHOR
 Keith Thompson, San Diego Supercomputer Center, kst@sdsc.edu
