@@ -1,7 +1,7 @@
-# $Id: uffda-globus-2.4.3-mpi-2004-02-27.gptw,v 1.1 2004-02-27 01:32:34-08 kst Exp $
+# $Id: uffda-globus-2.4.3-mpi-2004-02-27.gptw,v 1.2 2004-03-07 19:37:24-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-globus-2.4.3-mpi-2004-02-27.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin:/usr/local/apps/mpich-1.2.5.2/bin
 
@@ -55,4 +55,4 @@ UPDATE updates/globus_openssl-0.19.tar.gz    flavor=mpicc32dbg option=-static
 
 .PREFIX ~kst/repo.teragrid.org/open/mpich/1.2.5.2
 
-MPICH_G2 mpich-1.2.5.2.tar.gz flavor=mpicc32dbg install=mpich-g2-1.2.5.2
+MPICH-G2 mpich-1.2.5.2.tar.gz flavor=mpicc32dbg install=mpich-g2-1.2.5.2
