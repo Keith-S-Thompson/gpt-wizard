@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.106 2002-10-31 17:35:06-08 kst Exp $
+# $Id: gpt-wizard,v 1.107 2002-10-31 19:17:42-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -70,7 +70,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.106 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.107 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -111,6 +111,7 @@ $SIG{__DIE__} = \&Die_Handler;
 my $temp_file_serial_number = 0;
 my @manual_steps = ();
 my %Bundle_Kind = ();
+my %Bundle_Option = ();
 my %Bundle_Flavor = ();
 
 Usage if scalar @ARGV != 1;
@@ -387,6 +388,9 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
         }
         if ($GPT_Install_Only) {
             push @options, '-install-only';
+        }
+        if (defined $Bundle_Option{$bundle}) {
+            push @options, split(',', $Bundle_Option{$bundle});
         }
 
         my @flavors = ();
@@ -844,15 +848,18 @@ sub Get_Config($) {
             #     kind=binary
             #     kind=source
             #     flavor=<string>
+            #     option=<string>
             # Multiple flavors may be specified, separated by commas, e.g.:
             #     flavor=gcc32dbg,gcc32
-            # Attributes names and values are case-insensitive (at least
-            # for now).
+            # Options are passed to gpt-install or gpt-build.
+            # Multiple options may be specified, separated by commas, e.g.:
+            #     -update,-std-flavors
             #
             if ($name eq 'BUNDLE') {
                 my $filename = undef;
                 my $kind = undef;
                 my $flavor = undef;
+                my $option = undef;
 
                 foreach my $field (split /\s+/, $value) {
                     if (lc $field =~ /^kind=(.*)$/) {
@@ -872,10 +879,22 @@ sub Get_Config($) {
                     }
                     elsif (lc $field =~ /^flavor=(.*)$/) {
                         if (defined $flavor) {
-                            push @errors, "Duplicate flavor, line $.\n";
+                            push @errors,
+                                 "Duplicate flavor, line $." .
+                                 " (use \"flavor=$flavor,$1\")\n";
                         }
                         else {
                             $flavor = $1;
+                        }
+                    }
+                    elsif (lc $field =~ /^option=(.*)$/) {
+                        if (defined $option) {
+                            push @errors,
+                                 "Duplicate option, line $." .
+                                 " (use \"option=$option,$1\")\n";
+                        }
+                        else {
+                            $option = $1;
                         }
                     }
                     elsif ($field =~ /^(\w+)=/) {
@@ -892,7 +911,8 @@ sub Get_Config($) {
                         }
                     }
                     $value = $filename;
-                    $Bundle_Kind{$value} = $kind if defined $kind;
+                    $Bundle_Kind{$value}   = $kind   if defined $kind;
+                    $Bundle_Option{$value} = $option if defined $option;
                     $Bundle_Flavor{$value} = $flavor if defined $flavor;
 
                     #
@@ -1332,6 +1352,9 @@ sub Download_Files(@) {
             }
             if (defined $Bundle_Kind{$$ref}) {
                 $Bundle_Kind{$target_file} = $Bundle_Kind{$$ref};
+            }
+            if (defined $Bundle_Option{$$ref}) {
+                $Bundle_Option{$target_file} = $Bundle_Option{$$ref};
             }
             if (defined $Bundle_Flavor{$$ref}) {
                 $Bundle_Flavor{$target_file} = $Bundle_Flavor{$$ref};
