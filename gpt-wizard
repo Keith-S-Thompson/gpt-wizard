@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.103 2002-10-30 18:43:55-08 kst Exp $
+# $Id: gpt-wizard,v 1.104 2002-10-31 13:19:53-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -70,7 +70,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.103 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.104 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -391,16 +391,16 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
 
         my @flavors = ();
         if (defined $Bundle_Flavor{$bundle}) {
-            @flavors = split /,/, @flavors;
+            @flavors = split /,/, $Bundle_Flavor{$bundle};
         }
         elsif ($bundle_name =~ /^globus/) {
+            my $mpi = $Config{USE_MPI} ? 'mpi' : '';
             if ($bundle_name =~ /^globus_information/) {
-                push @flavors, "$Config{CC}$Sys{BITS}dbgpthr";
+                push @flavors, "$Config{CC}$Sys{BITS}dbgpthr$mpi";
             }
             else {
-                push @flavors, "$Config{CC}$Sys{BITS}dbg";
+                push @flavors, "$Config{CC}$Sys{BITS}dbg$mpi";
             }
-            $flavors[$#flavors] .= 'mpi' if $Config{USE_MPI};
         }
         else {
             push @options, '-std-flavors';
