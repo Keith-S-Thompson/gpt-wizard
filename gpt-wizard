@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.218 2003-12-16 16:33:19-08 kst Exp $
+# $Id: gpt-wizard,v 1.219 2003-12-16 22:03:58-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -198,7 +198,7 @@ my $Release_Revision = '1.211'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.218 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.219 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1430,8 +1430,19 @@ sub Get_Config($) {
             if ($name eq '.PREFIX') {
                 $default_prefix = $value;
             }
+
             elsif (defined $Var_Info{$name}) {
                 my $Var = $Var_Info{$name};
+
+                #
+                # Expand ~username at the beginning of the string.
+                # Assume a username consists of one or more word
+                # characters or hyphens.
+                #
+                # This substitution does not occur for URLs (since URLs
+                # can't start with '~').
+                #
+                $value =~ s/^~[\w-]+/Expand_Tilde $&/e;
 
                 if ($Var->{type} eq 'file' or
                     $Var->{type} eq 'file_or_url' or
@@ -1533,16 +1544,6 @@ sub Get_Config($) {
                     }
                 }
 
-                #
-                # Expand ~username at the beginning of the string.
-                # Assume a username consists of one or more word
-                # characters or hyphens.
-                #
-                # This substitution does not occur for URLs (since URLs
-                # can't start with '~').
-                #
-                $value =~ s/^~[\w-]+/Expand_Tilde $&/e;
-
                 if ($Var->{type} =~ /^array_of/) {
                     push @{$Var->{value}}, $value;
                 }
@@ -1556,6 +1557,7 @@ sub Get_Config($) {
                     }
                 }
             }
+
             else {
                 push @errors, "Unrecognized option \"$name\" at line $.\n"
             }
@@ -1610,10 +1612,6 @@ sub Get_Config($) {
         #
         elsif ($var->{type} eq 'existing_directory') {
             my $dir = $var->{value};
-            #
-            # Expand ~username at the beginning of the string.
-            #
-            $dir =~ s/^~[\w-]+/Expand_Tilde $&/e;
             if ($dir !~ /^\//) {
                 push @errors, "$varname directory \"$dir\", " .
                               "relative path not allowed\n";
@@ -1630,10 +1628,6 @@ sub Get_Config($) {
         #
         elsif ($var->{type} eq 'new_directory') {
             my $dir = $var->{value};
-            #
-            # Expand ~username at the beginning of the string.
-            #
-            $dir =~ s/^~[\w-]+/Expand_Tilde $&/e;
             if ( $AIX_Kludge and
                  ( ( $varname eq 'GPT_LOCATION' ) or
                    ( $varname eq 'GLOBUS_LOCATION' and 
