@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.227 2004-02-11 21:57:45-08 kst Exp $
+# $Id: gpt-wizard,v 1.228 2004-02-11 22:01:11-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -194,7 +194,7 @@ my $Release_Revision = '1.221'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.227 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.228 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1405,15 +1405,14 @@ sub Get_Config($) {
                     if ($value =~ m<^(ftp|http)://>) {
                         push @errors, "URLs are no longer supported, line $.\n";
                     }
-
-
                     #
                     # Prepend the default prefix (if any) only if the
                     # value is a relative pathname.
                     #
-                    if ($value !~ m<^/> and defined $default_prefix) {
+                    elsif ($value !~ m<^/> and defined $default_prefix) {
                         $value = "$default_prefix/$value";
                     }
+
                     #
                     # Bundles and updates may have additional attributes
                     # specified on the same line.  Recognized attributes
