@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.243 2004-02-23 13:12:15-08 kst Exp $
+# $Id: gpt-wizard,v 1.244 2004-02-23 14:55:21-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -147,13 +147,12 @@
 #     go insane when I feed it a multi-megabyte log file rather than a
 #     config file).
 #
-#     Optionally build and install mpich-g2.
-#
 #     gpt-build has an option:
 #         -installdir=path_to_installation  Override $GLOBUS_LOCATION
 #     gpt-install has the same thing.
 #     Add support for this.
 #     (Actually, you can do it now with "option=-installdir=...")
+#     [later] I tried this with myproxy, and it failed.
 #
 
 require 5.004;
@@ -202,7 +201,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.243 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.244 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1174,6 +1173,66 @@ if (-d "$Config{GLOBUS_LOCATION}/etc/ssh") {
          "with symbolic links to the system ssh keys in /etc or /etc/ssh\n";
 }
 
+########################################
+# Build and install MPICH-G2 if specified
+########################################
+if (defined $Config{MPICH_G2}) {
+    my $ref = $Config{MPICH_G2};
+    my $filename = $ref->{filename};
+    my $install_dir = $ref->{install};
+    my $flavor = $ref->{flavor};
+    my $arch = undef;
+    $arch = $ref->{arch} if defined $ref->{arch};
+
+    if ($install_dir !~ /^\//) {
+        $install_dir = "$Config{GLOBUS_LOCATION}/$install_dir";
+    }
+
+    opendir DIR, '.' or die ".: $!\n";
+    my @files_before = readdir DIR;
+    closedir DIR;
+    my %already_existed = map { $_ => 1 } @files_before;
+
+    Execute @As_Installer, '/bin/sh', '-c',
+            "$gzip -d < $ref->{filename} | $tar xf -";
+
+    opendir DIR, '.' or die ".: $!\n";
+    my @files_after = readdir DIR;
+    closedir DIR;
+
+    my @new_files = ();
+    foreach my $file (@files_after) {
+        push @new_files, $file if not $already_existed{$file};
+    }
+
+    if (scalar @new_files == 0) {
+        die "Can't determine MPICH source directory, " .
+            "tar didn't create anything\n";
+    }
+    elsif (scalar @new_files == 1) {
+        my $src_dir = $new_files[0];
+        print "% cd $working_dir/$src_dir\n";
+        chdir "$working_dir/$src_dir" or die "$working_dir/$src_dir: $!\n";
+    }
+    else {
+        die "Can't determine MPICH source directory, tar created (@new_files)\n";
+    }
+
+    my @configure_args = ( "-device=globus2:-flavor=$ref->{flavor}" );
+    if (defined $ref->{arch}) {
+        push @configure_args, "-arch=$ref->{arch}";
+    }
+    push @configure_args, "-prefix=$install_dir";
+    Execute @As_Installer, './configure', @configure_args;
+    Execute @As_Installer, 'make';
+    Execute @As_Installer, 'make', 'install';
+
+
+}
+
+########################################
+# Final checking and setup
+########################################
 if (-d "$Config{GLOBUS_LOCATION}/var/condor") {
     #
     # We installed Condor-G.
@@ -1399,6 +1458,8 @@ sub Get_Config($) {
             { type => 'batch_system', required => 0 },
         JOB_MANAGER =>
             { type => 'job_manager', required => 0 },
+        MPICH_G2 =>
+            { type => 'mpich_g2', required => 0 },
         CA_CERT_TARBALL =>
             { type => 'file', required => 0 }
     );
@@ -1435,7 +1496,7 @@ sub Get_Config($) {
             # on actual options after they're expanded.
             #
             # This expansion is performed only for options of type 'file',
-            # and 'array_of_bundle'.
+            # 'array_of_bundle', and 'mpich_g2'.
             # 
             if ($name eq '.PREFIX') {
                 $default_prefix = $value;
@@ -1445,7 +1506,8 @@ sub Get_Config($) {
                 my $Var = $Var_Info{$name};
 
                 if ($Var->{type} eq 'file' or
-                    $Var->{type} eq 'array_of_bundle')
+                    $Var->{type} eq 'array_of_bundle' or
+                    $Var->{type} eq 'mpich_g2')
                 {
                     #
                     # URLs are no longer supported
@@ -1478,11 +1540,15 @@ sub Get_Config($) {
                     # commas, e.g.:
                     #     -update,-std-flavors
                     #
-                    if ($Var->{type} eq 'array_of_bundle') {
-                        my $filename = undef;
-                        my $kind     = undef;
-                        my $flavor   = undef;
-                        my $option   = undef;
+                    if ($Var->{type} eq 'array_of_bundle' or
+                        $Var->{type} eq 'mpich_g2')
+                    {
+                        my $filename = undef; # array_of_bundle and mpich_g2
+                        my $kind     = undef; # array_of_bundle only
+                        my $flavor   = undef; # array_of_bundle and mpich_g2
+                        my $option   = undef; # array_of_bundle only
+                        my $install  = undef; # mpich_g2 only
+                        my $arch     = undef; # mpich_g2 only
 
                         foreach my $field (split /\s+/, $value) {
                             if (lc $field =~ /^kind=(.*)$/) {
@@ -1524,6 +1590,24 @@ sub Get_Config($) {
                                     $option = $1;
                                 }
                             }
+                            elsif (lc $field =~ /^install=(.*)$/) {
+                                if (defined $install) {
+                                    push @errors,
+                                         "Duplicate install attr, line $.\n";
+                                }
+                                else {
+                                    $install = $1;
+                                }
+                            }
+                            elsif (lc $field =~ /^arch=(.*)$/) {
+                                if (defined $arch) {
+                                    push @errors,
+                                         "Duplicate arch, line $.\n";
+                                }
+                                else {
+                                    $option = $1;
+                                }
+                            }
                             elsif ($field =~ /^(\w+)=/) {
                                 push @errors,
                                      "Unrecognized attribute \"$1\", line $.\n";
@@ -1538,13 +1622,70 @@ sub Get_Config($) {
                                     $filename = $field;
                                 }
                             }
-                            $value = {};
-                            $value->{filename}  = $filename;
-                            $value->{kind}      = $kind   if defined $kind;
-                            $value->{option}    = $option if defined $option;
-                            $value->{flavor}    = $flavor if defined $flavor;
-                            $value->{is_update} = 1 if $name eq 'UPDATE';
                         }
+                        #
+                        # Check for errors in attributes.
+                        #
+                        if ($Var->{type} eq 'array_of_bundle') {
+                            if (defined $install) {
+                                push @errors, "install attribute may not be " .
+                                              "defined for bundles\n";
+                            }
+                            if (defined $arch) {
+                                push @errors, "arch attribute may not be " .
+                                              "defined for bundles\n";
+                            }
+                        }
+                        elsif ($Var->{type} eq 'mpich_g2') {
+                            if (defined $kind) {
+                                push @errors, "kind attribute may not be " .
+                                              "defined for MPICH_G2\n";
+                            }
+                            if (defined $option) {
+                                push @errors, "option attribute may not be " .
+                                              "defined for MPICH_G2\n";
+                            }
+                            if (not defined $filename) {
+                                push @errors, "Missing filename for MPICH_G2\n";
+                            }
+                            if (defined $flavor) {
+                                if ($flavor =~ /,/) {
+                                    push @errors,
+                                         "Only one flavor may be specified " .
+                                         "for MPICH_G2\n";
+                                }
+                            }
+                            else {
+                                push @errors, "Missing flavor for MPICH_G2\n";
+                            }
+                            if (defined $install) {
+                                if ($install =~ /^\//) {
+                                    # ok, absolute path
+                                }
+                                elsif ($install =~ /\//) {
+                                    # A relative path is ok, but
+                                    # the depth cannot exceed 1 (no
+                                    # recursive mkdir).
+                                    push @errors,
+                                         "Relative path for MPICH_G2 " .
+                                         "can be at most one level deep\n";
+                                }
+                            }
+                            else {
+                                push @errors, "Missing install attr for MPICH_G2\n";
+                            }
+                        }
+                        else {
+                            die "Internal error, type = $Var->{type}";
+                        }
+                        $value = {};
+                        $value->{filename}  = $filename;
+                        $value->{kind}      = $kind    if defined $kind;
+                        $value->{option}    = $option  if defined $option;
+                        $value->{flavor}    = $flavor  if defined $flavor;
+                        $value->{install}   = $install if defined $install;
+                        $value->{arch}      = $arch    if defined $arch;
+                        $value->{is_update} = 1 if $name eq 'UPDATE';
                     }
                 }
 
@@ -1797,6 +1938,17 @@ sub Get_Config($) {
             #
         }
 
+        elsif ($var->{type} eq 'mpich_g2') {
+            #
+            # For now, treat all the arguments as a single string.
+            # We'll split it into words when we use it; the first word
+            # is the name of the mpich tarball, other arguments specify
+            # attributes.
+            #
+            # Later, we'll do more checking here.
+            #
+        }
+
         else {
             #
             # The missing "\n" in the error message is deliberate.
@@ -1869,6 +2021,13 @@ sub Get_Config($) {
                 else {
                     print "        \"$elem\"\n";
                 }
+            }
+            print "    }\n";
+        }
+        elsif (ref $value eq 'HASH') {
+            printf "    %-20s => {\n", $key;
+            foreach my $subkey (sort keys %$value) {
+                printf "        %-8s => %s\n", $subkey, $value->{$subkey};
             }
             print "    }\n";
         }
