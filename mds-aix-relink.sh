@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $Id: mds-aix-relink.sh,v 1.5 2002-12-07 02:24:35-08 kst Exp $
+# $Id: mds-aix-relink.sh,v 1.6 2002-12-07 02:26:33-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/mds-aix-relink.sh,v $
 
 #
@@ -45,9 +45,9 @@ while [ "$#" -ne 0 ]; do
                 if [ -n "$build_dir" ] ; then
                     Usage "Error: -builddir specified twice"
                 else
-                    builddir="$2"
+                    build_dir="$2"
+		    shift
                 fi
-                shift
             else
                 Usage "Error: -builddir requires an argument"
             fi
@@ -59,8 +59,8 @@ while [ "$#" -ne 0 ]; do
                     Usage "Error: -compiler specified twice"
                 else
                     compiler="$2"
+		    shift
                 fi
-                shift
             else
                 Usage "Error: -compiler requires an argument"
             fi
@@ -72,8 +72,8 @@ while [ "$#" -ne 0 ]; do
                     Usage "Error: -flavor specified twice"
                 else
                     flavor="$2"
+		    shift
                 fi
-                shift
             else
                 Usage "Error: -flavor requires an argument"
             fi
