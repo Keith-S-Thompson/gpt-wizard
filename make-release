@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: make-release,v 1.2 2003-04-01 17:04:48-08 kst Exp $
+# $Id: make-release,v 1.3 2003-04-01 17:32:42-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/make-release,v $
 
 use strict;
@@ -198,7 +198,7 @@ sub Edit_File($) {
     my $release_revision = $Info->{$file}->{next_revision};
 
     my($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst)
-	= localtime time;
+        = localtime time;
     my $today = sprintf "%04d-%02d-%02d", $year+1900, $mon+1, $mday;
 
     open IN, "$file" or die "${file}: $!\n";
@@ -221,12 +221,12 @@ sub Edit_File($) {
         }
 
         elsif ($file eq 'gpt-wizard.1') {
-            if (/^(This documentation is for release) .* (of.*)$/) {
+            if (/^(\.TH GPT-WIZARD 1) \d\d\d\d-\d\d-\d\d (.*)$/) {
+                $_ = "$1 $today $2\n";
+            }
+            elsif (/^(This documentation is for release) .* (of.*)$/) {
                 $_ = "$1 $release_number $2\n";
             }
-	    elsif (/^(\.TH GPT_WIZARD 1) \d\d\d\d-\d\d-\d\d (.*)$/) {
-		$_ = "$1 $today $2\n";
-	    }
         }
 
         print OUT;
