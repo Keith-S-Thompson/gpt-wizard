@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.203 2003-06-02 17:14:15-07 kst Exp $
+# $Id: gpt-wizard,v 1.204 2003-06-02 18:14:36-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -191,7 +191,7 @@ my $Release_Revision = '1.202'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.203 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.204 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -2035,7 +2035,7 @@ sub Download_Files(@) {
                 $changed_dir = 1;
 
                 Execute @As_Installer,
-                        'wget', '-o', '/dev/null', $name;
+                        $wget, '-o', '/dev/null', $name;
                 if (not -e $target_file) {
                     die "Download failed for $target_file (no file)\n";
                 }
