@@ -1,4 +1,4 @@
-# $Id: Issues,v 1.2 2002-11-21 09:55:45-08 kst Exp $
+# $Id: Issues,v 1.3 2002-11-21 10:27:45-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/Issues,v $
 
 AIX: Obscure failure invoking build_gpt from install_nmi.  Somewhere in
@@ -8,8 +8,12 @@ accept a "-e".  Workaround: Build GPT manually, then use "install-nmi
 so both real and effective uids are non-root.  The current stopgap
 solution is the USE_SDSC_SU config option
 
-"gpt-build -std-flavors" seems to default to gcc flavors; COMPILER
-in config file is ignored.
+"gpt-build -std-flavors" seems to default to gcc flavors; COMPILER in
+config file is ignored.  CORRECTION: On AIX, it uses *both* gcc and
+vendorcc.  The flavors installed are {gcc,vendorcc}32{,dbg}{,pthr} --
+which is undoubtedly why the build takes so bloody long.  (But yes,
+$Config{COMPILER} is ignored as is $Config{USE_MPI} -- which is
+probably ok.)
 
 NMI 2.1 release was modified on the FTP site after it was released
 and announced.  Appropriate flamage delivered.
