@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.20 2002-08-12 20:05:47-07 kst Exp $
+# $Id: gpt-wizard,v 1.21 2002-08-12 20:33:26-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -27,8 +27,8 @@ sub Debug(@);
 sub Usage(@);
 
 my $Prog_Name = File::Basename::basename $0;
-my $Revision = '$Revision: 1.20 $';
-if ($Revision =~ /^\$Revision: 1.20 $$/) {
+my $Revision = '$Revision: 1.21 $';
+if ($Revision =~ /^\$Revision: 1.21 $$/) {
     $Revision = $1;
 }
 my $Help = undef;
@@ -155,10 +155,10 @@ Execute @As_Root,
         'tar', 'zxf', $Config{CA_CERT_TARBALL};
 
 Execute @As_Installer,
-        'cp', $Config{LDAP_CERT}, "$ENV{Globus_Location}/etc/server.cert";
+        'cp', $Config{LDAP_CERT}, "$ENV{GLOBUS_LOCATION}/etc/server.cert";
 Execute @As_Installer,
-        'cp', $Config{LDAP_KEY}, "$ENV{Globus_Location}/etc/server.key";
-chmod 0400, "$ENV{Globus_Location}/etc/server.key";
+        'cp', $Config{LDAP_KEY}, "$ENV{GLOBUS_LOCATION}/etc/server.key";
+chmod 0400, "$ENV{GLOBUS_LOCATION}/etc/server.key";
 
 opendir DIR, $Config{XINETD_DIR} or die "$Config{XINETD_DIR}: $!\n";
 my @files = grep { $_ ne '.' and $_ ne '..' } sort readdir DIR;
@@ -272,7 +272,7 @@ sub Get_Config($) {
         die @errors;
     }
 
-    if ($Result{FILE_REVISION} =~ /^\$Revision: 1.20 $$/) {
+    if ($Result{FILE_REVISION} =~ /^\$Revision: 1.21 $$/) {
         $Result{FILE_REVISION} = $1;
     }
 
