@@ -1,7 +1,7 @@
-# $Id: dtf-test2.sdsc.teragrid.org-globus-3.2.1-gcc-test4.gptw,v 1.1 2004-07-28 17:02:40-07 kst Exp $
+# $Id: dtf-test2.sdsc.teragrid.org-globus-3.2.1-gcc-test4.gptw,v 1.2 2004-07-29 01:03:21-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-3.2.1-gcc-test4.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin:/opt/torque/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/gnu/ssh/bin
 
@@ -79,4 +79,4 @@ JOB_MANAGER pbs -cpu-per-node 2 -remote-shell ssh
 # Build and install MPICH-G2
 #
 .PREFIX /work/kst/repo.teragrid.org/open/mpich/1.2.5.3
-MPICH-G2 mpich-1.2.5.3.tar.gz flavor=mpicc64dbg install=mpich-g2-1.2.5.2
+MPICH-G2 mpich-1.2.5.3.tar.gz flavor=mpicc64dbg install=mpich-g2-1.2.5.3
