@@ -1,0 +1,23 @@
+# $Id: ocisp3.unizh.ch.edu-nmi-5.1-bin-test2.gptw,v 1.1 2004-09-21 19:44:20-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ocisp3.unizh.ch/ocisp3.unizh.ch.edu-nmi-5.1-bin-test2.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+.PARAM NMI_DIR /u/kst/NMI/5.1
+.PARAM APPS_DIR /u/kst/apps/powerpc-ibm-aix5.2.0.0
+.PARAM VAR_DIR /u/kst/var
+.PARAM GLOBUS_SUBDIR nmi-5.1-bin-test2
+
+PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
+
+TEMP_DIR /u/kst/tmpdir     # not enough room in /tmp
+
+GLOBUS_LOCATION       $APPS_DIR/$GLOBUS_SUBDIR
+GLOBUS_LOCAL_DIRECTORY $VAR_DIR/$GLOBUS_SUBDIR
+
+GPT_TARBALL $NMI_DIR/tools/gpt-3.2-src.tar.gz
+
+BUNDLE $NMI_DIR/aix-52/gpt-bundles/individual-components/globus-NMI-5.1-aix-powerpc-5.2-bin.tar.gz  kind=binary
+BUNDLE $NMI_DIR/aix-52/gpt-bundles/individual-components/myproxy-NMI-5.1-aix-powerpc-5.2-bin.tar.gz kind=binary
+BUNDLE $NMI_DIR/aix-52/gpt-bundles/individual-components/uberftp-NMI-5.1-aix-powerpc-5.2-bin.tar.gz kind=binary
+BUNDLE $NMI_DIR/aix-52/gpt-bundles/individual-components/condor-NMI-5.1-aix-powerpc-5.2-bin.tar.gz  kind=binary
