@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.264 2004-03-15 17:50:26-08 kst Exp $
+# $Id: gpt-wizard,v 1.265 2004-03-15 18:06:19-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -187,7 +187,7 @@ my $Release_Revision = '1.264'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.264 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.265 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -302,7 +302,7 @@ exit 0 if $Opt{'validate-only'};
 
 if ($Config{IS_UPDATE}) {
     push @manual_steps, <<EOF;
-The "IS_UPDATE" configuration variable is still under development
+The "IS_UPDATE" configuration option is still under development
 Read the following instructions with caution.
 Some of them may refer to things that have already been done.
 EOF
@@ -312,7 +312,7 @@ my $Temp_Dir = undef;
 if (defined $Opt{'temp-dir'}) {
     if (defined $Config{TEMP_DIR} and $Config{TEMP_DIR} ne $Opt{'temp-dir'}) {
         push @manual_steps, <<"EOF";
-Note: The TEMP_DIR configuration variable "$Config{TEMP_DIR}"
+Note: The TEMP_DIR configuration option "$Config{TEMP_DIR}"
 was overridden by the -temp-dir command-line option "$Opt{'temp-dir'}"
 EOF
     }
@@ -1471,7 +1471,7 @@ sub Get_Config($) {
 
     #
     # %Var_Info is a hash of hash references.
-    # Each element is basically a declaration for a configuration variable.
+    # Each element is basically a declaration for a configuration option.
     # This information is used for validity checking, and is local
     # to Get_Config.
     #
@@ -1539,7 +1539,7 @@ sub Get_Config($) {
     print "Getting configuration from $config_file\n";
 
     #
-    # Read config variables from config file.
+    # Read configuration options from config file.
     # Check for duplicate entries, unrecognized names, and syntax errors.
     #
     open CONFIG, $config_file or die "$config_file: $!\n";
@@ -1779,7 +1779,7 @@ sub Get_Config($) {
     close CONFIG;
 
     #
-    # Validate each variable, depending on its type.
+    # Validate each option, depending on its type.
     #
     VAR:
     foreach my $varname (sort keys %Var_Info) {
@@ -3034,7 +3034,7 @@ sub Manual_Steps_Text(@) {
 # ----------------------------------------------------------------------
 
 #
-# If a configuration variable has been specified for the command, return
+# If a configuration option has been specified for the command, return
 # its value; otherwise search for it in $PATH.
 #
 sub Find_Command($$) {
@@ -3102,7 +3102,7 @@ Option names may be abbreviated uniquely.
     -version            Display version information and exit.
     -validate-only      Validate the configuration file and exit.
     -temp-dir <dir>     Parent directory for the temporary build directory.
-                        Default is /tmp or the TEMP_DIR configuration variable.
+                        Default is /tmp or the TEMP_DIR configuration option.
     -cleanup            Delete temporary directory on completion (default).
     -postinstall        Run gpt-postinstall (default).
     -startup            Update system files and start services
