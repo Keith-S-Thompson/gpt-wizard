@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.102 2002-10-30 18:41:47-08 kst Exp $
+# $Id: gpt-wizard,v 1.103 2002-10-30 18:43:55-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -70,7 +70,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.102 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.103 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -357,7 +357,7 @@ foreach my $bundle ( @{$Config{BUNDLE}} ) {
     if (defined $Bundle_Kind{$bundle}) {
         if ($Bundle_Kind{$bundle} eq 'source') {
             $is_source = 1;
-	}
+        }
         elsif ($Bundle_Kind{$bundle} eq 'binary') {
             $is_source = 0;
         }
@@ -860,7 +860,7 @@ sub Get_Config($) {
                             push @errors, "Duplicate kind, line $.\n";
                         }
                         else {
-                            if ($kind eq 'binary' or $kind eq 'source') {
+                            if ($1 eq 'binary' or $1 eq 'source') {
                                 $kind = $1;
                             }
                             else {
