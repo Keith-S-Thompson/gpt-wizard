@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.7 2002-08-09 19:53:08-07 kst Exp $
+# $Id: gpt-wizard,v 1.8 2002-08-09 19:56:31-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 use strict;
@@ -9,11 +9,14 @@ use File::Basename ();
 use Getopt::Long ();
 use POSIX ();
 
-sub Usage(@);
-sub Make_Temp_File($);
-sub Execute(@);
-sub Time_Image();
+sub Get_Config($);
+sub Substitute($);
 sub Elapsed_Time_Image($);
+sub Time_Image();
+sub Make_Temp_File($);
+sub Get_Result($$);
+sub Execute(@);
+sub Usage(@) {  
 
 my $Prog_Name = File::Basename::basename $0;
 my $temp_file_serial_number = 0;
