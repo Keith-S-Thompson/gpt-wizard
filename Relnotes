@@ -1,7 +1,14 @@
-$Id: Relnotes,v 1.12 2004-03-15 17:50:24-08 kst Exp $
+$Id: Relnotes,v 1.13 2004-03-15 18:09:21-08 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.7.0 to release 0.7.1:
+
+    Fixed a couple of typos.
+
+    Made the terminology more consistent: We refer to "configuration
+    options", not "configuration variables".
 
 Changes from release 0.6.1 to release 0.7.0:
 
