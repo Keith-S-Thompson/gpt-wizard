@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.74 2002-10-01 11:37:16-07 kst Exp $
+# $Id: gpt-wizard,v 1.75 2002-10-01 18:32:55-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -62,8 +62,10 @@ sub Usage(@);
 #
 $SIG{__WARN__} = sub { die @_ };
 
+$| = 1;
+
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.74 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.75 $';
 my $Help              = undef;
 my $Debugging         = undef;
 my $Cleanup           = 1;
@@ -134,8 +136,6 @@ if ($@) {
 if ($< != 0) {
     die ">>> $Prog_Name must be run as root\n";
 }
-
-$| = 1;
 
 ########################################################################
 # Create a temporary working directory and set some variables.
