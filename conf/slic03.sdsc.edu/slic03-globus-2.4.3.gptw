@@ -1,0 +1,55 @@
+# $Id: slic03-globus-2.4.3.gptw,v 1.1 2004-05-20 20:21:23-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/slic03.sdsc.edu/slic03-globus-2.4.3.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin:/usr/apps/pbs/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3
+
+#
+# Use the latest beta GPT release
+#
+.PREFIX ~kst/Globus/2.4.3/gpt
+GPT_TARBALL gpt-3.0.1-src.tar.gz
+
+#
+# Build Globus 2.4.3 from source.
+#
+.PREFIX ~kst/Globus/2.4.3/bundles/src
+BUNDLE globus-information-services-client-2.4.3-src_bundle.tar.gz     kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-sdk-2.4.3-src_bundle.tar.gz        kind=source flavor=gcc32dbgpthr
+BUNDLE globus-information-services-server-2.4.3-src_bundle.tar.gz     kind=source flavor=gcc32dbgpthr
+
+BUNDLE globus-data-management-client-2.4.3-src_bundle.tar.gz          kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-sdk-2.4.3-src_bundle.tar.gz             kind=source flavor=gcc32dbg
+BUNDLE globus-data-management-server-2.4.3-src_bundle.tar.gz          kind=source flavor=gcc32dbg
+
+BUNDLE globus-resource-management-client-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-sdk-2.4.3-src_bundle.tar.gz         kind=source flavor=gcc32dbg
+BUNDLE globus-resource-management-server-2.4.3-src_bundle.tar.gz      kind=source flavor=gcc32dbg
+
+#
+# Apply all current updates
+.PREFIX ~kst/Globus/2.4.3/updates/src
+UPDATE globus_common-3.17.tar.gz
+UPDATE globus_ftp_client-1.10.tar.gz
+UPDATE globus_ftp_control-1.11.tar.gz
+UPDATE globus_gridftp_server-1.12.tar.gz
+UPDATE globus_ldapmodules-0.14.tar.gz
+UPDATE globus_openldap-0.9.tar.gz
+UPDATE globus_openssl-0.20.tar.gz
+
+#
+# globus_gram_reporter and PBS support
+#
+.PREFIX ~kst/Globus/2.4.3/extra/src
+BUNDLE globus_gram_job_manager_setup_pbs-1.5.tar.gz                kind=source flavor=gcc32dbg
+BUNDLE globus_gram_reporter-2.0.tar.gz                             kind=source flavor=gcc32dbg
+BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz                  kind=source flavor=gcc32dbg
+BUNDLE globus_gram_reporter_setup_pbs-1.0.tar.gz                   kind=source flavor=gcc32dbg
+
+#
+# Configure PBS jobmanager
+#
+JOB_MANAGER pbs -cpu-per-node 2 -remote-shell ssh
