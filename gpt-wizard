@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.213 2003-08-15 17:57:34-07 kst Exp $
+# $Id: gpt-wizard,v 1.214 2003-10-07 15:13:16-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -144,6 +144,12 @@
 #
 #     Support adding updates to an existing installation.
 #
+#     Allow a bundle to be built with different options for different
+#     flavors (e.g., use "-static" only for an mpi flavor).
+#
+#     For updates, figure out how to apply options (particularly
+#     "-static") depending on how the package was initially built.
+#
 
 require 5.004;
 
@@ -194,7 +200,7 @@ my $Release_Revision = '1.211'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.213 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.214 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -2244,7 +2250,11 @@ sub Get_Update_Flavors($) {
     open PIPE, "$ENV{GLOBUS_LOCATION}/sbin/gpt-query $module_name |";
     while (<PIPE>) {
         chomp;
-        next if not /ver:/;
+        #
+        # The gpt-query output format changed around gpt release 3.0.
+        #
+
+        next if not /ver:/ and not /pkg version:/;
         #
         # Strip leading whitespace and grab first word.
         #
