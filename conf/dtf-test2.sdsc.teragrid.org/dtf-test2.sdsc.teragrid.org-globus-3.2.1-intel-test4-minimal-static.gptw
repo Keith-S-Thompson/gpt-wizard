@@ -1,0 +1,20 @@
+# $Id: dtf-test2.sdsc.teragrid.org-globus-3.2.1-intel-test4-minimal-static.gptw,v 1.1 2004-08-11 19:45:21-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/dtf-test2.sdsc.teragrid.org/dtf-test2.sdsc.teragrid.org-globus-3.2.1-intel-test4-minimal-static.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin:/usr/local/apps/intel/compiler8/bin:/usr/local/apps/mpich/1.2.5..10/gm-2.0.8_Linux-2.4.19-SMP-ia64/smp/intel64/ssh/bin
+ENV INTEL_LICENSE_FILE=/usr/local/apps/intel/compiler8/licenses
+ENV LD_LIBRARY_PATH=/usr/local/apps/intel/compiler8/lib
+
+GLOBUS_LOCATION /work/globus/apps/globus-3.2.1-intel-test4-minimal-static
+
+.PREFIX /work/kst/repo.teragrid.org/open/gpt/3.2
+GPT_TARBALL gpt-3.2-src.tar.gz
+
+#
+# Build Globus 3.2.1 from source
+# For this test, build only one bundle.
+#
+.PREFIX /work/kst/Globus/3.2.1/bundles/src
+BUNDLE globus-resource-management-sdk-3.2.1-src_bundle.tar.gz kind=source flavor=mpicc64dbg option=-static
