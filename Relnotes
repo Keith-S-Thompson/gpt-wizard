@@ -1,0 +1,12 @@
+$Id: Relnotes,v 1.1 2003-01-27 16:03:31-08 kst Exp $
+$Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
+
+Release notes for gpt-wizard
+
+Changes from release 0.1 to release 0.1.1:
+
+    Added -version option
+
+    Disabled obsolete -gpt-log option.
+
+    Updated explanation of option parsing.
