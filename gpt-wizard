@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.90 2002-10-18 03:48:16-07 kst Exp $
+# $Id: gpt-wizard,v 1.91 2002-10-18 10:09:32-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 #
@@ -62,7 +62,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.90 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.91 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -421,7 +421,9 @@ if (defined $Config{GLOBUS_VAR_DIRECTORY}) {
 ########################################
 
 Fix_Setup_Script
-    "$ENV{GLOBUS_LOCATION}/setup/globus/grid-security-config";
+    "$ENV{GLOBUS_LOCATION}/setup/globus/grid-security-config.in";
+Fix_Setup_Script
+    "$ENV{GLOBUS_LOCATION}/setup/globus/setup-ssl-utils.pl";
 Fix_Setup_Script
     "$ENV{GLOBUS_LOCATION}/setup/kca/setup-kca.pl";
 Fix_Setup_Script
@@ -1686,10 +1688,17 @@ sub Fix_Setup_Script($) {
 
     open ORIG, $backup_file or die "$backup_file: $!\n";
     open NEW, ">$file" or die "${file}: $!\n";
-    if ($basename eq 'grid-security-config') {
+    if ($basename eq 'grid-security-config.in') {
         while (<ORIG>) {
             s/\bread ans\b/ans="" # $&/;
             s/\bread selection\b/echo "q" ; selection="q" ; # $&/;
+            print NEW;
+        }
+    }
+    elsif ($basename eq 'setup-ssl-utils.pl') {
+        while (<ORIG>) {
+            s/^Press return to contine.*//;
+            s/\$foo=<STDIN>;/# $&/;
             print NEW;
         }
     }
