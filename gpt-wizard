@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.257 2004-03-09 15:45:16-08 kst Exp $
+# $Id: gpt-wizard,v 1.258 2004-03-09 15:57:46-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -133,15 +133,8 @@
 #     (Actually, you can do it now with "option=-installdir=...")
 #     [later] I tried this with myproxy, and it failed.
 #
-#     Replace the "-update" command-line option with a configuration
-#     variable.  Watch out for confusion between this and the existing
-#     UPDATE variable; clarify in man page.
-#
 #     Rename "-aix-kludge" option to something sensible, or perhaps
 #     do it all in the config file.
-#
-#     Consider replacing TEMP_DIR config variable with a command-line
-#     option, or allowing a command-line option to override it.
 #
 
 require 5.004;
@@ -193,12 +186,13 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.257 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.258 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
                         version!
                         validate-only!
+                        temp-dir=s
                         debugging!
                         cleanup!
                         postinstall!
@@ -311,6 +305,23 @@ The "IS_UPDATE" configuration variable is still under development
 Read the following instructions with caution.
 Some of them may refer to things that have already been done.
 EOF
+}
+
+my $Temp_Dir = undef;
+if (defined $Opt{'temp-dir'}) {
+    if (defined $Config{TEMP_DIR} and $Config{TEMP_DIR} ne $Opt{'temp-dir'}) {
+        push @manual_steps, <<"EOF";
+Note: The TEMP_DIR configuration variable "$Config{TEMP_DIR}"
+was overridden by the -temp-dir command-line option "$Opt{'temp-dir'}"
+EOF
+    }
+    $Temp_Dir = $Opt{'temp-dir'};
+}
+elsif (defined $Config{TEMP_DIR}) {
+    $Temp_Dir = $Config{TEMP_DIR};
+}
+else {
+    $Temp_Dir = '/tmp';
 }
 
 ########################################################################
@@ -1435,7 +1446,7 @@ sub Get_Config($) {
         IS_UPDATE =>
             { type => 'boolean', required => 0, default => 0 },
         TEMP_DIR =>
-            { type => 'existing_directory', required => 0, default => '/tmp' },
+            { type => 'existing_directory', required => 0 },
         TAR =>
             { type => 'executable_file', required => 0 },
         GZIP =>
@@ -3029,6 +3040,8 @@ Option names may be abbreviated uniquely.
     -help               Display this message and exit.
     -version            Display version information and exit.
     -validate-only      Validate the configuration file and exit.
+    -temp-dir <dir>     Parent directory for the temporary build directory.
+                        Default is /tmp or the TEMP_DIR configuration variable.
     -cleanup            Delete temporary directory on completion (default).
     -postinstall        Run gpt-postinstall (default).
     -startup            Update system files and start services
