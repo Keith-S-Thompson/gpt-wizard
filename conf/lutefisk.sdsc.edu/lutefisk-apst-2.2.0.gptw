@@ -1,12 +1,12 @@
-# $Id: lutefisk-apst-2.2.0.gptw,v 1.1 2005-01-26 19:53:57-08 kst Exp $
+# $Id: lutefisk-apst-2.2.0.gptw,v 1.2 2005-01-26 20:02:41-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/lutefisk.sdsc.edu/lutefisk-apst-2.2.0.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /usr/bin:/bin
 
 GLOBUS_LOCATION /usr/local/apps/apst-2.2.0
 
-GPT_TARBALL /home/kst/src/gpt/gpt-4.0a1.tar.gz
+GPT_TARBALL /home/kst/Globus/3.2.1/gpt/gpt-3.0.1-src.tar.gz
 
 BUNDLE /home/kst/src/apst/apst-2.2.0.tar.gz kind=source flavor=gcc32dbgpthr
