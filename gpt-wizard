@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.244 2004-02-23 14:55:21-08 kst Exp $
+# $Id: gpt-wizard,v 1.245 2004-03-04 15:24:42-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -201,7 +201,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.244 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.245 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -342,7 +342,7 @@ else {
     $build_info .= ", no CONFIG_FILE_REVISION specified\n";
 }
 $build_info .= "Command-line arguments:\n";
-foreach my $arg (@ARGV) {
+foreach my $arg (@Saved_ARGV) {
     $build_info .= "    $arg\n";
 }
 print $build_info;
