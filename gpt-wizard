@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.275 2004-03-18 14:29:36-08 kst Exp $
+# $Id: gpt-wizard,v 1.276 2004-03-19 21:45:23-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -133,9 +133,27 @@
 #     Rename "-aix-kludge" option to something sensible, or perhaps
 #     do it all in the config file.
 #
-#     For updates, we now figure out how to apply the -static option
-#     depending on how the package was initially built.  Do we need to
-#     worry about other options?
+#     For updates, we had attempted to figure out how to apply the
+#     -static option depending on how the package was initially built.
+#     (This turned out to be impossible in general, so we have the
+#     MPI_FLAVORS_ARE_STATIC configuration option as a partial solution.)
+#     Do we need to worry about other options?
+#
+#     For non-update bundles and packages, the order in which the
+#     flavors are specified determines which default executable is
+#     installed in the bin, sbin, or libexec subdirectory; specifically,
+#     the last flavor built is the one that counts.  (This implies that,
+#     of the 9 bundles, the information-services bundles should probably
+#     be built *first*, so that the default executable is non-threaded
+#     whenever possible.)  For an update package, the set of flavors
+#     is computed from the existing package, making it difficult to
+#     determine a sensible order.  We now implement some heuristics
+#     for this.  If the MPI_FLAVORS_ARE_STATIC option has been specified,
+#     static flavors are built first.  Non-threaded flavors are preferred
+#     over threaded flavors.  Debug flavors are preferred over non-debug
+#     flavors.  Consider adding a FLAVOR_ORDER configuration option to
+#     allow the user to specify a preferred ordering; use a syntax that
+#     allows for "-static" somehow.
 #
 
 require 5.004;
@@ -187,7 +205,7 @@ my $Release_Revision = '1.273'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.275 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.276 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -680,7 +698,7 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
             @normal_flavors = Get_Update_Flavors $bundle->{filename};
         }
         if ($Config{MPI_FLAVORS_ARE_STATIC}) {
-            @static_flavors = grep /^mpi/, @normal_flavors;
+            @static_flavors = grep  /^mpi/, @normal_flavors;
             @normal_flavors = grep !/^mpi/, @normal_flavors;
         }
 
@@ -693,18 +711,24 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
                                        '-std-flavors',
                                        $bundle->{filename};
         }
-        if (@normal_flavors) {
-            Execute @As_Installer_GPT, $gpt_build_command,
-                                       @options,
-                                       $bundle->{filename},
-                                       @normal_flavors;
-        }
+        #
+        # We build the static flavors first so that any default installed
+        # executables will be for the non-static flavors.  This is an
+        # arbitrary choice; it's not entirely clear that it's always
+        # the correct one.  See the TODO list near the top of this file.
+        #
         if (@static_flavors) {
             Execute @As_Installer_GPT, $gpt_build_command,
                                        @options,
                                        '-static',
                                        $bundle->{filename},
                                        @static_flavors;
+        }
+        if (@normal_flavors) {
+            Execute @As_Installer_GPT, $gpt_build_command,
+                                       @options,
+                                       $bundle->{filename},
+                                       @normal_flavors;
         }
     }
     elsif ($bundle_kind eq 'binary' or $bundle_kind eq 'rpm') {
@@ -2435,6 +2459,32 @@ sub Get_Result($$) {
 # ----------------------------------------------------------------------
 
 #
+# This is a comparison function that implements a heuristic for the
+# preferred order of flavors for update packages (since the last flavor
+# specified determines the default executable).
+#
+# Non-MPI flavors are preferred over MPI flavors.
+# Non-threaded flavors are preferred over threaded flavors
+# Debug flavors are preferred over non-debug flavors.
+# If equal, sort alphabetically.
+#
+sub By_Flavor {
+    my $a_score = 0;
+    my $b_score = 0;
+
+    $a_score += 4 if $a !~ /mpi/;
+    $a_score += 2 if $a !~ /pthr|solthr|sproc/;
+    $a_score += 1 if $a !~ /dbg/;
+    $b_score += 4 if $b !~ /mpi/;
+    $b_score += 2 if $b !~ /pthr|solthr|sproc/;
+    $b_score += 1 if $a !~ /dbg/;
+
+    return $a_score <=> $b_score || $a cmp $b;
+} # By_Flavor
+
+# ----------------------------------------------------------------------
+
+#
 # Returns a list of flavors for the specified update package,
 # determined by examining the output of gpt-query.
 #
@@ -2484,7 +2534,7 @@ sub Get_Update_Flavors($) {
     }
     close PIPE;
 
-    my @flavors = sort keys %is_flavor;
+    my @flavors = sort By_Flavor keys %is_flavor;
     if (@flavors) {
         return @flavors;
     }
