@@ -1,7 +1,16 @@
-$Id: Relnotes,v 1.6 2003-08-12 20:07:51-07 kst Exp $
+$Id: Relnotes,v 1.7 2003-12-17 00:58:37-08 kst Exp $
 $Source: /home/kst/CVS_smov/tools/gpt-wizard/Relnotes,v $
 
 Release notes for gpt-wizard
+
+Changes from release 0.3.3 to release 0.4:
+
+    Added JOB_MANAGER configuration variable.
+    Handle new gpt-query output format (needed for building updates).
+    Unset $LANG environment variable before invoking gpt-build
+	(see <https://bugzilla.ncsa.uiuc.edu/show_bug.cgi?id=131>).
+    Append '~' to backup file names.
+    Expand ~user in config file.
 
 Changes from release 0.3.2 to release 0.3.3:
 
