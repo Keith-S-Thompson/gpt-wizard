@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.125 2002-12-07 03:10:37-08 kst Exp $
+# $Id: gpt-wizard,v 1.126 2002-12-09 18:04:06-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -121,7 +121,7 @@ $SIG{__WARN__} = sub { die @_ };
 $| = 1;
 
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.125 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.126 $';
 my $Help              = undef;
 my $Validate_Only     = undef;
 my $Debugging         = undef;
@@ -2041,9 +2041,9 @@ sub Fix_Setup_Script($) {
     }
     elsif ($basename eq 'setup-kca.pl') {
         while (<ORIG>) {
-            s/\$myincrement = <STDIN>;/print "0\n"; \$myincrement = 0; # $&/;
-            s/\$myserial = <STDIN>;/print "\n"; \$myserial = ""; # $&/;
-            s/\$resp = <STDIN>;/print "No\n"; \$resp="No"; # $&/;
+            s/\$myincrement = <STDIN>;/print "0\\n"; \$myincrement = 0; # $&/;
+            s/\$myserial = <STDIN>;/print "\\n"; \$myserial = ""; # $&/;
+            s/\$resp = <STDIN>;/print "No\\n"; \$resp="No"; # $&/;
             print NEW;
         }
     }
