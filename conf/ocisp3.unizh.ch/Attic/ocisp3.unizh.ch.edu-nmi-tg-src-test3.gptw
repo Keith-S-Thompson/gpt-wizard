@@ -1,0 +1,47 @@
+# $Id: ocisp3.unizh.ch.edu-nmi-tg-src-test3.gptw,v 1.1 2004-11-06 21:00:54-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ocisp3.unizh.ch/Attic/ocisp3.unizh.ch.edu-nmi-tg-src-test3.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin:/usr/lpp/LoadL/full/bin 
+
+TEMP_DIR ~globus/tmpdir     # not enough room in /tmp
+
+.PARAM NMI_DIR /u/kst/NMI/ftp.isi.edu/src
+.PARAM APPS_DIR /u/globus/apps
+.PARAM VAR_DIR /var/globus
+.PARAM GLOBUS_SUBDIR nmi-tg-src-test3
+
+GLOBUS_LOCATION       $APPS_DIR/$GLOBUS_SUBDIR
+GLOBUS_LOCAL_DIRECTORY $VAR_DIR/$GLOBUS_SUBDIR
+
+GPT_TARBALL $NMI_DIR/gpt-3.0.1-nmi-tg1-src.tar.gz
+
+.PREFIX $NMI_DIR/globus-src
+
+# BUNDLE globus-information-services-client-1.0-src_bundle.tar.gz kind=source flavor=vendorcc32dbgpthr
+# BUNDLE globus-information-services-sdk-1.0-src_bundle.tar.gz    kind=source flavor=vendorcc32dbgpthr
+# BUNDLE globus-information-services-server-1.0-src_bundle.tar.gz kind=source flavor=vendorcc32dbgpthr
+
+BUNDLE globus-data-management-client-1.0-src_bundle.tar.gz      kind=source flavor=vendorcc32dbg
+BUNDLE globus-data-management-sdk-1.0-src_bundle.tar.gz         kind=source flavor=vendorcc32dbg
+BUNDLE globus-data-management-server-1.0-src_bundle.tar.gz      kind=source flavor=vendorcc32dbg
+
+BUNDLE globus-resource-management-client-1.0-src_bundle.tar.gz  kind=source flavor=vendorcc32dbg
+BUNDLE globus-resource-management-sdk-1.0-src_bundle.tar.gz     kind=source flavor=vendorcc32dbg
+BUNDLE globus-resource-management-server-1.0-src_bundle.tar.gz  kind=source flavor=vendorcc32dbg
+
+.PREFIX $NMI_DIR/globus-src/packages
+BUNDLE globus_gram_job_manager_setup_fork-1.1.tar.gz kind=source flavor=vendorcc32dbg
+# BUNDLE globus_gram_reporter-2.0.tar.gz               kind=source flavor=vendorcc32dbg
+# BUNDLE globus_gram_reporter_setup_fork-1.0.tar.gz    kind=source flavor=vendorcc32dbg
+
+.PREFIX $NMI_DIR
+BUNDLE globus_gram_job_manager_setup_loadleveler-1.2.tar.gz kind=source flavor=vendorcc32dbg
+
+.PREFIX $NMI_DIR/globus-src/updates
+UPDATE globus_common-3.17.tar.gz
+UPDATE globus_ftp_client-1.10.tar.gz
+UPDATE globus_ftp_control-1.11.tar.gz
+UPDATE globus_gridftp_server-1.12.tar.gz
+UPDATE globus_openssl-0.20.tar.gz
