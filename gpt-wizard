@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.219 2003-12-16 22:03:58-08 kst Exp $
+# $Id: gpt-wizard,v 1.220 2003-12-16 22:17:55-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -198,7 +198,7 @@ my $Release_Revision = '1.211'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.219 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.220 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1409,6 +1409,15 @@ sub Get_Config($) {
         next if /^$/;
         if (/^(\.?\w+)\s+(.*)$/) {
             my ($name, $value) = ($1, $2);
+            #
+            # Expand ~username at the beginning of the string.
+            # Assume a username consists of one or more word
+            # characters or hyphens.
+            #
+            # This substitution does not occur for URLs (since URLs
+            # can't start with '~').
+            #
+            $value =~ s/^~[\w-]+/Expand_Tilde $&/e;
 
             #
             # .PREFIX is not a true configuration option.  Instead, it
@@ -1434,16 +1443,6 @@ sub Get_Config($) {
             elsif (defined $Var_Info{$name}) {
                 my $Var = $Var_Info{$name};
 
-                #
-                # Expand ~username at the beginning of the string.
-                # Assume a username consists of one or more word
-                # characters or hyphens.
-                #
-                # This substitution does not occur for URLs (since URLs
-                # can't start with '~').
-                #
-                $value =~ s/^~[\w-]+/Expand_Tilde $&/e;
-
                 if ($Var->{type} eq 'file' or
                     $Var->{type} eq 'file_or_url' or
                     $Var->{type} eq 'array_of_file_or_url')
@@ -1453,7 +1452,7 @@ sub Get_Config($) {
                     # value is a relative pathname.
                     #
                     if (not defined URL_Protocol $value and
-                        $value !~ m<^[/~]> and
+                        $value !~ m<^/> and
                         defined $default_prefix)
                     {
                         $value = "$default_prefix/$value";
