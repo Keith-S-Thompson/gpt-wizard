@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.215 2003-10-23 19:15:49-07 kst Exp $
+# $Id: gpt-wizard,v 1.216 2003-12-08 18:04:34-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -210,7 +210,7 @@ my $Release_Revision = '1.211'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.215 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.216 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -506,6 +506,12 @@ else {
 # Run build-gpt to install GPT
 ########################################
 if (not $AIX_Kludge) {
+    #
+    # The default setting for the $LANG environment variable
+    # on Red Hat 9 causes problems building some Perl modules.
+    # See <https://bugzilla.ncsa.uiuc.edu/show_bug.cgi?id=131>
+    #
+    delete $ENV{LANG};
     Execute @As_Installer, './build_gpt';
 
     print "% cd $working_dir\n";
