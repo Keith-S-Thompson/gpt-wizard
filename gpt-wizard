@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.253 2004-03-08 16:44:32-08 kst Exp $
+# $Id: gpt-wizard,v 1.254 2004-03-08 22:02:39-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -183,7 +183,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.253 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.254 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1783,7 +1783,21 @@ sub Get_Config($) {
         #
         elsif ($var->{type} eq 'new_directory') {
             my $dir = $var->{value};
-            if ( $Opt{'aix-kludge'} and
+            if ( $Opt{update}) {
+                #
+                # Directory must exist and have stuff in it.
+                #
+                if (not -d $dir) {
+                    &$ERROR("$varname directory \"$dir\" does not exist\n");
+                }
+                elsif (Is_Empty_Dir $dir) {
+                    &$ERROR("$varname directory \"$dir\" is empty\n");
+                }
+                elsif (not (-r $dir and -w and -x _)) {
+                    &$ERROR("Bad permissions on $varname directory \"$dir\"\n");
+                }
+            }
+            elsif ( $Opt{'aix-kludge'} and
                  ( ( $varname eq 'GPT_LOCATION' ) or
                    ( $varname eq 'GLOBUS_LOCATION' and 
                      ( $Var_Info{GPT_LOCATION}->{value} eq
@@ -1798,7 +1812,8 @@ sub Get_Config($) {
                 elsif (-d $dir) {
                     if (Is_Empty_Dir $dir) {
                         if (not (-r $dir and -w _ and -x _)) {
-                            &$ERROR("Bad $varname directory \"$dir\"\n");
+                            &$ERROR("Bad permissions on $varname directory " .
+                                    "\"$dir\"\n");
                         }
                     }
                     else {
