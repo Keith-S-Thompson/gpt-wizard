@@ -1,0 +1,238 @@
+#!/usr/bin/perl -w
+
+# $Id: make-release,v 1.1 2003-03-31 17:34:14-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/make-release,v $
+
+use strict;
+
+sub File_Info($);
+sub Next_Revision($);
+sub Edit_File($);
+
+$| = 1;
+
+my $release_number = undef;
+if (scalar @ARGV == 1 and $ARGV[0] =~ /^\d[\d.]*\d$/) {
+    $release_number = $ARGV[0];
+}
+die "Usage: $0 release-number\n" if not defined $release_number;
+
+my $release_symbol = "release_$release_number";
+$release_symbol =~ s/\./_/g;
+
+print "release_symbol = $release_symbol\n";
+
+my @files = qw( INSTALL 
+                README
+                Relnotes
+                gpt-wizard
+                gpt-wizard.1
+                sample.conf );
+my %needs_editing
+    = ( 'README'       => 1,
+        'gpt-wizard'   => 1,
+        'gpt-wizard.1' => 1 );
+
+my $Info = {};
+my @errors = ();
+foreach my $file (@files) {
+    $Info->{$file} = File_Info $file;
+    if (defined $Info->{$file}->{errors}) {
+        push @errors, $Info->{$file}->{errors};
+    }
+}
+
+if (@errors) {
+    die @errors;
+}
+
+foreach my $file (@files) {
+    my @values = ();
+    foreach my $key (sort keys %{$Info->{$file}}) {
+        push @values, "$key => $Info->{$file}->{$key}";
+    }
+    print "$file { ", join(", ", @values), " }\n";
+}
+
+foreach my $file (@files) {
+    my $new_revision;
+    if ($needs_editing{$file}) {
+        print "% co -l $file\n";
+        system 'co', '-l', $file;
+        print "... Editing $file\n";
+        Edit_File $file;
+        print "% ci -u $file\n";
+        system "/bin/echo 'Release $release_number' | ci -u $file";
+        $new_revision = $Info->{$file}->{next_revision};
+    }
+    else {
+        $new_revision = $Info->{$file}->{head_revision};
+    }
+    print "% rcs -n$release_symbol:$new_revision $file\n";
+    system 'rcs', "-n$release_symbol:$new_revision", $file;
+}
+
+my $release_dir = "dist/gpt-wizard-$release_number";
+mkdir $release_dir, 0777 or die "mkdir $release_dir\n";
+foreach my $file (@files) {
+    print "% cp -p $file $release_dir/.\n";
+    system 'cp', '-p', $file, "$release_dir/.";
+}
+chdir $release_dir or die "$release_dir: $!\n";
+
+print "% gnroff -man gpt-wizard.1 | env TERM=dumb ul > gpt-wizard.1.txt\n";
+system 'gnroff -man gpt-wizard.1 | env TERM=dumb ul > gpt-wizard.1.txt';
+
+print "% groff -man -Tps gpt-wizard.1 > gpt-wizard.1.ps\n";
+system 'groff -man -Tps gpt-wizard.1 > gpt-wizard.1.ps';
+
+chdir '..';
+my $dir = "gpt-wizard-$release_number";
+my $tarball = "$dir.tar.gz";
+print "% tar zcf $tarball $dir\n";
+system 'tar', 'zcf', $tarball, $dir;
+
+########################################################################
+
+#
+# Returns a hash reference containing information about the file:
+#     head_revision : The head RCS revision of the file.
+#     next_revision : The next RCS revision of the file, obtained by
+#                     incrementing the head_revision.
+#     errors        : A multi-line error string, set only if the file is
+#                     modified or locked, or if there were problems
+#                     gathering information on it.
+#
+sub File_Info($) {
+    my($file) = @_;
+    my $result = {};
+    my @errors = ();
+    my $head_revision = undef;
+    #
+    # If the file is locked, the line immediately after the line starting
+    # with "locks:" will start with whitespace.
+    #
+    my $is_locked = 0;
+
+    my $locks_line = undef;
+    print "% rlog -h $file\n";
+    open PIPE, "rlog -h $file |";
+    while (<PIPE>) {
+        if (/^locks:/) {
+            $locks_line = $.;
+        }
+        elsif (defined $locks_line and $. == $locks_line + 1 and /^\s/) {
+            $is_locked = 1;
+        }
+        if (/^head: (.*)$/) {
+            $head_revision = $1;
+        }
+    }
+    close PIPE;
+
+    if (defined $locks_line) {
+        if ($is_locked) {
+            push @errors, "$file is locked\n"
+        }
+    }
+    else {
+        push @errors, "Unable to determine whether $file is locked\n";
+    }
+
+    if (defined $head_revision) {
+        $result->{head_revision} = $head_revision;
+        $result->{next_revision} = Next_Revision $head_revision;
+    }
+    else {
+        push @errors, "Unable to determine head revision for $file\n";
+    }
+
+    #
+    # If there are any differences, the rcsdiff command will fail,
+    # which will set $?.  We also check (redundantly) whether rcsdiff
+    # printed any output.
+    #
+    my $is_modified = 0;
+    open PIPE, "rcsdiff $file 2>/dev/null |";
+    while (<PIPE>) {
+        #
+        # If we see anything on the pipe, the file is modified.
+        #
+        $is_modified = 1;
+    }
+    close PIPE;
+    if ($? == 0 and not $is_modified) {
+        # ok
+    }
+    elsif ($? == 256 and $is_modified) {
+        push @errors, "$file is modified\n";
+    }
+    else {
+        push @errors, "Unable to determine whether $file is modified\n";
+    }
+
+    if (@errors) {
+        $result->{errors} = join '', @errors;
+    }
+
+    return $result;
+} # File_Info
+
+# ----------------------------------------------------------------------
+
+sub Next_Revision($) {
+    my($revision) = @_;
+    if ($revision =~ /^(.*\.)(\d+)$/) {
+        return $1 . ($2 + 1);
+    }
+    else {
+        die "Next_Revision \"$revision\"\n";
+    }
+} # Next_Revision
+
+# ----------------------------------------------------------------------
+
+sub Edit_File($) {
+    my($file) = @_;
+
+    my $release_revision = $Info->{$file}->{next_revision};
+
+    my($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst)
+	= localtime time;
+    my $today = sprintf "%04d-%02d-%02d", $year+1900, $mon+1, $mday;
+
+    open IN, "$file" or die "${file}: $!\n";
+    open OUT, ">$file.$$" or die "$file.$$: $!\n";
+    while (<IN>) {
+
+        if ($file eq 'README') {
+            if (/^(This is gpt-wizard release) .*$/) {
+                $_ = "$1 $release_number.\n";
+            }
+        }
+
+        elsif ($file eq 'gpt-wizard') {
+            if (/^(my \$Release_Number\s+=\s+').*('.*)$/) {
+                $_ = "$1$release_number$2\n";
+            }
+            elsif (/^(my \$Release_Revision\s+=\s+').*('.*)$/) {
+                $_ = "$1$release_revision$2\n";
+            }
+        }
+
+        elsif ($file eq 'gpt-wizard.1') {
+            if (/^(This documentation is for release) .* (of.*)$/) {
+                $_ = "$1 $release_number $2\n";
+            }
+	    elsif (/^(\.TH GPT_WIZARD 1) \d\d\d\d-\d\d-\d\d (.*)$/) {
+		$_ = "$1 $today $2\n";
+	    }
+        }
+
+        print OUT;
+    }
+    close IN;
+    close OUT;
+    unlink $file;
+    rename "$file.$$", $file;
+} # Edit_File
