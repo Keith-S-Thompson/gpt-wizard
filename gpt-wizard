@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.168 2003-03-03 23:05:53-08 kst Exp $
+# $Id: gpt-wizard,v 1.169 2003-03-04 01:26:04-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -118,11 +118,6 @@
 #     and/or add an optional config var or two to specify how to get
 #     files from CVS.
 #
-#     Provide a '/' when prepending PREFIX (need to decide on details).
-#
-#     Consider using a different syntax for the PREFIX pseudo-option,
-#     probably ".PREFIX".
-#
 
 require 5.004;
 
@@ -176,7 +171,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.168 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.169 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -1185,96 +1180,16 @@ sub Get_Config($) {
     open CONFIG, $config_file or die "$config_file: $!\n";
     while (defined ($_ = Next_Line 'CONFIG')) {
         next if /^$/;
-        if (/^(\w+)\s+(.*)$/) {
+        if (/^(\.?\w+)\s+(.*)$/) {
             my ($name, $value) = ($1, $2);
-            #
-            # Bundles and updates may have additional attributes specified
-            # on the same line.  Recognized attributes are:
-            #     kind=binary
-            #     kind=source
-            #     kind=rpm
-            #     flavor=<string>
-            #     option=<string>
-            # Multiple flavors may be specified, separated by commas, e.g.:
-            #     flavor=gcc32dbg,gcc32
-            # Options are passed to gpt-install or gpt-build.
-            # Multiple options may be specified, separated by commas, e.g.:
-            #     -update,-std-flavors
-            #
-            if ($name eq 'BUNDLE' or $name eq 'UPDATE') {
-                my $filename = undef;
-                my $kind     = undef;
-                my $flavor   = undef;
-                my $option   = undef;
-
-                foreach my $field (split /\s+/, $value) {
-                    if (lc $field =~ /^kind=(.*)$/) {
-                        if (defined $kind) {
-                            push @errors, "Duplicate kind, line $.\n";
-                        }
-                        else {
-                            if ($1 eq 'binary' or
-                                $1 eq 'source'
-                                or $1 eq 'rpm')
-                            {
-                                $kind = $1;
-                            }
-                            else {
-                                push @errors,
-                                     "Unrecognized kind, line $., " .
-                                     "should be \"binary\", \"source\", " .
-                                     "or \"rpm\"\n";
-                            }
-                        }
-                    }
-                    elsif (lc $field =~ /^flavor=(.*)$/) {
-                        if (defined $flavor) {
-                            push @errors,
-                                 "Duplicate flavor, line $." .
-                                 " (use \"flavor=$flavor,$1\")\n";
-                        }
-                        else {
-                            $flavor = $1;
-                        }
-                    }
-                    elsif (lc $field =~ /^option=(.*)$/) {
-                        if (defined $option) {
-                            push @errors,
-                                 "Duplicate option, line $." .
-                                 " (use \"option=$option,$1\")\n";
-                        }
-                        else {
-                            $option = $1;
-                        }
-                    }
-                    elsif ($field =~ /^(\w+)=/) {
-                        push @errors,
-                             "Unrecognized attribute \"$1\", line $.\n";
-                    }
-                    else {
-                        if (defined $filename) {
-                            push @errors, "Duplicate name, line $." .
-                                          " (possible space in filename?)\n";
-                        }
-                        else {
-                            $filename = $field;
-                        }
-                    }
-                    $value = $filename;
-                    $Bundle_Kind{$value}   = $kind   if defined $kind;
-                    $Bundle_Option{$value} = $option if defined $option;
-                    $Bundle_Flavor{$value} = $flavor if defined $flavor;
-                    $Is_Update{$value}     = 1       if $name eq 'UPDATE';
-                }
-            }
 
             #
-            # PREFIX is not a true configuration option.  Instead, it
+            # .PREFIX is not a true configuration option.  Instead, it
             # allows a default directory prefix to be set for options that
-            # specify file names or URLs.  The default prefix, if any, is
-            # prepended to any following file or directory specifications.
-            # It does not apply to options given as absolute file names
-            # (starting with '/') or as URLs.
+            # specify file names or URLs.  The default prefix, if any,
+            # is prepended, with a '/' character, to any following file
+            # or directory specifications.  It does not apply to options
+            # given as absolute file names (starting with '/') or as URLs.
             #
             # This is in effect a limited macro facility, intended
             # to avoid extremely long lines in configuration files.
@@ -1284,7 +1199,7 @@ sub Get_Config($) {
             # This expansion is performed only for options of type 'file',
             # 'file_or_url', and 'array_of_file_or_url'.
             # 
-            if ($name eq 'PREFIX') {
+            if ($name eq '.PREFIX') {
                 $default_prefix = $value;
             }
             elsif (defined $Var_Info{$name}) {
@@ -1302,7 +1217,91 @@ sub Get_Config($) {
                         $value !~ /^\// and
                         defined $default_prefix)
                     {
-                        $value = $default_prefix . $value;
+                        $value = "$default_prefix/$value";
+                    }
+                    #
+                    # Bundles and updates may have additional attributes
+                    # specified on the same line.  Recognized attributes
+                    # are:
+                    #     kind=binary
+                    #     kind=source
+                    #     kind=rpm
+                    #     flavor=<string>
+                    #     option=<string>
+                    # Multiple flavors may be specified, separated by
+                    # commas, e.g.:
+                    #     flavor=gcc32dbg,gcc32
+                    # Options are passed to gpt-install or gpt-build.
+                    # Multiple options may be specified, separated by
+                    # commas, e.g.:
+                    #     -update,-std-flavors
+                    #
+                    if ($name eq 'BUNDLE' or $name eq 'UPDATE') {
+                        my $filename = undef;
+                        my $kind     = undef;
+                        my $flavor   = undef;
+                        my $option   = undef;
+
+                        foreach my $field (split /\s+/, $value) {
+                            if (lc $field =~ /^kind=(.*)$/) {
+                                if (defined $kind) {
+                                    push @errors, "Duplicate kind, line $.\n";
+                                }
+                                else {
+                                    if ($1 eq 'binary' or
+                                        $1 eq 'source' or
+                                        $1 eq 'rpm')
+                                    {
+                                        $kind = $1;
+                                    }
+                                    else {
+                                        push @errors,
+                                             "Unrecognized kind, line $., " .
+                                             "should be \"binary\", " .
+                                             "\"source\", or \"rpm\"\n";
+                                    }
+                                }
+                            }
+                            elsif (lc $field =~ /^flavor=(.*)$/) {
+                                if (defined $flavor) {
+                                    push @errors,
+                                         "Duplicate flavor, line $." .
+                                         " (use \"flavor=$flavor,$1\")\n";
+                                }
+                                else {
+                                    $flavor = $1;
+                                }
+                            }
+                            elsif (lc $field =~ /^option=(.*)$/) {
+                                if (defined $option) {
+                                    push @errors,
+                                         "Duplicate option, line $." .
+                                         " (use \"option=$option,$1\")\n";
+                                }
+                                else {
+                                    $option = $1;
+                                }
+                            }
+                            elsif ($field =~ /^(\w+)=/) {
+                                push @errors,
+                                     "Unrecognized attribute \"$1\", line $.\n";
+                            }
+                            else {
+                                if (defined $filename) {
+                                    push @errors,
+                                         "Duplicate name, line $." .
+                                         " (possible space in filename?)\n";
+                                }
+                                else {
+                                    $filename = $field;
+                                }
+                            }
+                            $value = $filename;
+                            $Bundle_Kind{$value}   = $kind   if defined $kind;
+                            $Bundle_Option{$value} = $option if defined $option;
+                            $Bundle_Flavor{$value} = $flavor if defined $flavor;
+                            $Is_Update{$value}     = 1 if $name eq 'UPDATE';
+                        }
                     }
                 }
                 if ($Var->{type} =~ /^array_of/) {
