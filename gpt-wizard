@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.261 2004-03-11 17:33:19-08 kst Exp $
+# $Id: gpt-wizard,v 1.262 2004-03-13 01:35:16-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -187,7 +187,7 @@ my $Release_Revision = '1.239'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.261 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.262 $';
 my %Opt = ( cleanup     => 1,
             postinstall => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -650,41 +650,51 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
             push @options, split(',', $bundle->{option});
         }
 
-        my @flavors = ();
-        my @nonstatic_flavors = ();
+        #
+        # If the user specified the "-static" option, skip the logic
+        # for figuring out which flavors to build with "-static".
+        #
+        my $explicit_static = grep { $_ eq '-static' } @options;
+
+        #
+        # @normal_flavors are built with user-specified options.
+        # @static_flavors are built with user-specified options
+        # plus "-static".
+        #
+        my @normal_flavors = ();
         my @static_flavors = ();
-        my $use_update_flavors = 0;
         if (defined $bundle->{flavor}) {
-            @flavors = split /,/, $bundle->{flavor};
+            @normal_flavors = split /,/, $bundle->{flavor};
         }
         elsif ($bundle->{is_update}) {
-            $use_update_flavors = 1;
-            my ($nonstatic_ref, $static_ref)
-                = Get_Update_Flavors $bundle->{filename};
-            @nonstatic_flavors = @$nonstatic_ref;
-            @static_flavors    = @$static_ref;
+            @normal_flavors = Get_Update_Flavors $bundle->{filename};
         }
-        else {
-            push @options, '-std-flavors';
+        if ($Config{MPI_FLAVORS_ARE_STATIC}) {
+            @static_flavors = grep /^mpi/, @normal_flavors;
+            @normal_flavors = grep !/^mpi/, @normal_flavors;
         }
-        if ($use_update_flavors) {
-            if (@nonstatic_flavors) {
-                Execute @As_Installer_GPT, $gpt_build_command,
-                                           @options,
-                                           $bundle->{filename},
-                                           @nonstatic_flavors;
-            }
-            if (@static_flavors) {
-                Execute @As_Installer_GPT, $gpt_build_command,
-                                           @options,
-                                           '-static',
-                                           $bundle->{filename},
-                                           @static_flavors;
-            }
+
+        if (not @normal_flavors and not @static_flavors) {
+            #
+            # No flavors specifed, build with "-std-flavors".
+            #
+            Execute @As_Installer_GPT, $gpt_build_command,
+                                       @options,
+                                       '-std-flavors',
+                                       $bundle->{filename};
         }
-        else {
-            Execute @As_Installer_GPT,
-                    $gpt_build_command, @options, $bundle->{filename}, @flavors;
+        if (@normal_flavors) {
+            Execute @As_Installer_GPT, $gpt_build_command,
+                                       @options,
+                                       $bundle->{filename},
+                                       @normal_flavors;
+        }
+        if (@static_flavors) {
+            Execute @As_Installer_GPT, $gpt_build_command,
+                                       @options,
+                                       '-static',
+                                       $bundle->{filename},
+                                       @static_flavors;
         }
     }
     elsif ($bundle_kind eq 'binary' or $bundle_kind eq 'rpm') {
@@ -1490,6 +1500,8 @@ sub Get_Config($) {
             { type => 'umask', required => 0, default => '022' },
         GPT_TARBALL =>
             { type => 'file', required => 0 },
+        MPI_FLAVORS_ARE_STATIC
+            { type => 'boolean', required => 0, default => 0 },
         BUNDLE =>
             { type => 'array_of_bundle', required => 0 },
         UPDATE =>
@@ -2381,9 +2393,14 @@ sub Get_Result($$) {
 # ----------------------------------------------------------------------
 
 #
-# Returns a list of two array references.
-# The first is a list of flavors to be built without "-static".
-# The second is a list of flavors to be built with "-static".
+# Returns a list of flavors for the specified update package,
+# determined by examining the output of gpt-query.
+#
+# A previous version of this function (see gpt-wizard revision 1.261)
+# returned a list of two array references, one for nonstatic flavors
+# and one for static flavors.  I've temporarily backed out this
+# feature, since gpt-query doesn't always give sufficient information
+# to determine this.
 #
 # See <https://bugzilla.ncsa.uiuc.edu/show_bug.cgi?id=46>.
 #
@@ -2396,8 +2413,7 @@ sub Get_Update_Flavors($) {
     #
     $module_name =~ s/-[^-]*\.tar\.gz$//;
 
-    my %flavor = ();
-    my %is_static = ();
+    my %is_flavor = ();
 
     open PIPE, "$ENV{GLOBUS_LOCATION}/sbin/gpt-query $module_name |";
     while (<PIPE>) {
@@ -2418,34 +2434,20 @@ sub Get_Update_Flavors($) {
         #
         my @fields = split /-/, $_;
         if (scalar @fields >= 2) {
-            my $new_flavor = $fields[$#fields - 1];
-            $flavor{$new_flavor} = 1;
-            if (/_static$/) {
-                $is_static{$new_flavor} = 1;
+            my $flavor = $fields[$#fields - 1];
+            if ($flavor ne 'noflavor') {
+                $is_flavor{$flavor} = 1;
             }
         }
     }
     close PIPE;
 
-    my @nonstatic_flavors = ();
-    my @static_flavors = ();
-    foreach my $flavor (sort keys %flavor) {
-    if ($flavor eq 'noflavor') {
-        next;
-    }
-    elsif ($is_static{$flavor}) {
-        push @static_flavors, $flavor;
+    my @flavors = sort keys %is_flavor;
+    if (@flavors) {
+        return @flavors;
     }
     else {
-        push @nonstatic_flavors, $flavor;
-    }
-    }
-
-    if (scalar @nonstatic_flavors == 0 and scalar @static_flavors == 0) {
         die "Unable to determine flavors for $filename\n";
-    }
-    else {
-        return ( \@nonstatic_flavors, \@static_flavors );
     }
 } # Get_Update_Flavors
 
