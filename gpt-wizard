@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.160 2003-02-27 22:34:43-08 kst Exp $
+# $Id: gpt-wizard,v 1.161 2003-02-27 22:37:09-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -171,7 +171,7 @@ my $Release_Info = [ { release => '0.1',   revision => '1.144' },
 
 my @Saved_ARGV        = @ARGV;
 my $Prog_Name         = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.160 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.161 $';
 my $Help              = undef;
 my $Show_Version      = undef;
 my $Validate_Only     = undef;
@@ -288,7 +288,7 @@ exit 0 if $Validate_Only;
 # Create a temporary working directory and set some variables.
 ########################################################################
 
-my $build_info = Time_Image time . "\n";
+my $build_info = Time_Image(time) . "\n";
 $build_info .= "$Prog_Name revision $Revision processing $Config_File";
 if (defined $Config{CONFIG_FILE_REVISION}) {
     $build_info .= " $Config{CONFIG_FILE_REVISION}\n";
