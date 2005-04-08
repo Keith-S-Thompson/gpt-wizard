@@ -1,0 +1,13 @@
+# $Id: uffda-globus_simple_ca_50cd51a3_setup-update.gptw,v 1.1 2005-04-07 19:31:09-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-globus_simple_ca_50cd51a3_setup-update.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION    /usr/local/apps/globus-2.4.3
+
+IS_UPDATE	1
+
+.PREFIX 
+BUNDLE	/home/kst/globus_simple_ca_50cd51a3_setup-0.17.tar.gz kind=source flavor=gcc32dbg
