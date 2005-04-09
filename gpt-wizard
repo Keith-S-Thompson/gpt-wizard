@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.308 2005-03-29 21:45:16-08 kst Exp $
+# $Id: gpt-wizard,v 1.309 2005-04-08 18:45:51-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
 # @Copyright@
 # 
-# Copyright (c) 2004 The Regents of the University of California. All
+# Copyright (c) 2005 The Regents of the University of California. All
 # rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -155,6 +155,11 @@
 #     allow the user to specify a preferred ordering; use a syntax that
 #     allows for "-static" somehow.
 #
+#     Handle new "globus-gridftp-server" as well as the older "in.ftpd"
+#     (they take different command-line arguments).  Search for /^=/.
+#
+#     Don't invoke Fix_Setup_Scripts when doing an update.
+#
 
 require 5.004;
 
@@ -207,7 +212,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.308 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.309 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1062,13 +1067,14 @@ if ($Opt{startup}) {
     }
 }
 else {
-    push @manual_steps,
-         "After setting \$GLOBUS_LOCATION to $Config{GLOBUS_LOCATION} :\n" .
-         "As root, run $setup_gsi\n" .
-         "-- OR --\n" .
-         "as $Config{INSTALLER_USER}, run " .
-         "$setup_gsi -nonroot\n" .
-         "(This script may not exist for Globus 3.X.)\n";
+    if (-x $setup_gsi) {
+        push @manual_steps,
+             "After setting \$GLOBUS_LOCATION to $Config{GLOBUS_LOCATION} :\n" .
+             "As root, run $setup_gsi\n" .
+             "-- OR --\n" .
+             "as $Config{INSTALLER_USER}, run " .
+             "$setup_gsi -nonroot\n";
+    }
 }
 
 ########################################
@@ -1196,10 +1202,15 @@ if (defined $Sys{NET_DAEMON} and $Sys{NET_DAEMON} eq 'xinetd') {
     my $gsiftp_file     = "$xinetd_dir/gsiftp";
     my $gatekeeper_text = Inet_Config_Text 'xinetd', 'gsigatekeeper';
     my $gsiftp_text     = Inet_Config_Text 'xinetd', 'gsiftp';
-=============================================================
-=== The new gridftp server is no longer called "in.ftpd". ===
-=== Figure out the new name and check which one exists.   ===
-=============================================================
+==========================================================================
+=== The new gridftp server is called "globus-gridftp-server",          ===
+=== not "in.ftpd".  It also takes different command-line arguments.    ===
+=== See <http://www-unix.globus.org/toolkit/docs/development/3.9.5/\   ===
+=== data/gridftp/GridFTP_Public_Interfaces.html>                       ===
+=== (near the bottom of the page) for sample inetd and xinetd entries. ===
+=== Need to check whether "in.ftpd" or "globus-gridftp-server" exists, ===
+=== and issue instructions for the appropriate one.                    ===
+==========================================================================
     if (not -d $xinetd_dir) {
         my $s = "You seem to be running xinetd";
         if (not defined $Sys{NET_DAEMON_PID}) {
