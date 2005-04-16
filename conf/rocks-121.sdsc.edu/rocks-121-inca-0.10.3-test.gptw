@@ -1,0 +1,12 @@
+# $Id: rocks-121-inca-0.10.3-test.gptw,v 1.1 2005-04-15 22:57:40-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-121.sdsc.edu/rocks-121-inca-0.10.3-test.gptw,v $
+
+CONFIG_FILE_REVISION	$Revision: 1.1 $
+
+PATH		/usr/bin:/bin
+
+GLOBUS_LOCATION	/usr/local/apps/inca-0.10.3-test
+
+GPT_TARBALL	~kst/src/gpt/gpt-3.2autotools2004-src.tar.gz
+
+BUNDLE		~kst/inca-all-0.10.3-test.tar.gz kind=source flavor=gcc32dbg
