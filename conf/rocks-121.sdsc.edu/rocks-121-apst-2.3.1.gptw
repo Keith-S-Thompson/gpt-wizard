@@ -1,0 +1,12 @@
+# $Id: rocks-121-apst-2.3.1.gptw,v 1.1 2005-04-16 04:46:16-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-121.sdsc.edu/rocks-121-apst-2.3.1.gptw,v $
+
+CONFIG_FILE_REVISION	$Revision: 1.1 $
+
+PATH		/usr/bin:/bin
+
+GLOBUS_LOCATION	/usr/local/apps/apst-2.3.1
+
+GPT_TARBALL	~kst/src/gpt/gpt-3.2autotools2004-src.tar.gz
+
+BUNDLE		/var/ftp/pub/NMI/apst/orig/apst-2.3.1.tar.gz kind=source flavor=gcc32dbgpthr
