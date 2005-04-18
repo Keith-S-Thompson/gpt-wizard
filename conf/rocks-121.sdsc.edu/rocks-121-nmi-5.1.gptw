@@ -1,0 +1,13 @@
+# $Id: rocks-121-nmi-5.1.gptw,v 1.1 2005-04-18 01:15:31-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-121.sdsc.edu/rocks-121-nmi-5.1.gptw,v $
+
+CONFIG_FILE_REVISION	$Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION	       /usr/local/apps/nmi-5.1
+GLOBUS_LOCAL_DIRECTORY /var/globus/nmi-5.1
+
+GPT_TARBALL ~kst/NMI/5.1/tools/gpt-3.2-src.tar.gz
+
+BUNDLE ~kst/NMI/5.1/linux-x86-rh90/gpt-bundles/nmi-all-NMI-5.1-linux-x86-rh90-bin.tar.gz kind=binary
