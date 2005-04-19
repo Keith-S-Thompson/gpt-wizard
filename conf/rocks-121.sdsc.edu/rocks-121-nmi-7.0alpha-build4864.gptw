@@ -1,0 +1,14 @@
+# $Id: rocks-121-nmi-7.0alpha-build4864.gptw,v 1.1 2005-04-19 01:59:24-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-121.sdsc.edu/rocks-121-nmi-7.0alpha-build4864.gptw,v $
+
+CONFIG_FILE_REVISION	$Revision: 1.1 $
+
+PATH		/usr/bin:/bin
+ENV		JAVA_HOME=/usr/java/j2sdk1.4.2_04
+
+GLOBUS_LOCATION	/usr/local/apps/nmi-7.0alpha-build4864
+GLOBUS_LOCAL_DIRECTORY /var/globus/nmi-7.0alpha-build4864
+
+GPT_TARBALL	~kst/src/gpt/gpt-3.2autotools2004-src.tar.gz
+
+BUNDLE		~kst/NMI/build4864/globus-NMI-7.0alpha1-i686-pc-linux-gnu-bin.tar.gz kind=binary
