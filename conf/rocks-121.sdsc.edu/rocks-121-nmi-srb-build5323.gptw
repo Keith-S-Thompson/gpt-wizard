@@ -1,0 +1,15 @@
+# $Id: rocks-121-nmi-srb-build5323.gptw,v 1.1 2005-04-21 04:20:41-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-121.sdsc.edu/rocks-121-nmi-srb-build5323.gptw,v $
+
+CONFIG_FILE_REVISION	$Revision: 1.1 $
+
+PATH		/usr/bin:/bin
+ENV		JAVA_HOME=/usr/java/j2sdk1.4.2_04
+
+GLOBUS_LOCATION	/usr/local/apps/nmi-srb-build5323
+GLOBUS_LOCAL_DIRECTORY /var/globus/nmi-srb-build5323
+
+GPT_TARBALL	/home/kst/NMI/build5157/gpt-3.2autotools2004-NMI-7.0.tar.gz
+
+BUNDLE		/home/kst/NMI/build5157/globus-NMI-7.0alpha1-i686-pc-linux-gnu-bin.tar.gz kind=binary
+BUNDLE		/home/kst/NMI/build5323/srb-NMI-7.0-i686-pc-linux-gnu-bin.tar.gz          kind=binary
