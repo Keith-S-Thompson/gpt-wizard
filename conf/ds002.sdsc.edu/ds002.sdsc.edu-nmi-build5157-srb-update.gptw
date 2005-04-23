@@ -1,0 +1,22 @@
+# $Id: ds002.sdsc.edu-nmi-build5157-srb-update.gptw,v 1.1 2005-04-23 13:29:47-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002.sdsc.edu-nmi-build5157-srb-update.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+IS_UPDATE 1
+
+.PARAM APPS_DIR ~kst/apps/powerpc-ibm-aix5.2.0.0
+.PARAM VAR_DIR ~kst/var
+.PARAM GLOBUS_SUBDIR nmi-build5157-srb
+
+PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
+
+TEMP_DIR ~kst # not enough room in /tmp
+
+GLOBUS_LOCATION       $APPS_DIR/$GLOBUS_SUBDIR
+# GLOBUS_LOCAL_DIRECTORY $VAR_DIR/$GLOBUS_SUBDIR
+
+# GPT_TARBALL ~kst/NMI/build5157/gpt/gpt-3.2autotools2004-NMI-7.0.tar.gz
+
+# BUNDLE ~kst/NMI/build5157/globus/globus-NMI-7.0alpha1-powerpc-ibm-aix5.2.0.0-bin.tar.gz kind=binary
+BUNDLE ~kst/NMI/srb/srb-3.3.1.patched.tar.gz kind=source flavor=vendorcc32dbg
