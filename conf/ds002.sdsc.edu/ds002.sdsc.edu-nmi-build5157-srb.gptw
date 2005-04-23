@@ -1,7 +1,7 @@
-# $Id: ds002.sdsc.edu-nmi-build5157-srb.gptw,v 1.3 2005-04-23 02:47:26-07 kst Exp $
+# $Id: ds002.sdsc.edu-nmi-build5157-srb.gptw,v 1.4 2005-04-23 02:51:47-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002.sdsc.edu-nmi-build5157-srb.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.3 $
+CONFIG_FILE_REVISION    $Revision: 1.4 $
 
 .PARAM APPS_DIR ~kst/apps/powerpc-ibm-aix5.2.0.0
 .PARAM VAR_DIR ~kst/var
@@ -14,7 +14,7 @@ TEMP_DIR ~kst # not enough room in /tmp
 GLOBUS_LOCATION       $APPS_DIR/$GLOBUS_SUBDIR
 GLOBUS_LOCAL_DIRECTORY $VAR_DIR/$GLOBUS_SUBDIR
 
-GPT_TARBALL ~kst/NMI/build5157/gpt/gpt-3.2autotools2004-NMI-7.0-dbg.tar.gz
+GPT_TARBALL ~kst/NMI/build5157/gpt/gpt-3.2autotools2004-NMI-7.0.tar.gz
 
 BUNDLE ~kst/NMI/build5157/globus/globus-NMI-7.0alpha1-powerpc-ibm-aix5.2.0.0-bin.tar.gz kind=binary
 
