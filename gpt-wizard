@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.309 2005-04-08 18:45:51-07 kst Exp $
+# $Id: gpt-wizard,v 1.310 2005-04-23 04:15:50-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -160,6 +160,13 @@
 #
 #     Don't invoke Fix_Setup_Scripts when doing an update.
 #
+#     Bug fix: When installing a binary bundle followed by a source
+#     bundle, the source bundle may not be able to find globus_config.h,
+#     because "gpt-build -nosrc" is done only after everything
+#     is finished.  Instead, run "gpt-build -nosrc" as needed after
+#     installing each binary bundle or package.  (Workaround: Install
+#     the binary bundle, then build the source bundle as an update.)
+#
 
 require 5.004;
 
@@ -212,7 +219,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.309 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.310 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
