@@ -1,13 +1,13 @@
-# $Id: ds002.sdsc.edu-nmi-build5157-srb.gptw,v 1.2 2005-04-23 02:31:23-07 kst Exp $
+# $Id: ds002.sdsc.edu-nmi-build5157-srb.gptw,v 1.3 2005-04-23 02:47:26-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002.sdsc.edu-nmi-build5157-srb.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.2 $
+CONFIG_FILE_REVISION    $Revision: 1.3 $
 
 .PARAM APPS_DIR ~kst/apps/powerpc-ibm-aix5.2.0.0
 .PARAM VAR_DIR ~kst/var
 .PARAM GLOBUS_SUBDIR nmi-build5157-srb
 
-PATH /opt/freeware/bin:/usr/vac/bin
+PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
 
 TEMP_DIR ~kst # not enough room in /tmp
 
