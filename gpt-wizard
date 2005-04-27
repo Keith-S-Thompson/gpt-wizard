@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.311 2005-04-26 17:05:54-07 kst Exp $
+# $Id: gpt-wizard,v 1.312 2005-04-26 17:16:32-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -167,6 +167,7 @@
 #     is finished.  Instead, run "gpt-build -nosrc" as needed after
 #     installing each binary bundle or package.  (Workaround: Install
 #     the binary bundle, then build the source bundle as an update.)
+#     FIXED.
 #
 #     Set up a bugs directory like the one for gx-map.
 #
@@ -190,6 +191,7 @@ sub Time_Image($);
 sub Make_Temp_File($);
 sub Get_Result($$);
 sub Get_Update_Flavors($);
+sub Build_Nosrc();
 sub Execute(@);
 sub Check_Services();
 sub Cleanup();
@@ -222,7 +224,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.311 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.312 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -812,6 +814,10 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
             Execute @As_Root_GPT,
                     $gpt_install_command, @options, $bundle->{filename};
         }
+        #
+        # Ensure globus_config.h is installed as needed.
+        #
+        Build_Nosrc;
     }
     else {
         #
@@ -819,41 +825,6 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         # Perl to print more information about the location of the error.
         #
         die "Internal error, \$bundle_kind = \"$bundle_kind\"";
-    }
-}
-
-########################################
-# A binary installation does not include the globus_config.h header
-# file.  It must be generated with "gpt-build -nosrc <flavors>".
-#
-# We need to determine the set of flavors for which this is needed.
-# Method: For each subdirectory of $GLOBUS_LOCATION/include, if the
-# subdirectory contains globus_common.h but not globus_config.h, add
-# the subdirectory name to the list of flavors.
-#
-# We don't need to do this for an update.
-########################################
-if (not $Config{IS_UPDATE}) {
-    my @nosrc_flavors = ();
-    my $include_dir = "$ENV{GLOBUS_LOCATION}/include";
-    if (-d $include_dir) {
-        opendir DIR, $include_dir or die "$include_dir: $!\n";
-        my @subdirs = sort
-                          grep { $_ ne '.' and
-                                 $_ ne '..' and
-                                 -d "$include_dir/$_" }
-                              readdir DIR;
-        foreach my $subdir (@subdirs) {
-            if (-e "$include_dir/$subdir/globus_common.h" and
-                not -e "$include_dir/$subdir/globus_config.h")
-            {
-                push @nosrc_flavors, $subdir;
-            }
-        }
-        if (@nosrc_flavors) {
-            Execute @As_Installer_GPT,
-                    $gpt_build_command, '-nosrc', @nosrc_flavors;
-        }
     }
 }
 
@@ -2804,6 +2775,48 @@ sub Get_Update_Flavors($) {
         die "Unable to determine flavors for $filename\n";
     }
 } # Get_Update_Flavors
+
+# ----------------------------------------------------------------------
+
+#
+# A binary installation does not include the globus_config.h header
+# file.  It must be generated with "gpt-build -nosrc <flavors>".
+#
+# We need to determine the set of flavors for which this is needed.
+# Method: For each subdirectory of $GLOBUS_LOCATION/include, if the
+# subdirectory contains globus_common.h but not globus_config.h, add
+# the subdirectory name to the list of flavors.
+#
+# We do this after installing each binary bundle or package.  (Previously
+# we did this after all bundles and packages were built or installed;
+# that caused problems when installing a Globus binary bundle and then
+# building a source bundle.)
+#
+# We don't need to do this for an update.
+#
+sub Build_Nosrc() {
+    my @nosrc_flavors = ();
+    my $include_dir = "$ENV{GLOBUS_LOCATION}/include";
+    if (-d $include_dir) {
+        opendir DIR, $include_dir or die "$include_dir: $!\n";
+        my @subdirs = sort
+                          grep { $_ ne '.' and
+                                 $_ ne '..' and
+                                 -d "$include_dir/$_" }
+                              readdir DIR;
+        foreach my $subdir (@subdirs) {
+            if (-e "$include_dir/$subdir/globus_common.h" and
+                not -e "$include_dir/$subdir/globus_config.h")
+            {
+                push @nosrc_flavors, $subdir;
+            }
+        }
+        if (@nosrc_flavors) {
+            Execute @As_Installer_GPT,
+                    $gpt_build_command, '-nosrc', @nosrc_flavors;
+        }
+    }
+} # Build_Nosrc
 
 # ----------------------------------------------------------------------
 
