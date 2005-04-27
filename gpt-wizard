@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.310 2005-04-23 04:15:50-07 kst Exp $
+# $Id: gpt-wizard,v 1.311 2005-04-26 17:05:54-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -156,7 +156,8 @@
 #     allows for "-static" somehow.
 #
 #     Handle new "globus-gridftp-server" as well as the older "in.ftpd"
-#     (they take different command-line arguments).  Search for /^=/.
+#     (they take different command-line arguments).  See comment block
+#     in Inet_Config_Text().
 #
 #     Don't invoke Fix_Setup_Scripts when doing an update.
 #
@@ -166,6 +167,8 @@
 #     is finished.  Instead, run "gpt-build -nosrc" as needed after
 #     installing each binary bundle or package.  (Workaround: Install
 #     the binary bundle, then build the source bundle as an update.)
+#
+#     Set up a bugs directory like the one for gx-map.
 #
 
 require 5.004;
@@ -219,7 +222,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.310 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.311 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1209,15 +1212,6 @@ if (defined $Sys{NET_DAEMON} and $Sys{NET_DAEMON} eq 'xinetd') {
     my $gsiftp_file     = "$xinetd_dir/gsiftp";
     my $gatekeeper_text = Inet_Config_Text 'xinetd', 'gsigatekeeper';
     my $gsiftp_text     = Inet_Config_Text 'xinetd', 'gsiftp';
-==========================================================================
-=== The new gridftp server is called "globus-gridftp-server",          ===
-=== not "in.ftpd".  It also takes different command-line arguments.    ===
-=== See <http://www-unix.globus.org/toolkit/docs/development/3.9.5/\   ===
-=== data/gridftp/GridFTP_Public_Interfaces.html>                       ===
-=== (near the bottom of the page) for sample inetd and xinetd entries. ===
-=== Need to check whether "in.ftpd" or "globus-gridftp-server" exists, ===
-=== and issue instructions for the appropriate one.                    ===
-==========================================================================
     if (not -d $xinetd_dir) {
         my $s = "You seem to be running xinetd";
         if (not defined $Sys{NET_DAEMON_PID}) {
@@ -3321,6 +3315,17 @@ sub Fix_Setup_Script($) {
 sub Inet_Config_Text($$) {
     my($daemon, $service) = @_;
 
+# ==========================================================================
+# === The new gridftp server is called "globus-gridftp-server",          ===
+# === not "in.ftpd".  It also takes different command-line arguments.    ===
+# === See <http://www-unix.globus.org/toolkit/docs/development/3.9.5/\   ===
+# === data/gridftp/GridFTP_Public_Interfaces.html>                       ===
+# === (near the bottom of the page) for sample inetd and xinetd entries. ===
+# === Need to check whether "in.ftpd" or "globus-gridftp-server" exists, ===
+# === and issue instructions for the appropriate one.                    ===
+# === For now, we just print a TBD message.                              ===
+# ==========================================================================
+
     my $env_arg = "LD_LIBRARY_PATH=$Config{GLOBUS_LOCATION}/lib";
     if (defined $Config{GLOBUS_HOSTNAME}) {
         $env_arg .= " GLOBUS_HOSTNAME=$Config{GLOBUS_HOSTNAME}";
@@ -3342,7 +3347,13 @@ service gsigatekeeper
 EOF
     }
     elsif ("$daemon/$service" eq 'xinetd/gsiftp') {
-        return <<"EOF";
+        if (-e "$Config{GLOBUS_LOCATION}/sbin/globus-gridftp-server" and
+            not -e "$Config{GLOBUS_LOCATION}/sbin/in.ftpd" )
+        {
+            return ">>> Configuration for globus-gridftp-server TBD\n";
+        }
+        else {
+            return <<"EOF";
 service gsiftp
 {
     instances       = 1000
@@ -3358,6 +3369,7 @@ service gsiftp
     disable         = no
 }
 EOF
+        }
     }
     elsif ("$daemon/$service" eq 'inetd/gsigatekeeper') {
         return "gsigatekeeper   stream tcp nowait root " .
@@ -3366,10 +3378,17 @@ EOF
                "-conf $Config{GLOBUS_LOCATION}/etc/globus-gatekeeper.conf\n";
     }
     elsif ("$daemon/$service" eq 'inetd/gsiftp') {
-        return "gsiftp          stream tcp nowait root " .
-               "/usr/bin/env env $env_arg " .
-               "$Config{GLOBUS_LOCATION}/sbin/in.ftpd " .
-               "-l -a -G $Config{GLOBUS_LOCATION}\n";
+        if (-e "$Config{GLOBUS_LOCATION}/sbin/globus-gridftp-server" and
+            not -e "$Config{GLOBUS_LOCATION}/sbin/in.ftpd" )
+        {
+            return ">>> Configuration for globus-gridftp-server TBD\n";
+        }
+        else {
+            return "gsiftp          stream tcp nowait root " .
+                   "/usr/bin/env env $env_arg " .
+                   "$Config{GLOBUS_LOCATION}/sbin/in.ftpd " .
+                   "-l -a -G $Config{GLOBUS_LOCATION}\n";
+        }
     }
     else {
         die "Internal error, bad arguments to Inet_Config_Text()\n" .
