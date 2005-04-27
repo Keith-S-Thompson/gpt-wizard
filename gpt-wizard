@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.314 2005-04-26 19:25:47-07 kst Exp $
+# $Id: gpt-wizard,v 1.315 2005-04-26 19:27:46-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -226,7 +226,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.314 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.315 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -576,7 +576,7 @@ if (not $Config{IS_UPDATE} and not $Opt{'aix-kludge'}) {
     # delete $ENV{LANG};
     Execute @As_Installer, './build_gpt';
 
-    Change_dir $working_dir;
+    Change_Dir $working_dir;
 }
 
 ########################################################################
@@ -828,7 +828,7 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         #
         die "Internal error, \$bundle_kind = \"$bundle_kind\"";
     }
-    Change_dir $working_dir;
+    Change_Dir $working_dir;
 }
 
 ########################################
@@ -1022,7 +1022,7 @@ if (defined $Config{JOB_MANAGER} and not $Config{IS_UPDATE}) {
     # (for FOO = pbs, lsf, etc.)  Argh!
     #
     if ($Opt{postinstall}) {
-        Change_dir $setup_dir;
+        Change_Dir $setup_dir;
         Execute $Using_RPM ? @As_Root : @As_Installer,
             "$setup_dir/setup-globus-job-manager-$jobmanager",
             @args;
@@ -1334,7 +1334,7 @@ if (defined $Config{'MPICH-G2'}) {
     my $flavor      = $ref->{flavor};
     my $arch        = $ref->{arch};
 
-    Change_dir $working_dir;
+    Change_Dir $working_dir;
 
     my $under_globus_location;
     if ($install_dir =~ /^\//) {
