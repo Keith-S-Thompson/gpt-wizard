@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.312 2005-04-26 17:16:32-07 kst Exp $
+# $Id: gpt-wizard,v 1.313 2005-04-26 17:21:20-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -159,7 +159,8 @@
 #     (they take different command-line arguments).  See comment block
 #     in Inet_Config_Text().
 #
-#     Don't invoke Fix_Setup_Scripts when doing an update.
+#     Don't invoke Fix_Setup_Script when doing an update.
+#     FIXED.
 #
 #     Bug fix: When installing a binary bundle followed by a source
 #     bundle, the source bundle may not be able to find globus_config.h,
@@ -224,7 +225,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.312 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.313 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -892,14 +893,16 @@ if (defined $Config{GLOBUS_LOCAL_DIRECTORY} and not $Config{IS_UPDATE}) {
 # they'll be run).
 ########################################
 
-Fix_Setup_Script
-    "$ENV{GLOBUS_LOCATION}/setup/globus/grid-security-config.in";
-Fix_Setup_Script
-    "$ENV{GLOBUS_LOCATION}/setup/globus/setup-ssl-utils.pl";
-Fix_Setup_Script
-    "$ENV{GLOBUS_LOCATION}/setup/kca/setup-kca.pl";
-Fix_Setup_Script
-    "$ENV{GLOBUS_LOCATION}/setup/gsi_openssh_setup/setup-openssh.pl";
+if (not $Config{IS_UPDATE}) {
+    Fix_Setup_Script
+        "$ENV{GLOBUS_LOCATION}/setup/globus/grid-security-config.in";
+    Fix_Setup_Script
+        "$ENV{GLOBUS_LOCATION}/setup/globus/setup-ssl-utils.pl";
+    Fix_Setup_Script
+        "$ENV{GLOBUS_LOCATION}/setup/kca/setup-kca.pl";
+    Fix_Setup_Script
+        "$ENV{GLOBUS_LOCATION}/setup/gsi_openssh_setup/setup-openssh.pl";
+}
 
 ########################################
 # Allow a specified command to be executed before running gpt-postinstall.
