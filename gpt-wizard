@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.315 2005-04-26 19:27:46-07 kst Exp $
+# $Id: gpt-wizard,v 1.316 2005-04-26 19:48:09-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -226,7 +226,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.315 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.316 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -816,10 +816,6 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
             Execute @As_Root_GPT,
                     $gpt_install_command, @options, $bundle->{filename};
         }
-        #
-        # Ensure globus_config.h is installed as needed.
-        #
-        Build_Nosrc;
     }
     else {
         #
@@ -829,6 +825,12 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         die "Internal error, \$bundle_kind = \"$bundle_kind\"";
     }
     Change_Dir $working_dir;
+    if ($bundle_kind ne 'source') {
+        #
+        # Ensure globus_config.h is installed as needed.
+        #
+        Build_Nosrc;
+    }
 }
 
 ########################################
