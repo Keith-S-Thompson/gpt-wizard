@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.313 2005-04-26 17:21:20-07 kst Exp $
+# $Id: gpt-wizard,v 1.314 2005-04-26 19:25:47-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -185,6 +185,7 @@ use Cwd ();
 
 sub Strip_Revision_String($);
 sub Get_Config($);
+sub Change_Dir($);
 sub Scrub_Env();
 sub Get_System_Information();
 sub Elapsed_Time_Image($);
@@ -225,7 +226,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.313 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.314 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -451,8 +452,7 @@ if ($Running_As_Root) {
     chown $installer_uid, $installer_gid, $working_dir
         or die "$working_dir: $!\n";
 }
-print "% cd $working_dir\n";
-chdir $working_dir or die "$working_dir: $!\n";
+Change_Dir $working_dir;
 if (not $Opt{cleanup}) {
     push @manual_steps,
          "The working directory\n" .
@@ -532,8 +532,7 @@ if (not $Config{IS_UPDATE} and not $Opt{'aix-kludge'}) {
     }
     elsif (scalar @new_files == 1) {
         my $src_dir = $new_files[0];
-        print "% cd $working_dir/$src_dir\n";
-        chdir "$working_dir/$src_dir" or die "$working_dir/$src_dir: $!\n";
+        Change_Dir "$working_dir/$src_dir";
     }
     else {
         die "Can't determine GPT source directory, tar created (@new_files)\n";
@@ -577,8 +576,7 @@ if (not $Config{IS_UPDATE} and not $Opt{'aix-kludge'}) {
     # delete $ENV{LANG};
     Execute @As_Installer, './build_gpt';
 
-    print "% cd $working_dir\n";
-    chdir $working_dir or die "$working_dir: $!\n";
+    Change_dir $working_dir;
 }
 
 ########################################################################
@@ -724,7 +722,10 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         }
     }
 
-    chdir File::Basename::dirname $bundle->{filename};
+    {
+        my $bundle_dir = File::Basename::dirname $bundle->{filename};
+        Change_Dir $bundle_dir;
+    }
 
     if ($bundle_kind eq 'source') {
         #
@@ -827,6 +828,7 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         #
         die "Internal error, \$bundle_kind = \"$bundle_kind\"";
     }
+    Change_dir $working_dir;
 }
 
 ########################################
@@ -923,8 +925,7 @@ if ($Opt{postinstall} and defined $Config{PRE_POSTINSTALL}) {
 ########################################
 if (defined $Config{CREATE_BINARY_BUNDLE}) {
     my $tmpdir = "$working_dir/bundle_pkgs";
-    chdir $Config{CREATE_BINARY_BUNDLE}->{dir} or
-        die "$Config{CREATE_BINARY_BUNDLE}->{dir}: $!\n";
+    Change_Dir $Config{CREATE_BINARY_BUNDLE}->{dir};
     mkdir $tmpdir, 0777 or die "${tmpdir}: $!\n";
     Execute @As_Installer,
             "$Config{GPT_LOCATION}/sbin/gpt-bundle",
@@ -1021,7 +1022,7 @@ if (defined $Config{JOB_MANAGER} and not $Config{IS_UPDATE}) {
     # (for FOO = pbs, lsf, etc.)  Argh!
     #
     if ($Opt{postinstall}) {
-        chdir $setup_dir or die "$setup_dir: $!\n";
+        Change_dir $setup_dir;
         Execute $Using_RPM ? @As_Root : @As_Installer,
             "$setup_dir/setup-globus-job-manager-$jobmanager",
             @args;
@@ -1170,8 +1171,7 @@ if ($Opt{startup} and defined $Config{CA_CERT_TARBALL}) {
     Backup $ca_cert_dir;
     print "% mkdir $ca_cert_dir\n";
     mkdir $ca_cert_dir, 0777 or die "$ca_cert_dir: $!\n";
-    print "% cd $ca_cert_dir\n";
-    chdir $ca_cert_dir or die "$ca_cert_dir: $!\n";
+    Change_Dir $ca_cert_dir;
     Execute @As_Root, 'tar', 'zxf', $Config{CA_CERT_TARBALL};
 }
 else {
@@ -1334,8 +1334,7 @@ if (defined $Config{'MPICH-G2'}) {
     my $flavor      = $ref->{flavor};
     my $arch        = $ref->{arch};
 
-    print "% cd $working_dir\n";
-    chdir $working_dir or die "$working_dir: $!\n";
+    Change_dir $working_dir;
 
     my $under_globus_location;
     if ($install_dir =~ /^\//) {
@@ -1384,11 +1383,11 @@ if (defined $Config{'MPICH-G2'}) {
     }
     elsif (scalar @new_files == 1) {
         my $src_dir = $new_files[0];
-        print "% cd $working_dir/$src_dir\n";
-        chdir "$working_dir/$src_dir" or die "$working_dir/$src_dir: $!\n";
+        Change_Dir "$working_dir/$src_dir";
     }
     else {
-        die "Can't determine MPICH source directory, tar created (@new_files)\n";
+        die "Can't determine MPICH source directory, ",
+            "tar created (@new_files)\n";
     }
 
     my @configure_args = ( "-device=globus2:-flavor=$flavor" );
@@ -1417,7 +1416,7 @@ if (-d "$Config{GLOBUS_LOCATION}/var/condor") {
          "It should probably be owned by user \"condor\"\n";
 }
 
-chdir '/tmp';
+Change_Dir '/tmp';
 if ($Opt{cleanup}) {
     Execute @As_Myself, 'rm', '-rf', $working_dir;
 }
@@ -2439,6 +2438,17 @@ sub Get_Config($) {
 # ----------------------------------------------------------------------
 
 #
+# chdir with tracing to stdout and error checking
+#
+sub Change_Dir($) {
+    my($dir) = @_;
+    print "% chdir $dir\n";
+    chdir $dir or die "${dir}: $!\n";
+} # Change_Dir
+
+# ----------------------------------------------------------------------
+
+#
 # Delete all extraneous environment variables.
 # Variables in a short predefined list (see the initialization of
 # %Retain_Env, above), variables specified by the ENV or INHERIT_ENV
@@ -3127,7 +3137,7 @@ sub Cleanup() {
             # chdir to tmp to make sure we aren't in a directory that
             # we're about to nuke.
             #
-            chdir '/tmp';
+            Change_Dir '/tmp';
             Execute @As_Myself, 'rm', '-rf', $working_dir;
         }
         else {
