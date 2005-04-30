@@ -1,7 +1,7 @@
-# $Id: ds001.sdsc.edu-globus-3.2.1.gptw,v 1.3 2004-07-21 19:29:58-07 kst Exp $
+# $Id: ds001.sdsc.edu-globus-3.2.1.gptw,v 1.4 2005-04-29 21:23:15-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds001.sdsc.edu/ds001.sdsc.edu-globus-3.2.1.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.3 $
+CONFIG_FILE_REVISION    $Revision: 1.4 $
 
 TEMP_DIR /gpfs/globus
 
@@ -10,7 +10,7 @@ PATH ~kst/mybin:/usr/bin
 GLOBUS_LOCATION       /gpfs/globus/apps/globus-3.2.1
 GLOBUS_LOCAL_DIRECTORY /gpfs/globus/var/globus-3.2.1
 
-ENV OBJECT_MODE=64
+# ENV OBJECT_MODE=64
 
 ## MPI_FLAVORS_ARE_STATIC 1
 
