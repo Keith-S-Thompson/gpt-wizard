@@ -1,0 +1,15 @@
+# $Id: rocks-121-nmi-7.0alpha2-globus-srb.gptw,v 1.1 2005-04-29 19:38:29-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-121.sdsc.edu/rocks-121-nmi-7.0alpha2-globus-srb.gptw,v $
+
+CONFIG_FILE_REVISION	$Revision: 1.1 $
+
+PATH		/usr/bin:/bin
+# ENV		JAVA_HOME=/usr/java/j2sdk1.4.2_04
+
+GLOBUS_LOCATION	/usr/local/apps/nmi-7.0alpha2-globus-srb
+GLOBUS_LOCAL_DIRECTORY /var/globus/nmi-7.0alpha2-globus-srb
+
+GPT_TARBALL	~kst/NMI/7.0alpha2/common/gpt-3.2autotools2004-NMI-7.0.tar.gz
+
+BUNDLE		~kst/NMI/7.0alpha2/x86-redhat_advanced_server-3/gpt-bundles/individual-components/globus-NMI-7.0alpha1-i686-pc-linux-gnu-bin.tar.gz
+BUNDLE		/var/ftp/pub/NMI/srb/3.3.1.patched2/srb-3.3.1.patched2.tar.gz kind=source flavor=gcc32
