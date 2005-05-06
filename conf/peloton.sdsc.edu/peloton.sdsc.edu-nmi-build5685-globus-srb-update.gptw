@@ -1,11 +1,13 @@
-# $Id: peloton.sdsc.edu-nmi-build5685-globus-srb-update.gptw,v 1.1 2005-05-06 04:51:06-07 kst Exp $
+# $Id: peloton.sdsc.edu-nmi-build5685-globus-srb-update.gptw,v 1.2 2005-05-06 05:25:58-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/peloton.sdsc.edu/peloton.sdsc.edu-nmi-build5685-globus-srb-update.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 PATH /bin:/usr/bin
 
 IS_UPDATE 1
+
+ENV LDFLAGS=-lltdl
 
 GLOBUS_LOCATION       ~kst/apps/nmi-build5685-globus
 # GLOBUS_LOCAL_DIRECTORY ~kst/var/nmi-build5685-globus
