@@ -1,7 +1,7 @@
-# $Id: ds002.sdsc.edu-nmi-build5685-globus-srb-update.gptw,v 1.1 2005-05-06 18:36:50-07 kst Exp $
+# $Id: ds002.sdsc.edu-nmi-build5685-globus-srb-update.gptw,v 1.2 2005-05-06 19:06:10-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002.sdsc.edu-nmi-build5685-globus-srb-update.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 .PARAM APPS_DIR /work/kst/apps
 .PARAM VAR_DIR /work/kst/var
@@ -19,4 +19,4 @@ GLOBUS_LOCATION       $APPS_DIR/$GLOBUS_SUBDIR
 # GPT_TARBALL /work/kst/NMI/7.0alpha3/tools/gpt-3.2autotools2004-NMI-7.0.tar.gz
 
 # BUNDLE /work/kst/NMI/build5685/globus-NMI-7.0alpha1-powerpc-ibm-aix5.2.0.0-bin.tar.gz
-BUNDLE /work/kst/NMI/srb/srb-3.3.1.patched3.tar.gz kind=source flavor=vendorcc64
+BUNDLE /work/kst/NMI/srb/srb-3.3.1.patched3.tar.gz kind=source flavor=vendorcc32
