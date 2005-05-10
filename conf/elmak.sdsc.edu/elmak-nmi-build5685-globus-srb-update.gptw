@@ -1,0 +1,17 @@
+# $Id: elmak-nmi-build5685-globus-srb-update.gptw,v 1.1 2005-05-10 00:56:42-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/elmak.sdsc.edu/elmak-nmi-build5685-globus-srb-update.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+IS_UPDATE 1
+
+PATH /projects/globus/kst/apps/sparc-sun-solaris2.8/tar-1.15.1/bin:/usr/local/apps/perl-5.8.6/bin:/usr/bin:/usr/ccs/bin:/opt/SUNWspro/bin:/usr/local/bin
+
+GLOBUS_LOCATION       /scratch/slocal/kst/apps/nmi-build5685-globus
+# GLOBUS_LOCAL_DIRECTORY /scratch/slocal/kst/var/nmi-build5685-globus
+
+# GPT_TARBALL /scratch/slocal/kst/NMI/gpt/gpt-3.2autotools2004-NMI-7.0.tar.gz
+
+# BUNDLE /scratch/slocal/kst/NMI/build5685/globus-NMI-7.0alpha1-sparc-sun-solaris2.9-bin.tar.gz kind=binary
+BUNDLE /scratch/slocal/kst/NMI/srb/srb-3.3.1.patched4.tar.gz kind=source flavor=gcc32
+
