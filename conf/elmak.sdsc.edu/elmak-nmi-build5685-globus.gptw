@@ -1,9 +1,9 @@
-# $Id: elmak-nmi-build5685-globus.gptw,v 1.1 2005-05-09 18:00:17-07 kst Exp $
+# $Id: elmak-nmi-build5685-globus.gptw,v 1.2 2005-05-09 18:03:39-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/elmak.sdsc.edu/elmak-nmi-build5685-globus.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
-PATH /usr/bin:/usr/ccs/bin:/opt/SUNWspro/bin:/usr/local/bin
+PATH /projects/globus/kst/apps/sparc-sun-solaris2.8/tar-1.15.1/bin:/usr/bin:/usr/ccs/bin:/opt/SUNWspro/bin:/usr/local/bin
 
 GLOBUS_LOCATION       /scratch/slocal/kst/apps/nmi-build5685-globus
 GLOBUS_LOCAL_DIRECTORY /scratch/slocal/kst/var/nmi-build5685-globus
