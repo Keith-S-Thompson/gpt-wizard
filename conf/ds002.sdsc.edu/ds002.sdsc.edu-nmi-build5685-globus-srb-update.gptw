@@ -1,11 +1,7 @@
-# $Id: ds002.sdsc.edu-nmi-build5685-globus-srb-update.gptw,v 1.4 2005-05-06 21:26:28-07 kst Exp $
+# $Id: ds002.sdsc.edu-nmi-build5685-globus-srb-update.gptw,v 1.5 2005-05-09 21:46:21-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002.sdsc.edu-nmi-build5685-globus-srb-update.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.4 $
-
-.PARAM APPS_DIR /work/kst/apps
-.PARAM VAR_DIR /work/kst/var
-.PARAM GLOBUS_SUBDIR nmi-build5685-globus
+CONFIG_FILE_REVISION    $Revision: 1.5 $
 
 IS_UPDATE 1
 
@@ -13,10 +9,10 @@ PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
 
 TEMP_DIR /gpfs/kst # not enough room in /tmp
 
-GLOBUS_LOCATION       $APPS_DIR/$GLOBUS_SUBDIR
-# GLOBUS_LOCAL_DIRECTORY $VAR_DIR/$GLOBUS_SUBDIR
+GLOBUS_LOCATION       /work/kst/apps/nmi-build5685-globus
+# GLOBUS_LOCAL_DIRECTORY /work/kst/var/nmi-build5685-globus
 
 # GPT_TARBALL /work/kst/NMI/7.0alpha3/tools/gpt-3.2autotools2004-NMI-7.0.tar.gz
 
 # BUNDLE /work/kst/NMI/build5685/globus-NMI-7.0alpha1-powerpc-ibm-aix5.2.0.0-bin.tar.gz
-BUNDLE /work/kst/NMI/srb/srb-3.3.1.patched3.tar.gz kind=source flavor=vendorcc64
+BUNDLE /work/kst/NMI/srb/srb-3.3.1.patched.tar.gz kind=source flavor=vendorcc64
