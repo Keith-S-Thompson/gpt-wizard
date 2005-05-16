@@ -1,13 +1,13 @@
-# $Id: elmak-nmi-build6103-globus.gptw,v 1.2 2005-05-15 00:27:41-07 kst Exp $
+# $Id: elmak-nmi-build6103-globus.gptw,v 1.3 2005-05-15 23:50:21-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/elmak.sdsc.edu/elmak-nmi-build6103-globus.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.2 $
+CONFIG_FILE_REVISION    $Revision: 1.3 $
 
 PATH /users/u4/kst/sparc-sun-solaris2.8/apps/tar-1.15.1/bin:/users/u4/kst/sparc-sun-solaris2.8/apps/make-3.80/bin:/usr/local/apps/perl-5.8.6/bin:/usr/bin:/usr/ccs/bin:/opt/SUNWspro/bin:/usr/local/bin
 
 GLOBUS_LOCATION       /scratch/slocal/kst/apps/nmi-build6103-globus
 GLOBUS_LOCAL_DIRECTORY /scratch/slocal/kst/var/nmi-build6103-globus
 
-GPT_TARBALL /scratch/slocal/kst/NMI/gpt/gpt-3.2autotools2004-NMI-7.0.tar.gz
+GPT_TARBALL /scratch/slocal/kst/NMI/gpt/gpt-3.2autotools2004-NMI-7.0-kst.tar.gz
 
 BUNDLE /scratch/slocal/kst/NMI/build6103/globus-NMI-7.0alpha1-sparc-sun-solaris2.9-bin.tar.gz kind=binary option=-debug
