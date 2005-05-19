@@ -1,7 +1,7 @@
-# $Id: rocks-121-nmi-7.0beta1-globusonly-gridsolve-update.gptw,v 1.6 2005-05-18 20:05:33-07 kst Exp $
+# $Id: rocks-121-nmi-7.0beta1-globusonly-gridsolve-update.gptw,v 1.7 2005-05-18 21:25:19-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-121.sdsc.edu/rocks-121-nmi-7.0beta1-globusonly-gridsolve-update.gptw,v $
 
-CONFIG_FILE_REVISION	$Revision: 1.6 $
+CONFIG_FILE_REVISION	$Revision: 1.7 $
 
 IS_UPDATE 1
 
@@ -14,5 +14,7 @@ GLOBUS_LOCATION	   /usr/local/apps/nmi-7.0beta1-globusonly
 # GPT_TARBALL	~kst/NMI/7.0beta1/tools/gpt-3.2autotools2004-NMI-7.0.tar.gz
 
 # BUNDLE		~kst/NMI/7.0beta1/x86-redhat_advanced_server-3/gpt-bundles/individual-components/globus-NMI-7.0alpha1-x86-redhat_advanced_server-3-bin.tar.gz kind=binary
-BUNDLE 		~kst/src/nws/nws-2.12.tar.gz            kind=source flavor=gcc32pthr
-BUNDLE 		~kst/src/gridsolve/gridsolve-2.0.tar.gz kind=source flavor=gcc32pthr
+
+BUNDLE		~kst/cvs-pompone.cs.ucsb.edu/nwslapd_setup.tar.gz kind=source flavor=gcc32pthr
+BUNDLE		~kst/cvs-pompone.cs.ucsb.edu/nws.tar.gz           kind=source flavor=gcc32pthr
+BUNDLE		~kst/src/gridsolve/gridsolve-2.0.tar.gz           kind=source flavor=gcc32pthr
