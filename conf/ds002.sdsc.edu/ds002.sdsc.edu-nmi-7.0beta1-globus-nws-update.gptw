@@ -1,0 +1,23 @@
+# $Id: ds002.sdsc.edu-nmi-7.0beta1-globus-nws-update.gptw,v 1.1 2005-05-24 03:15:26-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002.sdsc.edu-nmi-7.0beta1-globus-nws-update.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+IS_UPDATE 1
+
+.PARAM APPS_DIR /work/kst/apps
+.PARAM VAR_DIR /work/kst/var
+.PARAM GLOBUS_SUBDIR nmi-7.0beta1-globus
+
+PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
+
+TEMP_DIR /gpfs/kst # not enough room in /tmp
+
+GLOBUS_LOCATION       $APPS_DIR/$GLOBUS_SUBDIR
+# GLOBUS_LOCAL_DIRECTORY $VAR_DIR/$GLOBUS_SUBDIR
+
+# GPT_TARBALL /work/kst/NMI/7.0beta1/tools/gpt-3.2autotools2004-NMI-7.0.tar.gz
+
+# BUNDLE /work/kst/NMI/7.0beta1/power-ibm_aix-5.2/gpt-bundles/individual-components/globus-NMI-7.0alpha1-power-ibm_aix-5.2-bin.tar.gz kind=binary
+
+BUNDLE /work/kst/NMI/7.0beta1/power-ibm_aix-5.2/gpt-bundles/individual-components/nws-NMI-7.0alpha1-power-ibm_aix-5.2-bin.tar.gz kind=binary
