@@ -1,7 +1,7 @@
-# $Id: ds002.sdsc.edu-nmi-7.0beta1-globus-gridsolve-update.gptw,v 1.1 2005-05-24 19:25:23-07 kst Exp $
+# $Id: ds002.sdsc.edu-nmi-7.0beta1-globus-gridsolve-update.gptw,v 1.2 2005-05-24 19:33:11-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002.sdsc.edu-nmi-7.0beta1-globus-gridsolve-update.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 IS_UPDATE 1
 
@@ -20,4 +20,4 @@ GLOBUS_LOCATION       $APPS_DIR/$GLOBUS_SUBDIR
 
 # BUNDLE /work/kst/NMI/7.0beta1/power-ibm_aix-5.2/gpt-bundles/individual-components/globus-NMI-7.0alpha1-power-ibm_aix-5.2-bin.tar.gz kind=binary
 
-BUNDLE /work/kst/NMI/gridsolve/gridsolve-2.0-patched.tar.gz kind=source flavor=vendorcc32pthr
+BUNDLE /work/kst/NMI/gridsolve/gridsolve-2.0-patched.tar.gz kind=source flavor=vendorcc32pthr option=FLAVOR_GPTMACRO=vendorcc32pthr
