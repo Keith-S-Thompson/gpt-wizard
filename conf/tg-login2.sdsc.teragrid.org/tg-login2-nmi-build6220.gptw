@@ -1,0 +1,16 @@
+# $Id: tg-login2-nmi-build6220.gptw,v 1.1 2005-05-28 22:18:41-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/tg-login2.sdsc.teragrid.org/tg-login2-nmi-build6220.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH            /usr/bin:/bin
+ENV             JAVA_HOME=/usr/lib/java
+
+GLOBUS_LOCATION       /gpfs/kst/apps/nmi-build6220
+GLOBUS_LOCAL_DIRECTORY /gpfs/kst/var/nmi-build6220
+
+GPT_TARBALL     ~kst/NMI/7.0beta1/tools/gpt-3.2autotools2004-NMI-7.0.tar.gz
+
+BUNDLE          ~kst/NMI/build6220/globus-NMI-7.0alpha1-ia64-unknown-linux-gnu-bin.tar.gz kind=binary
+
+
