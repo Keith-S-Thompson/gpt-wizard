@@ -1,9 +1,9 @@
-# $Id: ds002-nmi-7.0beta1+srb-build7055.gptw,v 1.1 2005-05-29 02:13:41-07 kst Exp $
+# $Id: ds002-nmi-7.0beta1+srb-build7055.gptw,v 1.2 2005-05-29 02:21:42-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002-nmi-7.0beta1+srb-build7055.gptw,v $
 
-CONFIG_FILE_REVISION $Revision: 1.1 $
+CONFIG_FILE_REVISION $Revision: 1.2 $
 
-PATH /usr/bin:/bin
+PATH /users/sdsc/kst/local/apps/tar-1.15.1/bin:/usr/bin:/bin
 ENV  JAVA_HOME=/usr/lib/java
 
 GLOBUS_LOCATION       /gpfs/kst/apps/nmi-7.0beta1+srb-build7055
