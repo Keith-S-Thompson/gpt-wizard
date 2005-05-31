@@ -1,0 +1,14 @@
+# $Id: elmak-nmi-7.0beta1.gptw,v 1.1 2005-05-30 18:30:51-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/elmak.sdsc.edu/elmak-nmi-7.0beta1.gptw,v $
+
+CONFIG_FILE_REVISION $Revision: 1.1 $
+
+PATH /users/u4/kst/sparc-sun-solaris2.8/apps/tar-1.15.1/bin:/users/u4/kst/sparc-sun-solaris2.8/apps/make-3.80/bin:/usr/local/apps/perl-5.8.6/bin:/usr/bin
+ENV LD_LIBRARY_PATH=/users/u4/kst/sparc-sun-solaris2.8/lib:/usr/lib
+
+GLOBUS_LOCATION       /scratch/slocal/kst/apps/nmi-7.0beta1-globusonly
+GLOBUS_LOCAL_DIRECTORY /scratch/slocal/kst/var/nmi-7.0beta1-globusonly
+
+GPT_TARBALL /scratch/slocal/kst/NMI/7.0beta1/tools/gpt-3.2autotools2004-NMI-7.0.tar.gz
+
+BUNDLE /scratch/slocal/kst/NMI/7.0beta1/sparc-solaris-9/gpt-bundles/NMI-all-7.0-sparc-solaris-9-bin.tar.gz kind=binary
