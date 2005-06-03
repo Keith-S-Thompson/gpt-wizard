@@ -1,0 +1,13 @@
+# $Id: peloton-nmi-7.0.gptw,v 1.1 2005-06-02 19:15:37-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/peloton.sdsc.edu/peloton-nmi-7.0.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /bin:/usr/bin
+
+GLOBUS_LOCATION       ~kst/apps/nmi-7.0beta1
+GLOBUS_LOCAL_DIRECTORY ~kst/var/nmi-7.0beta1
+
+GPT_TARBALL ~kst/NMI/7.0/tools/gpt-3.2autotools2004-NMI-7.0.tar.gz
+
+BUNDLE ~kst/NMI/7.0/power-apple-macos-x/gpt-bundles/NMI-all-7.0-powerpc-apple-darwin7.7.0-bin.tar.gz kind=binary
