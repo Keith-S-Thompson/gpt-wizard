@@ -1,0 +1,12 @@
+# $Id: uffda-nmi-7.0.gptw,v 1.1 2005-06-10 17:49:42-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uffda.sdsc.edu/uffda-nmi-7.0.gptw,v $
+
+CONFIG_FILE_REVISION	$Revision: 1.1 $
+
+PATH		/usr/bin:/bin
+
+GLOBUS_LOCATION	/usr/local/apps/nmi-7.0
+
+GPT_TARBALL	~kst/NMI/7.0/tools/gpt-3.2autotools2004-NMI-7.0.tar.gz
+
+BUNDLE		~kst/NMI/7.0/x86-redhat-9/gpt-bundles/NMI-all-7.0-x86-redhat-9-bin.tar.gz kind=binary
