@@ -1,0 +1,13 @@
+# $Id: elmak-globus-2.4.3-test.gptw,v 1.1 2005-09-17 04:06:20-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/elmak.sdsc.edu/elmak-globus-2.4.3-test.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /users/u4/kst/solaris8/apps/tar-1.15.1/bin:/users/u4/kst/solaris8/apps/make-3.80/bin:/usr/local/apps/perl-5.8.6/bin:/usr/bin:/usr/ccs/bin:/opt/SUNWspro/bin:/usr/local/bin
+ENV LD_LIBRARY_PATH=/users/u4/kst/solaris9/lib:/usr/lib:/usr/local/lib
+
+GLOBUS_LOCATION       /scratch/slocal/kst/apps/globus-2.4.3-test
+
+GPT_TARBALL /projects/globus/kst/NMI/8.0-build-11498/gpt-3.2autotools2004-NMI-8.0.tar.gz
+
+BUNDLE /projects/globus/kst/repo.teragrid.org/open/globus/2.4.3-r4/globus-data-management-client-2.4.3-r4-src_bundle.tar.gz kind=source flavor=gcc32
