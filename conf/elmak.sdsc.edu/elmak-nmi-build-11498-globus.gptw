@@ -1,9 +1,10 @@
-# $Id: elmak-nmi-build-11498-globus.gptw,v 1.1 2005-09-17 03:38:56-07 kst Exp $
+# $Id: elmak-nmi-build-11498-globus.gptw,v 1.2 2005-09-17 03:43:25-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/elmak.sdsc.edu/elmak-nmi-build-11498-globus.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
-PATH /users/u4/kst/apps/solaris8/tar-1.15.1/bin:/users/u4/kst/apps/solaris8/make-3.80/bin:/usr/local/apps/perl-5.8.6/bin:/usr/bin:/usr/ccs/bin:/opt/SUNWspro/bin:/usr/local/bin
+PATH /users/u4/kst/solaris8/apps/tar-1.15.1/bin:/users/u4/kst/solaris8/apps/make-3.80/bin:/usr/local/apps/perl-5.8.6/bin:/usr/bin:/usr/ccs/bin:/opt/SUNWspro/bin:/usr/local/bin
+ENV LD_LIBRARY_PATH=/users/u4/kst/solaris9/lib:/usr/lib:/usr/local/lib
 
 GLOBUS_LOCATION       /scratch/slocal/kst/apps/nmi-build-11498-globus
 GLOBUS_LOCAL_DIRECTORY /scratch/slocal/kst/var/nmi-build-11498-globus
