@@ -1,7 +1,7 @@
-# $Id: elmak-nmi-build-11498-globus-srb-update.gptw,v 1.1 2005-09-19 02:03:19-07 kst Exp $
+# $Id: elmak-nmi-build-11498-globus-srb-update.gptw,v 1.2 2005-09-19 02:04:26-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/elmak.sdsc.edu/elmak-nmi-build-11498-globus-srb-update.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 IS_UPDATE 1
 
@@ -14,4 +14,4 @@ GLOBUS_LOCATION       /scratch/slocal/kst/apps/nmi-build-11498-globus
 # GPT_TARBALL /projects/globus/kst/NMI/8.0-build-11498/gpt-3.2autotools2004-NMI-8.0.tar.gz
 
 # BUNDLE /projects/globus/kst/NMI/8.0-build-11498/globus-NMI-8.0-sparc-sun-solaris2.9-bin.tar.gz kind=binary
-BUNDLE /projects/globus/kst/NMI/8.0-build-11498/srb-3.3.1.patched.tar.gz kind=source flavor=gcc32
+BUNDLE /projects/globus/kst/NMI/8.0-build-11498/srb-3.3.1.patched2.tar.gz kind=source flavor=gcc32
