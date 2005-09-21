@@ -1,11 +1,11 @@
-# $Id: elmak-nmi-build-11498-globus-srb-update.gptw,v 1.2 2005-09-19 02:04:26-07 kst Exp $
+# $Id: elmak-nmi-build-11498-globus-srb-update.gptw,v 1.3 2005-09-20 21:05:53-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/elmak.sdsc.edu/elmak-nmi-build-11498-globus-srb-update.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.2 $
+CONFIG_FILE_REVISION    $Revision: 1.3 $
 
 IS_UPDATE 1
 
-PATH /users/u4/kst/solaris8/apps/tar-1.15.1/bin:/users/u4/kst/solaris8/apps/make-3.80/bin:/usr/local/apps/perl-5.8.6/bin:/usr/bin:/usr/ccs/bin:/opt/SUNWspro/bin:/usr/local/bin
+PATH /users/u4/kst/solaris9/apps/tar-1.15.1/bin:/users/u4/kst/solaris9/apps/make-3.80/bin:/usr/local/apps/perl-5.8.6/bin:/usr/bin:/usr/ccs/bin:/opt/SUNWspro/bin:/usr/local/bin
 ENV LD_LIBRARY_PATH=/users/u4/kst/solaris9/lib:/usr/lib:/usr/local/lib
 
 GLOBUS_LOCATION       /scratch/slocal/kst/apps/nmi-build-11498-globus
@@ -14,4 +14,6 @@ GLOBUS_LOCATION       /scratch/slocal/kst/apps/nmi-build-11498-globus
 # GPT_TARBALL /projects/globus/kst/NMI/8.0-build-11498/gpt-3.2autotools2004-NMI-8.0.tar.gz
 
 # BUNDLE /projects/globus/kst/NMI/8.0-build-11498/globus-NMI-8.0-sparc-sun-solaris2.9-bin.tar.gz kind=binary
-BUNDLE /projects/globus/kst/NMI/8.0-build-11498/srb-3.3.1.patched2.tar.gz kind=source flavor=gcc32
+BUNDLE ~kst/NMI/8.0-srb_3_2-build-11868/srb_3_2-NMI-8.0-sparc-sun-solaris2.9-bin.tar.gz kind=binary
+BUNDLE ~kst/NMI/8.0-srb_3_3.1-build-11865/srb-NMI-8.0-sparc-sun-solaris2.9-bin.tar.gz   kind=binary
+
