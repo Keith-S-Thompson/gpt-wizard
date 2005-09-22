@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.319 2005-05-29 01:50:17-07 kst Exp $
+# $Id: gpt-wizard,v 1.320 2005-09-22 16:31:31-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -226,7 +226,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.319 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.320 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -1962,59 +1962,59 @@ sub Get_Config($) {
                         $value->{is_update} = 1 if $name eq 'UPDATE';
                     }
                 }
-                elsif ($Var->{type} eq 'new_binary_bundle') {
-                    #
-                    # Parse the arguments, but don't check them for
-                    # validity yet.
-                    #
-                    my $name    = undef;
-                    my $version = undef;
-                    my $label   = undef;
-                    my $dir     = undef;
-                    foreach my $field (split /\s+/, $value) {
-                        if (lc $field =~ /^name=(.*)$/) {
-                            if (defined $name) {
-                                &$ERROR("Duplicate name, line $.");
-                            }
-                            else {
-                                $name = $1;
-                            }
-                        }
-                        elsif (lc $field =~ /^version=(.*)$/) {
-                            if (defined $version) {
-                                &$ERROR("Duplicate version, line $.");
-                            }
-                            else {
-                                $version = $1;
-                            }
-                        }
-                        elsif (lc $field =~ /^label=(.*)$/) {
-                            if (defined $label) {
-                                &$ERROR("Duplicate label, line $.");
-                            }
-                            else {
-                                $label = $1;
-                            }
-                        }
-                        elsif (lc $field =~ /^dir=(.*)$/) {
-                            if (defined $dir) {
-                                &$ERROR("Duplicate dir, line $.");
-                            }
-                            else {
-                                $dir = $1;
-                            }
-                        }
-                        else {
-                            &$ERROR("Unrecognized argument \"$field\", " .
-                                    "line $.\n");
-                        }
-                    }
-                    $value = {};
-                    $value->{name}    = $name    if defined $name;
-                    $value->{version} = $version if defined $version;
-                    $value->{label}   = $label   if defined $label;
-                    $value->{dir}     = $dir     if defined $dir;
-                }
+#               elsif ($Var->{type} eq 'new_binary_bundle') {
+#                   #
+#                   # Parse the arguments, but don't check them for
+#                   # validity yet.
+#                   #
+#                   my $name    = undef;
+#                   my $version = undef;
+#                   my $label   = undef;
+#                   my $dir     = undef;
+#                   foreach my $field (split /\s+/, $value) {
+#                       if (lc $field =~ /^name=(.*)$/) {
+#                           if (defined $name) {
+#                               &$ERROR("Duplicate name, line $.");
+#                           }
+#                           else {
+#                               $name = $1;
+#                           }
+#                       }
+#                       elsif (lc $field =~ /^version=(.*)$/) {
+#                           if (defined $version) {
+#                               &$ERROR("Duplicate version, line $.");
+#                           }
+#                           else {
+#                               $version = $1;
+#                           }
+#                       }
+#                       elsif (lc $field =~ /^label=(.*)$/) {
+#                           if (defined $label) {
+#                               &$ERROR("Duplicate label, line $.");
+#                           }
+#                           else {
+#                               $label = $1;
+#                           }
+#                       }
+#                       elsif (lc $field =~ /^dir=(.*)$/) {
+#                           if (defined $dir) {
+#                               &$ERROR("Duplicate dir, line $.");
+#                           }
+#                           else {
+#                               $dir = $1;
+#                           }
+#                       }
+#                       else {
+#                           &$ERROR("Unrecognized argument \"$field\", " .
+#                                   "line $.\n");
+#                       }
+#                   }
+#                   $value = {};
+#                   $value->{name}    = $name    if defined $name;
+#                   $value->{version} = $version if defined $version;
+#                   $value->{label}   = $label   if defined $label;
+#                   $value->{dir}     = $dir     if defined $dir;
+#               }
 
                 if ($Var->{type} =~ /^array_of/) {
                     push @{$Var->{value}}, $value;
@@ -2266,41 +2266,41 @@ sub Get_Config($) {
 
         }
 
-        elsif ($var->{type} eq 'new_binary_bundle') {
-            #
-            # Allowed attributes are name, version, label, and dir,
-            # all mandatory.  dir must refer to an existing directory,
-            # 
-            #
-            my $value = $var->{value};
-            foreach my $attr (qw(name version label dir)) {
-                if (not defined $value->{$attr}) {
-                    &$ERROR("$varname missing attribute $attr\n");
-                }
-            }
-            #
-            # dir can use ~ notation; after any expansion, it must be
-            # an absolute pathname.
-            #
-            $value->{dir} =~ s/^~[\w-]+/Expand_Tilde $&/e;
-            if ($value->{dir} =~ /^~([\w-]+)/) {
-                &$ERROR("Error expanding \"~$1\", line $.\n");
-            }
-            elsif ($value->{dir} =~ /^~/) {
-                &$ERROR("Standalone \"~\" not expanded, line $.\n");
-            }
-            if ($value->{dir} !~ /^\//) {
-                &$ERROR("${varname}: $value->{dir} is not an " .
-                        "absolute pathname\n");
-            }
-            elsif (not -d $value->{dir}) {
-                &$ERROR("${varname}: no directory $value->{dir}\n");
-            }
-            elsif (not -w $value->{dir}) {
-                &$ERROR("${varname}: directory $value->{dir} " .
-                        "is not writable\n");
-            }
-        }
+#       elsif ($var->{type} eq 'new_binary_bundle') {
+#           #
+#           # Allowed attributes are name, version, label, and dir,
+#           # all mandatory.  dir must refer to an existing directory,
+#           # 
+#           #
+#           my $value = $var->{value};
+#           foreach my $attr (qw(name version label dir)) {
+#               if (not defined $value->{$attr}) {
+#                   &$ERROR("$varname missing attribute $attr\n");
+#               }
+#           }
+#           #
+#           # dir can use ~ notation; after any expansion, it must be
+#           # an absolute pathname.
+#           #
+#           $value->{dir} =~ s/^~[\w-]+/Expand_Tilde $&/e;
+#           if ($value->{dir} =~ /^~([\w-]+)/) {
+#               &$ERROR("Error expanding \"~$1\", line $.\n");
+#           }
+#           elsif ($value->{dir} =~ /^~/) {
+#               &$ERROR("Standalone \"~\" not expanded, line $.\n");
+#           }
+#           if ($value->{dir} !~ /^\//) {
+#               &$ERROR("${varname}: $value->{dir} is not an " .
+#                       "absolute pathname\n");
+#           }
+#           elsif (not -d $value->{dir}) {
+#               &$ERROR("${varname}: no directory $value->{dir}\n");
+#           }
+#           elsif (not -w $value->{dir}) {
+#               &$ERROR("${varname}: directory $value->{dir} " .
+#                       "is not writable\n");
+#           }
+#       }
 
         elsif ($var->{type} eq 'job_manager') {
             #
