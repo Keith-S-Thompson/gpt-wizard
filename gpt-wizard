@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.320 2005-09-22 16:31:31-07 kst Exp $
+# $Id: gpt-wizard,v 1.321 2005-09-22 16:52:16-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -226,7 +226,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.320 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.321 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -713,10 +713,10 @@ foreach my $bundle ( @{$Config{BUNDLE}}, @{$Config{UPDATE}} ) {
         if ($bundle->{is_update}) {
             $bundle_kind = 'source';
         }
-        elsif ($bundle_basename =~ /(\b|_)src(\b|_)/) {
+        elsif ($bundle_basename =~ /(?:\b|_)src(?:\b|_)/) {
             $bundle_kind = 'source';
         }
-        elsif ($bundle_basename =~ /(\b|_)rpm(\b|_)/) {
+        elsif ($bundle_basename =~ /(?:\b|_)rpm(?:\b|_)/) {
             $bundle_kind = 'rpm';
         }
         else {
@@ -1737,15 +1737,16 @@ sub Get_Config($) {
             $value =~ s/\$\{\w+\}/Expand_Param($&, %Param)/eg;
 
             #
-            # Expand ~username at the beginning of the string.
+            # Expand ~username at the beginning of the string
+            # or immediately following a ':' (as in PATH).
             # Assume a username consists of one or more word
             # characters or hyphens.
             #
-            $value =~ s/^~[\w-]+/Expand_Tilde $&/e;
-            if ($value =~ /^~([\w-]+)/) {
+            $value =~ s/(?:^|:)~[\w-]+/Expand_Tilde $&/eg;
+            if ($value =~ /(?:^|:)~([\w-]+)/) {
                 &$ERROR("Error expanding \"~$1\", line $.\n");
             }
-            elsif ($value =~ /^~/) {
+            elsif ($value =~ /(?:^|:)~/) {
                 &$ERROR("Standalone \"~\" not expanded, line $.\n");
             }
 
@@ -1792,7 +1793,7 @@ sub Get_Config($) {
                     #
                     # URLs are no longer supported
                     #
-                    if ($value =~ m<^(ftp|http)://>) {
+                    if ($value =~ m<^(?:ftp|http)://>) {
                         &$ERROR("URLs are no longer supported, line $.\n");
                     }
                     #
@@ -2283,7 +2284,7 @@ sub Get_Config($) {
 #           # an absolute pathname.
 #           #
 #           $value->{dir} =~ s/^~[\w-]+/Expand_Tilde $&/e;
-#           if ($value->{dir} =~ /^~([\w-]+)/) {
+#           if ($value->{dir} =~ /^~(?:[\w-]+)/) {
 #               &$ERROR("Error expanding \"~$1\", line $.\n");
 #           }
 #           elsif ($value->{dir} =~ /^~/) {
