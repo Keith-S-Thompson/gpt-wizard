@@ -1,9 +1,9 @@
-# $Id: ds002-nmi-8.0alpha1-globus.gptw,v 1.3 2005-09-21 19:06:45-07 kst Exp $
+# $Id: ds002-nmi-8.0alpha1-globus.gptw,v 1.4 2005-09-22 16:13:43-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002-nmi-8.0alpha1-globus.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.3 $
+CONFIG_FILE_REVISION    $Revision: 1.4 $
 
-PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
+PATH /users/sdsc/kst/local/apps/tar-1.15.1/bin:/opt/freeware/bin:/usr/vac/bin:/usr/bin
 
 TEMP_DIR /gpfs/kst # not enough room in /tmp
 
