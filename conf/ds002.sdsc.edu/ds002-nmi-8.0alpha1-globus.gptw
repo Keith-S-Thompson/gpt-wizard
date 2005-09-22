@@ -1,7 +1,7 @@
-# $Id: ds002-nmi-8.0alpha1-globus.gptw,v 1.4 2005-09-22 16:13:43-07 kst Exp $
+# $Id: ds002-nmi-8.0alpha1-globus.gptw,v 1.5 2005-09-22 16:15:21-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002-nmi-8.0alpha1-globus.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.4 $
+CONFIG_FILE_REVISION    $Revision: 1.5 $
 
 PATH /users/sdsc/kst/local/apps/tar-1.15.1/bin:/opt/freeware/bin:/usr/vac/bin:/usr/bin
 
@@ -9,6 +9,6 @@ TEMP_DIR /gpfs/kst # not enough room in /tmp
 
 GLOBUS_LOCATION /gpfs/kst/apps/nmi-8.0alpha1-globus
 
-GPT_TARBALL ~kst/NMI/8.0alpha1/tools/gpt-3.2autotools2004-NMI-8.0-dbg.tar.gz
+GPT_TARBALL ~kst/NMI/8.0alpha1/tools/gpt-3.2autotools2004-NMI-8.0.tar.gz
 
 BUNDLE ~kst/NMI/8.0alpha1/power-ibm_aix-5.2/gpt-bundles/NMI-all-8.0-power-ibm_aix-5.2-bin.tar.gz kind=binary
