@@ -1,9 +1,10 @@
-# $Id: rocks-121-nmi-8.0alpha1.gptw,v 1.1 2005-09-22 02:00:40-07 kst Exp $
+# $Id: rocks-121-nmi-8.0alpha1.gptw,v 1.2 2005-09-22 15:28:07-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-121.sdsc.edu/rocks-121-nmi-8.0alpha1.gptw,v $
 
-CONFIG_FILE_REVISION $Revision: 1.1 $
+CONFIG_FILE_REVISION $Revision: 1.2 $
 
-PATH  /usr/bin:/bin
+PATH /usr/bin:/bin:/usr/java/j2sdk1.4.2_04/bin
+ENV JAVA_HOME=/usr/java/j2sdk1.4.2_04
 
 GLOBUS_LOCATION    /usr/local/apps/nmi-8.0alpha1
 GLOBUS_LOCAL_DIRECTORY /var/globus/nmi-8.0alpha1
