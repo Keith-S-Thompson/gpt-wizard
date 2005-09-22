@@ -1,0 +1,14 @@
+# $Id: rocks-121-nmi-8.0alpha1-tar-bug.gptw,v 1.1 2005-09-22 15:30:14-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-121.sdsc.edu/rocks-121-nmi-8.0alpha1-tar-bug.gptw,v $
+
+CONFIG_FILE_REVISION $Revision: 1.1 $
+
+PATH /home/kst/local/apps/tar-1.13/bin:/usr/bin:/bin:/usr/java/j2sdk1.4.2_04/bin
+ENV JAVA_HOME=/usr/java/j2sdk1.4.2_04
+
+GLOBUS_LOCATION    /usr/local/apps/nmi-8.0alpha1-tar-bug
+GLOBUS_LOCAL_DIRECTORY /var/globus/nmi-8.0alpha1-tar-bug
+
+GPT_TARBALL ~kst/NMI/8.0alpha1/tools/gpt-3.2autotools2004-NMI-8.0.tar.gz
+
+BUNDLE ~kst/NMI/8.0alpha1/x86-redhat_advanced_server-3/gpt-bundles/NMI-all-8.0-x86-redhat_advanced_server-3-bin.tar.gz kind=binary
