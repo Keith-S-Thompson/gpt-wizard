@@ -1,0 +1,14 @@
+# $Id: ds002-nmi-7.0-tar-bug.gptw,v 1.1 2005-09-22 17:28:46-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002-nmi-7.0-tar-bug.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
+
+TEMP_DIR /gpfs/kst # not enough room in /tmp
+
+GLOBUS_LOCATION /gpfs/kst/apps/nmi-7.0-tar-bug
+
+GPT_TARBALL ~kst/NMI/7.0/tools/gpt-3.2autotools2004-NMI-7.0.tar.gz
+
+BUNDLE ~kst/NMI/7.0/power-ibm_aix-5.2/gpt-bundles/NMI-all-7.0-power-ibm_aix-5.2-bin.tar.gz kind=binary
