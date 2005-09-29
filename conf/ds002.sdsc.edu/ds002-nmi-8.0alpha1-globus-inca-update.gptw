@@ -1,0 +1,19 @@
+# $Id: ds002-nmi-8.0alpha1-globus-inca-update.gptw,v 1.1 2005-09-28 20:23:24-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002-nmi-8.0alpha1-globus-inca-update.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+IS_UPDATE 1
+
+# PATH /users/sdsc/kst/local/apps/tar-1.15.1/bin:/opt/freeware/bin:/usr/vac/bin:/usr/bin
+PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
+
+TEMP_DIR /gpfs/kst # not enough room in /tmp
+
+GLOBUS_LOCATION /gpfs/kst/apps/nmi-8.0alpha1-globus
+
+# GPT_TARBALL /gpfs/kst/NMI/8.0alpha1/tools/gpt-3.2autotools2004-NMI-8.0.tar.gz
+
+# BUNDLE /gpfs/kst/NMI/8.0alpha1/power-ibm_aix-5.2/gpt-bundles/individual-components/globus-NMI-8.0-power-ibm_aix-5.2-bin.tar.gz kind=binary
+BUNDLE /gpfs/kst/NMI/inca-build-12301/inca_client-NMI-8.0-powerpc-ibm-aix5.2.0.0-bin.tar.gz kind=binary
+BUNDLE /gpfs/kst/NMI/inca-build-12301/inca_server-NMI-8.0-powerpc-ibm-aix5.2.0.0-bin.tar.gz kind=binary
