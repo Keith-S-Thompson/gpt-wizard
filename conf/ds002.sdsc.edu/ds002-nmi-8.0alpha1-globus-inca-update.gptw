@@ -1,12 +1,13 @@
-# $Id: ds002-nmi-8.0alpha1-globus-inca-update.gptw,v 1.1 2005-09-28 20:23:24-07 kst Exp $
+# $Id: ds002-nmi-8.0alpha1-globus-inca-update.gptw,v 1.2 2005-09-28 21:22:31-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/ds002.sdsc.edu/ds002-nmi-8.0alpha1-globus-inca-update.gptw,v $
 
-CONFIG_FILE_REVISION    $Revision: 1.1 $
+CONFIG_FILE_REVISION    $Revision: 1.2 $
 
 IS_UPDATE 1
 
 # PATH /users/sdsc/kst/local/apps/tar-1.15.1/bin:/opt/freeware/bin:/usr/vac/bin:/usr/bin
-PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin
+PATH /opt/freeware/bin:/usr/vac/bin:/usr/bin:/usr/java14_64/jre/bin
+ENV JAVA_HOME=/usr/java14_64/jre
 
 TEMP_DIR /gpfs/kst # not enough room in /tmp
 
