@@ -1,0 +1,17 @@
+# $Id: rocks-121-nmi-8.0alpha1-srb-update.gptw,v 1.1 2005-10-04 17:28:47-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-121.sdsc.edu/rocks-121-nmi-8.0alpha1-srb-update.gptw,v $
+
+CONFIG_FILE_REVISION $Revision: 1.1 $
+
+IS_UPDATE 1
+
+PATH /usr/bin:/bin:/usr/java/j2sdk1.4.2_04/bin
+ENV JAVA_HOME=/usr/java/j2sdk1.4.2_04
+
+GLOBUS_LOCATION    /usr/local/apps/nmi-8.0alpha1
+# GLOBUS_LOCAL_DIRECTORY /var/globus/nmi-8.0alpha1
+
+# GPT_TARBALL ~kst/NMI/8.0alpha1/tools/gpt-3.2autotools2004-NMI-8.0.tar.gz
+
+# BUNDLE ~kst/NMI/8.0alpha1/x86-redhat_advanced_server-3/gpt-bundles/NMI-all-8.0-x86-redhat_advanced_server-3-bin.tar.gz kind=binary
+BUNDLE /var/ftp/pub/NMI/srb/nmi-8/srb-3.3.1.patched.nmi8.tar.gz kind=source flavor=gcc32
