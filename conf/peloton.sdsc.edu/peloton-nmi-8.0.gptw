@@ -1,0 +1,12 @@
+# $Id: peloton-nmi-8.0.gptw,v 1.1 2005-10-22 21:44:32-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/peloton.sdsc.edu/peloton-nmi-8.0.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /bin:/usr/bin
+
+GLOBUS_LOCATION        ~kst/local/apps/nmi-8.0
+
+GPT_TARBALL ~kst/NMI/8.0/tools/gpt-3.2autotools2004-NMI-8.0.tar.gz
+
+BUNDLE ~kst/NMI/8.0/power-apple-macos-10.3/gpt-bundles/NMI-all-8.0-power-power-apple-macos-10.3-bin.tar.gz kind=binary
