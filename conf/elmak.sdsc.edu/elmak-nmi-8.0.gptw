@@ -1,0 +1,16 @@
+# $Id: elmak-nmi-8.0.gptw,v 1.1 2005-12-12 17:13:04-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/elmak.sdsc.edu/elmak-nmi-8.0.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+.PARAM APPS /users/u4/kst/solaris9/apps
+
+PATH $APPS/tar-1.15.1/bin:$APPS/make-3.80/bin:/usr/local/apps/perl-5.8.6/bin:/usr/bin:/usr/ccs/bin:/opt/SUNWspro/bin:/usr/local/bin
+ENV LD_LIBRARY_PATH=/users/u4/kst/solaris9/lib:/usr/lib:/usr/local/lib
+
+GLOBUS_LOCATION /projects/globus/globus/solaris9/apps/nmi-8.0
+GLOBUS_LOCAL_DIRECTORY /scratch/slocal/globus/var/nmi-8.0
+
+GPT_TARBALL ~kst/NMI/8.0/tools/gpt-3.2autotools2004-NMI-8.0.tar.gz
+
+BUNDLE ~kst/NMI/8.0/sparc-solaris-9/gpt-bundles/NMI-all-8.0-sparc-solaris-9-bin.tar.gz kind=binary
