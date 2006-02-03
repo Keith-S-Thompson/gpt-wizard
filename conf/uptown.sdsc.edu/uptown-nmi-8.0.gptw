@@ -1,0 +1,13 @@
+# $Id: uptown-nmi-8.0.gptw,v 1.1 2006-02-02 18:28:53-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/uptown.sdsc.edu/uptown-nmi-8.0.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+PATH /usr/bin:/bin
+
+GLOBUS_LOCATION /usr/local/apps/nmi-8.0
+GLOBUS_LOCAL_DIRECTORY /var/globus/nmi-8.0
+
+GPT_TARBALL ~kst/NMI/8.0/tools/gpt-3.2autotools2004-NMI-8.0.tar.gz
+
+BUNDLE ~kst/NMI/8.0/x86-redhat_advanced_server-3/gpt-bundles/NMI-all-8.0-x86-redhat_advanced_server-3-bin.tar.gz kind=binary
