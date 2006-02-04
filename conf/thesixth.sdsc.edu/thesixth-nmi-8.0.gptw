@@ -1,0 +1,16 @@
+# $Id: thesixth-nmi-8.0.gptw,v 1.1 2006-02-03 16:48:06-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/thesixth.sdsc.edu/thesixth-nmi-8.0.gptw,v $
+
+CONFIG_FILE_REVISION    $Revision: 1.1 $
+
+.PARAM APPS /usr/local/apps
+
+PATH $APPS/tar-1.13/bin:$APPS/make-3.79.1/bin:$APPS/perl-5.8.6/bin:/usr/bin:/usr/ccs/bin:/opt/SUNWspro/bin
+ENV LD_LIBRARY_PATH=/usr/lib:/usr/local/lib
+
+GLOBUS_LOCATION $APPS/nmi-8.0
+GLOBUS_LOCAL_DIRECTORY /var/globus/nmi-8.0
+
+GPT_TARBALL ~kst/NMI/8.0/tools/gpt-3.2autotools2004-NMI-8.0.tar.gz
+
+BUNDLE ~kst/NMI/8.0/sparc-solaris-9/gpt-bundles/NMI-all-8.0-sparc-solaris-9-bin.tar.gz kind=binary
