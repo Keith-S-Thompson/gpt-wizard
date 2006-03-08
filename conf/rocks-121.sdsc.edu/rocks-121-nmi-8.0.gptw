@@ -1,7 +1,7 @@
-# $Id: rocks-121-nmi-8.0.gptw,v 1.1 2006-03-07 21:49:10-08 kst Exp $
+# $Id: rocks-121-nmi-8.0.gptw,v 1.2 2006-03-07 21:49:49-08 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-121.sdsc.edu/rocks-121-nmi-8.0.gptw,v $
 
-CONFIG_FILE_REVISION $Revision: 1.1 $
+CONFIG_FILE_REVISION $Revision: 1.2 $
 
 PATH /usr/bin:/bin:/usr/java/j2sdk1.4.2_04/bin
 ENV JAVA_HOME=/usr/java/j2sdk1.4.2_04
@@ -11,4 +11,4 @@ GLOBUS_LOCAL_DIRECTORY /var/globus/nmi-8.0
 
 GPT_TARBALL ~kst/NMI/8.0/tools/gpt-3.2autotools2004-NMI-8.0.tar.gz
 
-BUNDLE ~NMI/8.0/x86-redhat_advanced_server-3/gpt-bundles/NMI-all-8.0-x86-redhat_advanced_server-3-bin.tar.gz kind=binary
+BUNDLE ~kst/NMI/8.0/x86-redhat_advanced_server-3/gpt-bundles/NMI-all-8.0-x86-redhat_advanced_server-3-bin.tar.gz kind=binary
