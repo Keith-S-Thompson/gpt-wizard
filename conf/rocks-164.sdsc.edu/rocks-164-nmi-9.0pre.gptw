@@ -1,0 +1,19 @@
+# $Id: rocks-164-nmi-9.0pre.gptw,v 1.1 2006-03-13 17:26:44-08 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-164.sdsc.edu/rocks-164-nmi-9.0pre.gptw,v $
+
+CONFIG_FILE_REVISION $Revision: 1.1 $
+
+PATH /usr/bin:/bin:/usr/java/jdk1.5.0/bin
+ENV JAVA_HOME=/usr/java/jdk1.5.0
+
+GLOBUS_LOCATION    /usr/local/apps/nmi-9.0pre
+GLOBUS_LOCAL_DIRECTORY /var/globus/nmi-9.0pre
+
+GPT_TARBALL ~kst/NMI/9.0pre/gpt/gpt-3.2autotools2004-NMI-9.0.tar.gz
+
+#
+# Globus, APST, SRBclient
+#
+BUNDLE ~kst/NMI/9.0pre/globus/build-20047/globus-NMI-9.0-x86_64-unknown-linux-gnu-bin.tar.gz kind=binary
+BUNDLE ~kst/NMI/9.0pre/apst/build-20211/apst-NMI-9.0-x86_64-unknown-linux-gnu-bin.tar.gz     kind=binary
+BUNDLE ~kst/NMI/9.0pre/srbclient/build-20273/srb-NMI-9.0-x86_64-unknown-linux-gnu-bin.tar.gz kind=binary
