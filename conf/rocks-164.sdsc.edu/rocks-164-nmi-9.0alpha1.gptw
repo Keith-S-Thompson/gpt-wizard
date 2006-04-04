@@ -1,0 +1,14 @@
+# $Id: rocks-164-nmi-9.0alpha1.gptw,v 1.1 2006-04-04 16:32:09-07 kst Exp $
+# $Source: /home/kst/CVS_smov/tools/gpt-wizard/conf/rocks-164.sdsc.edu/rocks-164-nmi-9.0alpha1.gptw,v $
+
+CONFIG_FILE_REVISION $Revision: 1.1 $
+
+PATH /usr/bin:/bin:/usr/java/jdk1.5.0/bin
+ENV JAVA_HOME=/usr/java/jdk1.5.0
+
+GLOBUS_LOCATION    /usr/local/apps/nmi-9.0alpha1
+GLOBUS_LOCAL_DIRECTORY /var/globus/nmi-9.0alpha1
+
+GPT_TARBALL ~kst/NMI/9.0alpha1/tools/gpt-3.2autotools2004-NMI-8.0.tar.gz
+
+BUNDLE ~kst/NMI/9.0alpha1/x86_64-redhat_advanced_server-4/gpt-bundles/NMI-all-9.0-x86_64-redhat_advanced_server-4-bin.tar.gz kind=binary
