@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Id: gpt-wizard,v 1.321 2005-09-22 16:52:16-07 kst Exp $
+# $Id: gpt-wizard,v 1.322 2006-07-14 16:48:54-07 kst Exp $
 # $Source: /home/kst/CVS_smov/tools/gpt-wizard/gpt-wizard,v $
 
 ########################################################################
@@ -226,7 +226,7 @@ my $Release_Revision = '1.303'; # RCS/CVS revision of most recent release
 
 my @Saved_ARGV        = @ARGV;
 my $Program_Name      = File::Basename::basename $0;
-my $Revision          = Strip_Revision_String '$Revision: 1.321 $';
+my $Revision          = Strip_Revision_String '$Revision: 1.322 $';
 my %Opt = ( 'gpt-verbose' => 1,
             postinstall   => 1 );
 my @Opts = ( \%Opt, qw( help!
@@ -565,7 +565,7 @@ else {
 }
 
 ########################################
-# Run build_gpt to install GPT
+# Run build_gpt (or build_gpt.pl) to install GPT
 ########################################
 if (not $Config{IS_UPDATE} and not $Opt{'aix-kludge'}) {
     #
@@ -576,7 +576,21 @@ if (not $Config{IS_UPDATE} and not $Opt{'aix-kludge'}) {
     # (The "delete $ENV{LANG} is no longer necessary; Scrub_Env takes
     # care of it.)
     # delete $ENV{LANG};
-    Execute @As_Installer, './build_gpt';
+    #
+
+    #
+    # Check for both build_gpt and build_gpt.pl.
+    # See <http://bugzilla.ncsa.uiuc.edu/show_bug.cgi?id=338>.
+    #
+    if (-x 'build_gpt') {
+        Execute @As_Installer, './build_gpt';
+    }
+    elsif (-x 'build_gpt.pl') {
+        Execute @As_Installer, './build_gpt.pl';
+    }
+    else {
+        die "No command build_gpt or build_gpt.pl\n";
+    }
 
     Change_Dir $working_dir;
 }
