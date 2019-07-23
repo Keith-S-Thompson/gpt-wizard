@@ -32,4 +32,4 @@ is no longer valid.  My personal email address is
 <Keith.S.Thompson@gmail.com>.
 
 This is `README.md`, created to go with this Git repo.  The `README`
-file was part of the released too, and was last updated in 2004.
+file was part of the released tool, and was last updated in 2004.
