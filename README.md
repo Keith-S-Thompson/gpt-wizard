@@ -7,19 +7,15 @@ no longer exists.  The `releases/` directory contains `*.tar.gz`
 releases of the tool.
 
 The script I used to translate from CVS to Git is a work in progress.
-In particular, CVS symbolic names (mostly marking releases) that
-were applied to multiple files are applied only to the most recently
-committed file in this git repo.  You can't generally see release tags
-by running `git log` on an individual file, but you can `git checkout`
-a tag and see the files that made up that release.
 
 The `Attic` subdirectory is an artifict of the original CVS repo,
 and contains files that were removed.
 
-`gpt-wizard` was designed to work with releases of Globus as it existed
-when I worked at SDSC up to 2007.  I haven't kept up with Globus
-since leaving SDSC, but gpt-wizard is likely not necessary or useful
-for current Globus releases.
+`gpt-wizard` was designed to work with releases of
+[Globus](https://www.globus.org/) as it existed when I worked at
+SDSC up to 2007.  I haven't kept up with Globus since leaving SDSC.
+`gpt-wizard` is likely not necessary or useful for current Globus
+releases.
 
 I'm making it available here just to show off some work that I've
 done in the past, not with any intent for it to be useful -- though if
