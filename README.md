@@ -1,4 +1,4 @@
-UPDATE Mon 2019-07-22
+UPDATE Tue 2019-07-23
 
 This is a copy of the gpt-wizard sources, translated
 from CVS to Git.  The original web page for the project,
