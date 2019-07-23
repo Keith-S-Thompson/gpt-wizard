@@ -2,7 +2,9 @@ UPDATE Mon 2019-07-22
 
 This is a copy of the gpt-wizard sources, translated
 from CVS to Git.  The original web page for the project,
-    http://users.sdsc.edu/~kst/gpt-wizard
+
+    https://users.sdsc.edu/~kst/gpt-wizard/
+
 no longer exists.  The `releases/` directory contains `*.tar.gz`
 releases of the tool.
 
