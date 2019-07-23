@@ -1,6 +1,6 @@
-UPDATE Tue 2019-07-23
+**UPDATE Tue 2019-07-23**
 
-This is a copy of the gpt-wizard sources, translated
+This is a copy of the `gpt-wizard` sources, translated
 from CVS to Git.  The original web page for the project,
 
 https://users.sdsc.edu/~kst/gpt-wizard/
@@ -10,7 +10,7 @@ releases of the tool.
 
 The script I used to translate from CVS to Git is a work in progress.
 
-The `Attic` subdirectory is an artifict of the original CVS repo,
+The `Attic` subdirectory is an artifact of the original CVS repo,
 and contains files that were removed.
 
 `gpt-wizard` was designed to work with releases of
@@ -23,7 +23,7 @@ I'm making it available here just to show off some work that I've
 done in the past, not with any intent for it to be useful -- though if
 someone can make some use of it, that's great.  (There are certainly
 things I'd change if I were still working on it, starting with running
-it through perlcritic.)
+it through `perlcritic`.)
 
 My email address listed in the documentation, <kst@sdsc.edu>,
 is no longer valid.  My personal email address is
