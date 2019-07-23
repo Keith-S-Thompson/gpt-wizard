@@ -13,6 +13,9 @@ committed file in this git repo.  You can't generally see release tags
 by running `git log` on an individual file, but you can `git checkout`
 a tag and see the files that made up that release.
 
+The `Attic` subdirectory is an artifict of the original CVS repo,
+and contains files that were removed.
+
 `gpt-wizard` was designed to work with releases of Globus as it existed
 when I worked at SDSC up to 2007.  I haven't kept up with Globus
 since leaving SDSC, but gpt-wizard is likely not necessary or useful
